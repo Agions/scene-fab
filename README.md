@@ -13,7 +13,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![Qt](https://img.shields.io/badge/Qt-6.5+-41?style=for-the-badge&logo=qt)](https://www.qt.io/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-silver?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Agions/Voxplore)
-[![v4.0.0](https://img.shields.io/badge/v4.0.0-10B981?style=for-the-badge)](https://github.com/Agions/Voxplore/releases)
+[![v1.0.0](https://img.shields.io/badge/v1.0.0-10B981?style=for-the-badge)](https://github.com/Agions/Voxplore/releases)
 
 **免费 · 开源 · 跨平台**
 
@@ -23,7 +23,7 @@
 
 ## 🎯 一句话定位
 
-> **Voxplore** v4.0 — 多视频智能合并解说专家。批量上传 → AI 视觉+声纹混合分组 → 第一人称片段提取 → 模块化成品输出，让短剧/影视/vlog 一键变成"我在现场"的专业叙事视频。
+> **Voxplore** v1.0 — 多视频智能合并解说专家。批量上传 → AI 视觉+声纹混合分组 → 第一人称片段提取 → 模块化成品输出，让短剧/影视/vlog 一键变成"我在现场"的专业叙事视频。
 
 ---
 
@@ -77,7 +77,7 @@
 
 ---
 
-## 🖥️ 全新 UI（v4.0 新设计）
+## 🖥️ 全新 UI（v1.0 新设计）
 
 简约科技风桌面端，基于 **PySide6 + OKLCH Design System**：
 
