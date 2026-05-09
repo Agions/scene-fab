@@ -8,12 +8,12 @@
 
 **批量上传视频 · AI 自动分组选段 · 一键生成电影感配音解说**
 
-[![Stars](https://img.shields.io/github/stars/Agions/Voxplore?style=for-the-badge&logo=github&color=F59E0B)](https://github.com/Agions/Voxplore/stargazers)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensource)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Qt](https://img.shields.io/badge/Qt-6.5+-41?style=for-the-badge&logo=qt)](https://www.qt.io/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-silver?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/Agions/Voxplore)
-[![v1.0.0](https://img.shields.io/badge/v1.0.0-10B981?style=for-the-badge)](https://github.com/Agions/Voxplore/releases)
+[![Stars](https://img.shields.io/github/stars/Agions/Voxplore?style=flat-square)](https://github.com/Agions/Voxplore/stargazers)
+[![License](https://img.shields.io/github/license/Agions/Voxplore?style=flat-square)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
+[![Qt](https://img.shields.io/badge/Qt-6.5+-41C845?style=flat-square&logo=qt)](https://www.qt.io/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-silver?style=flat-square&logo=linux)](https://github.com/Agions/Voxplore)
+[![v1.0.0](https://img.shields.io/badge/v1.0.0-10B981?style=flat-square)](https://github.com/Agions/Voxplore/releases)
 
 **免费 · 开源 · 跨平台**
 
