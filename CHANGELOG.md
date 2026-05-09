@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-05-09
+
+### 🐛 Bug Fixes
+
+- 修复 CI/CD workflow 配置问题
+- 移除代码中的未使用变量和无效 f-string 前缀
+- 修正 README.md 中的 logo 图片路径
+
+### 📝 Documentation
+
+- 更新 badges 使用标准 flat-square 样式
+- 修正 logo 图片路径
+
+---
+
 ## [1.0.0] - 2026-05-09
 
 > 此版本汇总了 Voxplore 从初始化到 v4.x 的所有历史变更，作为 1.0.0 基线版本归档。
