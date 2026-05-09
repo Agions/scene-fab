@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Voxplore Logo](docs/public/logo-200.png)
+![Voxplore Logo](docs/logo-200.jpg)
 
 ### AI First-Person Video Narrator
 
