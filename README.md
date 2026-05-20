@@ -1,222 +1,138 @@
 # Voxplore
 
-> **AI 影视解说工具** — 第一人称视角视频创作平台，让你的故事更有电影感
+**AI First-Person Video Narrator — 多视频智能合并解说专家**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Stars](https://img.shields.io/github/stars/Agions/Voxplore?style=social)](https://github.com/Agions/Voxplore)
-
----
-
-## 🎯 项目简介
-
-Voxplore 是一款专注于**第一人称视角视频解说**的 AI 工具。用户上传视频，AI 自动提取 POV 镜头，生成电影感解说配音。
-
-**典型场景**：旅游 vlog、游戏集锦、运动相机 footage、生活记录
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
+[![PySide6](https://img.shields.io/badge/Qt-6.5+-41C845?style=flat-square&logo=qt)](https://qt.io/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-silver?style=flat-square)](https://github.com/Agions/Voxplore)
+[![Releases](https://img.shields.io/badge/v1.0.1-10B981?style=flat-square)](https://github.com/Agions/Voxplore/releases)
 
 ---
 
-## ✨ 核心特性
+## 定位
 
-| 特性 | 说明 |
-|:----:|------|
-| 🎬 **第一人称提取** | 自动识别并提取视频中的 POV / 主观镜头 |
-| 🎭 **7 种情感风格** | 治愈 / 悬疑 / 励志 / 怀旧 / 浪漫 / 幽默 / 纪录片 |
-| 🎙️ **智能配音** | Edge-TTS 高质量神经网络语音合成 |
-| 📝 **精准字幕** | 50ms 精度时间轴对齐，支持 SRT/VTT/LRC |
-| 📦 **剪映导出** | 原生草稿格式，一键导入剪映编辑 |
-| 💾 **断点续传** | 任务暂停/恢复，无惧中途打断 |
-| 🔒 **本地处理** | 视频永不上传，隐私安全无忧 |
-| 💰 **低成本** | 集成 DeepSeek-V4 API，< ¥0.01 / 视频 |
+> **Voxplore** — 批量上传视频，AI 自动分组选段，一键生成电影感第一人称配音解说。
+>
+> 短剧 / 影视 / Vlog，一键变成"我在现场"的专业叙事视频。
+
+**成本**：< ¥0.01 / 视频（DeepSeek-V4）  
+**隐私**：视频永不上传云端，全本地处理
 
 ---
 
-## 🚀 快速开始
+## 核心能力
 
-### 1. 安装依赖
+| 能力 | 说明 |
+|------|------|
+| 🎬 **多视频智能合并** | 批量上传，AI 视觉+声纹混合分组，避免同一人重复解说 |
+| 👤 **第一人称片段提取** | Qwen2.5-VL 逐帧分析，提取"我"的视角高光片段（9–60 秒） |
+| 💡 **情感峰值驱动选段** | 叙事完整优先 + 情感峰值加权排序 |
+| 🎙️ **7 种情感风格** | 治愈 / 悬疑 / 励志 / 怀旧 / 浪漫 / 幽默 / 纪录片 |
+| ✍️ **精准字幕** | TTS word-level，音字同步 50ms 精度 |
+| 📦 **模块化成品输出** | 合并版（完整叙事）+ 高光片段（单独分发）|
+| 🖥️ **剪映草稿导出** | 原生 JSON，无缝导入剪映继续精剪 |
+| 🌐 **全本地运行** | 视频永不上传云端 |
+
+---
+
+## 4 步创作流程
+
+```
+批量上传视频（文件夹 / Ctrl 多选）
+    │
+    ▼
+┌────────────────────────────────────────────┐
+│  Step 1 · 场景理解                           │
+│  Qwen2.5-VL 逐帧分析，提取"我"的主体视角       │
+└────────────────────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────────────────────┐
+│  Step 2 · 智能分组                           │
+│  视觉 embedding（0.7）+ 声纹（0.3）混合相似度  │
+└────────────────────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────────────────────┐
+│  Step 3 · 叙事选段                           │
+│  叙事完整优先 + 情感峰值驱动                   │
+│  悬疑铺垫 → 剧情高潮 → 情感共鸣               │
+└────────────────────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────────────────────┐
+│  Step 4 · 解说生成 + 导出                     │
+│  DeepSeek-V4 + Edge-TTS / F5-TTS            │
+│  MP4（H.264/H.265）/ 剪映草稿 JSON            │
+└────────────────────────────────────────────┘
+```
+
+---
+
+## 技术栈
+
+| 模块 | 模型 / 技术 | 说明 |
+|------|-----------|------|
+| 智能分组 | **Qwen2.5-VL** + 声纹 | 视觉 0.7 + 音频 0.3 混合相似度 |
+| 第一人称提取 | **Qwen2.5-VL** | 逐帧分析，主体视角判断 |
+| 解说生成 | **DeepSeek-V4** | 第一人称视角，7 种预设风格 |
+| 语音识别 | **SenseVoice** | 阿里 FunAudioLLM，本地 ASR |
+| 配音合成 | **Edge-TTS** · **F5-TTS** | Edge 主流低延迟，F5 音色克隆 |
+| 字幕 | TTS word-level timing | 50ms 以内精度 |
+| UI 框架 | **PySide6** Qt 6.5+ | OKLCH Design System |
+
+---
+
+## 快速开始
+
+### 下载安装包
+
+访问 [Releases](https://github.com/Agions/Voxplore/releases/latest) 下载 Windows `.exe` / macOS `.dmg` / Linux `.AppImage`。
+
+### 从源码运行
 
 ```bash
 git clone https://github.com/Agions/Voxplore.git
 cd Voxplore
 pip install -r requirements.txt
+python app/main.py
 ```
 
-### 2. 配置 API Key
-
-创建 `.env` 文件：
+### 配置 AI（最低只需一个 Key）
 
 ```bash
-# AI 服务（必须）
-DEEPSEEK_API_KEY=sk-your-deepseek-api-key
-DASHSCOPE_API_KEY=your-dashscope-api-key
+# DeepSeek（解说生成主力，推荐）
+export DEEPSEEK_API_KEY="sk-..."
 
-# 可选配置
-VOXPLORE_CACHE_DIR=~/.cache/voxplore   # 缓存目录
-VOXPLORE_OUTPUT_DIR=./output            # 输出目录
-```
+# 阿里云百炼（视频理解，备选）
+export DASHSCOPE_API_KEY="..."
 
-> 💡 API Key 申请：[DeepSeek](https://platform.deepseek.com/) · [阿里云 DashScope](https://dashscope.console.aliyun.com/)
-
-### 3. 命令行使用
-
-```bash
-# 分析视频，查看第一人称片段
-python -m voxplore analyze video.mp4
-
-# 检测所有场景
-python -m voxplore analyze video.mp4 --scenes
-
-# 处理视频（生成解说）
-python -m voxplore process video.mp4 --style documentary --emotion neutral
-
-# 批量处理
-python -m voxplore batch "*.mp4"
-
-# 导出为剪映草稿
-python -m voxplore process video.mp4 --export --format jianying
-```
-
-### 4. Python API
-
-```python
-from voxplore.pipeline import VoxplorePipeline, PipelineConfig
-from voxplore.models import NarrationStyle, EmotionType
-
-# 创建流水线
-config = PipelineConfig(
-    min_segment_duration=9.0,   # 最小片段（秒）
-    max_segment_duration=60.0,  # 最大片段（秒）
-)
-pipeline = VoxplorePipeline(config)
-
-# 处理视频
-project = pipeline.process(
-    video_path="video.mp4",
-    context="这是一段关于云南旅行的记录",
-    emotion=EmotionType.NEUTRAL,
-    style=NarrationStyle.DOCUMENTARY,
-    voice="zh-CN-XiaoxiaoNeural",
-)
-
-print(f"✅ 提取片段: {len(project.segments)}")
-print(f"✅ 解说块:   {len(project.narration_blocks)}")
+# 不配置时：Edge-TTS 配音合成等基础功能仍可正常使用
 ```
 
 ---
 
-## 📁 项目结构
+## 文档
 
-```
-voxplore/
-├── __init__.py
-├── config.py           # 配置管理
-├── core.py             # 核心模块（事件总线、服务容器）
-├── models.py           # 数据模型定义
-├── video.py            # 视频处理
-├── ai_services.py      # AI 服务（LLM / 视觉 / TTS / ASR）
-├── pipeline.py         # 处理流水线
-├── exporters.py        # 导出服务（剪映 / 字幕）
-├── task_manager.py     # 任务管理（断点续传）
-└── cli.py              # 命令行界面
-```
+| 文档 | 说明 |
+|------|------|
+| [快速开始](docs/guide/quick-start.md) | 5 分钟上手 |
+| [功能详解](docs/features.md) | 全部功能说明 |
+| [AI 模型配置](docs/ai-models.md) | 各模型配置指南 |
+| [配置参考](docs/config.md) | 环境变量与配置文件 |
+| [常见问题](docs/faq.md) | FAQ 与疑难排查 |
 
 ---
 
-## ⚙️ 配置说明
+## 许可证
 
-编辑 `config/app_config.yaml`：
-
-```yaml
-app:
-  name: "Voxplore"
-  version: "2.0.0"
-
-cache:
-  enabled: true
-  max_size: 100
-  ttl: 3600
-
-video:
-  min_segment_duration: 9.0    # 最小片段时长（秒）
-  max_segment_duration: 60.0   # 最大片段时长（秒）
-  frame_sample_interval: 1.0   # 帧采样间隔（秒）
-  min_confidence: 0.6         # 最低置信度
-
-tts:
-  provider: "edge"             # edge / f5
-  voice: "zh-CN-XiaoxiaoNeural"
-  rate: 1.0
-
-llm_providers:
-  deepseek:
-    enabled: true
-    api_key: "${DEEPSEEK_API_KEY}"
-    base_url: "https://api.deepseek.com"
-    model: "deepseek-v4"
-```
+[MIT License](LICENSE) · Copyright © 2025-2026 [Agions](https://github.com/Agions)
 
 ---
 
-## 🎨 情感风格
+<div align="center">
 
-| 风格 | 语气 | 适用场景 |
-|:----:|:----:|:---------|
-| 治愈 | 🌡️ 温暖 | 日常生活记录 |
-| 悬疑 | 🔍 神秘 | 剧情紧张片段 |
-| 励志 | 💪 激昂 | 高光时刻 |
-| 怀旧 | 📼 平静 | 回忆场景 |
-| 浪漫 | 💕 温柔 | 情感戏 |
-| 幽默 | 😂 活泼 | 搞笑片段 |
-| 纪录片 | 🎙️ 沉稳 | 说明性内容 |
+⭐ 如果 Voxplore 对你有帮助，请给一个 Star
 
----
-
-## 📦 导出格式
-
-### 剪映草稿
-
-导出为原生剪映草稿格式，可直接导入剪映编辑：
-
-```python
-from voxplore.exporters import JianyingExporter
-
-exporter = JianyingExporter()
-draft_path = exporter.export(project, output_dir="./output")
-print(f"草稿已导出: {draft_path}")
-```
-
-### 字幕格式
-
-```python
-from voxplore.exporters import SubtitleExporter
-
-# 多种格式一键导出
-SubtitleExporter.export_srt(project.subtitles, "output.srt")
-SubtitleExporter.export_vtt(project.subtitles, "output.vtt")
-SubtitleExporter.export_lrc(project.subtitles, "output.lrc")
-```
-
----
-
-## 🛠️ 技术栈
-
-| 领域 | 技术 |
-|:----:|:-----|
-| 🎬 视频处理 | OpenCV, FFmpeg |
-| 🎤 语音识别 | Faster-Whisper |
-| 👁️ 视觉模型 | Qwen2.5-VL |
-| 🤖 LLM | DeepSeek-V4, GPT-4o, Qwen |
-| 🔊 TTS | Edge-TTS, F5-TTS |
-| 📝 字幕 | WhisperX 时间轴对齐 |
-
----
-
-## 📄 许可证
-
-本项目基于 [MIT License](https://opensource.org/licenses/MIT) 开源。
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！如果这个项目对你有帮助，请给我们一个 ⭐
+</div>
