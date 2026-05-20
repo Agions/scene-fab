@@ -21,7 +21,7 @@ jobs:
           cache: 'pip'
       - run: pip install ruff
       - run: |
-          ruff check app/ tests/ --output-format=github \
+          ruff check src/voxplore/ tests/ --output-format=github \
             --ignore E501,F401 \
             --ignore E402 \
             --ignore F541,F811 \
@@ -42,7 +42,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -e ".[dev]"
-      - run: ruff check app/ --select F,E,N,W,B,C4,SIM --ignore E501,F401,B904,N806,N803,SIM102,SIM103,SIM105,SIM108,SIM110,SIM117,SIM118,N812,W292,N802,E701,B007,B027,E402,B905,SIM113,C408,N815,N817,SIM115,B024
+      - run: ruff check src/voxplore/ --select F,E,N,W,B,C4,SIM --ignore E501,F401,B904,N806,N803,SIM102,SIM103,SIM105,SIM108,SIM110,SIM117,SIM118,N812,W292,N802,E701,B007,B027,E402,B905,SIM113,C408,N815,N817,SIM115,B024
 
   test:
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
       - run: pip install -e ".[all,dev]"
       # PySide6 相关测试需要 GUI 环境，CI 中跳过
       - run: |
-          pytest tests/ -v --tb=short --cov=app --cov-report=xml --cov-report=term-missing \
+          pytest tests/ -v --tb=short --cov=voxplore --cov-report=xml --cov-report=term-missing \
             --ignore=tests/test_project_manager.py \
             --ignore=tests/test_application.py \
             --ignore=tests/test_ui_components.py \
@@ -73,5 +73,3 @@ jobs:
           name: coverage-xml
           path: coverage.xml
           retention-days: 5
-
-  # docs are pre-built static HTML, no VitePress build needed
