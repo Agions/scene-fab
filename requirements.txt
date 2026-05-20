@@ -1,0 +1,46 @@
+# Voxplore 依赖列表
+# AI 视频解说工具
+
+# 核心依赖
+numpy>=1.21.0
+Pillow>=9.0.0
+
+# 视频处理
+opencv-python>=4.5.0
+opencv-python-headless>=4.5.0
+ffmpeg-python>=0.2.0
+
+# AI 服务
+requests>=2.28.0
+
+# LLM/视觉 (按需安装)
+# pip install openai      # OpenAI GPT
+# pip install dashscope   # 阿里云百炼
+
+# 语音识别 (按需安装)
+# pip install faster-whisper
+
+# TTS (按需安装)
+# pip install edge-tts
+
+# 音频处理
+librosa>=0.9.0
+
+# 配置管理
+PyYAML>=6.0
+python-dotenv>=1.0.0
+
+# Web 服务 (可选)
+# fastapi>=0.100.0
+# uvicorn>=0.23.0
+
+# 数据科学
+scipy>=1.9.0
+
+# 进度条
+tqdm>=4.65.0
+
+# 开发/测试
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
