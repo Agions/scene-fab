@@ -9,9 +9,14 @@ Pillow>=9.0.0
 opencv-python>=4.5.0
 opencv-python-headless>=4.5.0
 ffmpeg-python>=0.2.0
+decord>=0.6.0  # 快速视频帧提取，比 OpenCV 快 2-3 倍
 
 # AI 服务
 requests>=2.28.0
+
+# 性能优化推荐
+orjson>=3.9.0  # JSON 序列化加速 5-10 倍，比标准 json 快
+psutil>=5.9.0  # 系统资源监控
 
 # LLM/视觉 (按需安装)
 # pip install openai      # OpenAI GPT
