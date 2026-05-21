@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -e ".[dev]"
+      - run: pip install --break-system-packages -e ".[dev]"
       - run: ruff check src/voxplore/ --select F,E,N,W,B,C4,SIM --ignore E501,F401,B904,N806,N803,SIM102,SIM103,SIM105,SIM108,SIM110,SIM117,SIM118,N812,W292,N802,E701,B007,B027,E402,B905,SIM113,C408,N815,N817,SIM115,B024
 
   test:
@@ -55,7 +55,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: 'pip'
-      - run: pip install -e ".[all,dev]"
+      - run: pip install --break-system-packages -e ".[all,dev]"
       # PySide6 相关测试需要 GUI 环境，CI 中跳过
       - run: |
           pytest tests/ -v --tb=short --cov=voxplore --cov-report=xml --cov-report=term-missing \
