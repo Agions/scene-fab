@@ -1,4 +1,4 @@
-# Voxplore Makefile
+# SceneFab Makefile
 # 多系统版本打包工具
 #
 # 使用方法:
@@ -30,7 +30,7 @@ warn    = @echo "$(YELLOW)[WARN]$(NC)  $*"
 
 # ── 默认目标：显示帮助 ─────────────────────────────────────────────
 help:
-	@echo "Voxplore Build System  v$(VERSION)"
+	@echo "SceneFab Build System  v$(VERSION)"
 	@echo ""
 	@echo "使用方式: make <target>"
 	@echo ""
@@ -59,22 +59,22 @@ build:win:
 		exit 1; \
 	fi
 	@powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1 -Version $(VERSION)
-	@echo "$(GREEN)✅ Windows 构建完成: dist/Voxplore-$(VERSION)-windows-x64.zip$(NC)"
+	@echo "$(GREEN)✅ Windows 构建完成: dist/SceneFab-$(VERSION)-windows-x64.zip$(NC)"
 
 build:mac:
 	$(step) macOS x64 构建（PyInstaller）...
 	@bash scripts/build_macos.sh x64
-	@echo "$(GREEN)✅ macOS x64 构建完成: dist/Voxplore-$(VERSION)-macos-x64.dmg$(NC)"
+	@echo "$(GREEN)✅ macOS x64 构建完成: dist/SceneFab-$(VERSION)-macos-x64.dmg$(NC)"
 
 build:mac-arm:
 	$(step) macOS ARM64 构建（PyInstaller）...
 	@bash scripts/build_macos.sh arm64
-	@echo "$(GREEN)✅ macOS ARM64 构建完成: dist/Voxplore-$(VERSION)-macos-arm64.dmg$(NC)"
+	@echo "$(GREEN)✅ macOS ARM64 构建完成: dist/SceneFab-$(VERSION)-macos-arm64.dmg$(NC)"
 
 build:linux:
 	$(step) Linux x86_64 构建（Nuitka + AppImage）...
 	@bash scripts/build_linux.sh
-	@echo "$(GREEN)✅ Linux 构建完成: Voxplore-$(VERSION)-linux-x86_64.AppImage$(NC)"
+	@echo "$(GREEN)✅ Linux 构建完成: SceneFab-$(VERSION)-linux-x86_64.AppImage$(NC)"
 
 # ── 开发目标 ───────────────────────────────────────────────────────
 test:

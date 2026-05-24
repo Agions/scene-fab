@@ -1,5 +1,5 @@
 /**
- * Voxplore VitePress Theme — Custom Components
+ * SceneFab VitePress Theme — Custom Components
  * 注册自定义 Vue 组件以供 markdown 使用
  */
 
