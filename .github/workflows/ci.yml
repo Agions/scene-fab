@@ -33,14 +33,16 @@ jobs:
           enable-cache: true
           cache-dependency-glob: 'pyproject.toml'
       - run: uv sync --extra dev --frozen
-      - run: uv run ruff check src/scenefab/ --select F,E,N,W,B,C4,SIM
+      # Use config from pyproject.toml (which already ignores E501/F401/F811)
+      - run: uv run ruff check src/scenefab/
       - run: uv run mypy src/scenefab/ tests/
 
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.10', '3.11', '3.12']
+        # onnxruntime (via faster-whisper) only ships wheels for Python 3.11+
+        python: ['3.11', '3.12']
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
