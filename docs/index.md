@@ -49,89 +49,150 @@ features:
     details: H.264/H.265 MP4 直出，或原生剪映草稿 JSON，无缝继续精剪
 ---
 
-<!-- ── Comparison ───────────────────────────────────────────── -->
-## vs 传统视频剪辑软件
+<!-- ══════════════════════════════════════════════════════════════
+     SOCIAL PROOF BAR (rendered via HomeLayout.vue #home-hero-after)
+     ══════════════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     COMPARISON TABLE
+     ══════════════════════════════════════════════════════════════ -->
+<div class="vp-section-header">
+  <h2 class="vp-section-title">vs 传统视频剪辑软件</h2>
+  <p class="vp-section-sub">从几天一条，到一天十条</p>
+</div>
 
 <div class="vp-compare">
-
-| 项目 | 传统方式（剪映/PR） | SceneFab |
-|------|------------------|---------|
-| 打点切分 | 手动逐帧，耗时数小时 | **AI 语义理解，自动拆条** |
-| 解说文案 | 人工观看撰写，30 分钟+ | **DeepSeek 生成，30 秒完成** |
-| 配音制作 | 需配音演员或购买版权 | **TTS 免费合成，任意音色** |
-| 制作时间 | 1–3 小时/条 | **5–15 分钟/条** |
-| 技术门槛 | 需剪辑基础 | **上传视频，一键完成** |
-| 导出格式 | 仅 MP4 | **MP4 + 剪映草稿 JSON** |
-
+  <div class="vp-compare-table">
+    <div class="vp-compare-row vp-compare-header">
+      <div class="vp-compare-cell">项目</div>
+      <div class="vp-compare-cell">传统方式（剪映/PR）</div>
+      <div class="vp-compare-cell vp-compare-wins">SceneFab</div>
+    </div>
+    <div class="vp-compare-row">
+      <div class="vp-compare-cell vp-compare-label">打点切分</div>
+      <div class="vp-compare-cell">手动逐帧，耗时数小时</div>
+      <div class="vp-compare-cell vp-compare-highlight">AI 语义理解，自动拆条</div>
+    </div>
+    <div class="vp-compare-row">
+      <div class="vp-compare-cell vp-compare-label">解说文案</div>
+      <div class="vp-compare-cell">人工观看撰写，30 分钟+</div>
+      <div class="vp-compare-cell vp-compare-highlight">DeepSeek 生成，30 秒完成</div>
+    </div>
+    <div class="vp-compare-row">
+      <div class="vp-compare-cell vp-compare-label">配音制作</div>
+      <div class="vp-compare-cell">需配音演员或购买版权</div>
+      <div class="vp-compare-cell vp-compare-highlight">TTS 免费合成，任意音色</div>
+    </div>
+    <div class="vp-compare-row">
+      <div class="vp-compare-cell vp-compare-label">制作时间</div>
+      <div class="vp-compare-cell">1–3 小时/条</div>
+      <div class="vp-compare-cell vp-compare-highlight">5–15 分钟/条</div>
+    </div>
+    <div class="vp-compare-row">
+      <div class="vp-compare-cell vp-compare-label">技术门槛</div>
+      <div class="vp-compare-cell">需剪辑基础</div>
+      <div class="vp-compare-cell vp-compare-highlight">上传视频，一键完成</div>
+    </div>
+    <div class="vp-compare-row">
+      <div class="vp-compare-cell vp-compare-label">导出格式</div>
+      <div class="vp-compare-cell">仅 MP4</div>
+      <div class="vp-compare-cell vp-compare-highlight">MP4 + 剪映草稿 JSON</div>
+    </div>
+  </div>
 </div>
 
-<!-- ── Why SceneFab ─────────────────────────────────────────── -->
-## 为什么选择 SceneFab
+
+<!-- ══════════════════════════════════════════════════════════════
+     WHY SCENEFAB — 4 CARDS
+     ══════════════════════════════════════════════════════════════ -->
+<div class="vp-section-header">
+  <h2 class="vp-section-title">为什么选择 SceneFab</h2>
+  <p class="vp-section-sub">专注创作本身，把重复劳动交给 AI</p>
+</div>
 
 <div class="vp-why-grid">
-
-:::card ⚡ 5 分钟完成解说视频
-从上传视频到导出成品，全流程 AI 自动化。语义拆条 + 自动写稿 + 配音合成，无需手动剪辑。
-:::
-
-:::card 💰 成本极低
-DeepSeek-V4 成本约 ¥0.1 / 1M tokens。处理一部 2 小时电影解说，成本不足 **1 元钱**。
-:::
-
-:::card 🔒 视频永不上传云端
-全部处理在本地完成。FFmpeg 本地合成，API 仅传输解说文字（不含画面），你的素材永远留在本机。
-:::
-
-:::card 🎭 7 种情感风格
-治愈 · 悬疑 · 励志 · 怀旧 · 浪漫 · 幽默 · 纪录片。AI 根据内容自动匹配合适解说语气。
-:::
-
+  <div class="vp-why-card">
+    <div class="vp-why-icon">⚡</div>
+    <div class="vp-why-title">5 分钟完成解说视频</div>
+    <div class="vp-why-desc">从上传视频到导出成品，全流程 AI 自动化。语义拆条 + 自动写稿 + 配音合成，无需手动剪辑。</div>
+  </div>
+  <div class="vp-why-card">
+    <div class="vp-why-icon">💰</div>
+    <div class="vp-why-title">成本极低</div>
+    <div class="vp-why-desc">DeepSeek-V4 成本约 ¥0.1 / 1M tokens。处理一部 2 小时电影解说，成本不足 <strong>1 元钱</strong>。</div>
+  </div>
+  <div class="vp-why-card">
+    <div class="vp-why-icon">🔒</div>
+    <div class="vp-why-title">视频永不上传云端</div>
+    <div class="vp-why-desc">全部处理在本地完成。FFmpeg 本地合成，API 仅传输解说文字（不含画面），你的素材永远留在本机。</div>
+  </div>
+  <div class="vp-why-card">
+    <div class="vp-why-icon">🎭</div>
+    <div class="vp-why-title">7 种情感风格</div>
+    <div class="vp-why-desc">治愈 · 悬疑 · 励志 · 怀旧 · 浪漫 · 幽默 · 纪录片。AI 根据内容自动匹配合适解说语气。</div>
+  </div>
 </div>
 
-<!-- ── 4-Step Workflow ─────────────────────────────────────── -->
-## 4 步创作流程
+
+<!-- ══════════════════════════════════════════════════════════════
+     4-STEP WORKFLOW
+     ══════════════════════════════════════════════════════════════ -->
+<div class="vp-section-header">
+  <h2 class="vp-section-title">4 步创作流程</h2>
+  <p class="vp-section-sub">零基础也能快速上手</p>
+</div>
 
 <div class="vp-workflow">
-
-:::step
-**上传视频**
-拖拽或选择文件夹，支持 mp4/mov/avi/webm，自动扫描
-:::
-
-→
-
-:::step
-**AI 语义拆条**
-Qwen2.5-VL 逐帧理解，按情节/场景自动切分，智能选段
-:::
-
-→
-
-:::step
-**解说生成 + 配音**
-DeepSeek-V4 生成文案，Edge-TTS/F5-TTS 合成配音
-:::
-
-→
-
-:::step
-**字幕对齐 + 导出**
-TTS 词级时间戳精准对齐字幕，MP4 / 剪映草稿输出
-:::
-
+  <div class="vp-step">
+    <div class="vp-step-num">01</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">上传视频</div>
+      <div class="vp-step-desc">拖拽或选择文件夹，支持 mp4/mov/avi/webm，自动扫描</div>
+    </div>
+    <div class="vp-step-arrow">→</div>
+  </div>
+  <div class="vp-step">
+    <div class="vp-step-num">02</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">AI 语义拆条</div>
+      <div class="vp-step-desc">Qwen2.5-VL 逐帧理解，按情节/场景自动切分，智能选段</div>
+    </div>
+    <div class="vp-step-arrow">→</div>
+  </div>
+  <div class="vp-step">
+    <div class="vp-step-num">03</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">解说生成 + 配音</div>
+      <div class="vp-step-desc">DeepSeek-V4 生成文案，Edge-TTS/F5-TTS 合成配音</div>
+    </div>
+    <div class="vp-step-arrow">→</div>
+  </div>
+  <div class="vp-step">
+    <div class="vp-step-num">04</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">字幕对齐 + 导出</div>
+      <div class="vp-step-desc">TTS 词级时间戳精准对齐字幕，MP4 / 剪映草稿输出</div>
+    </div>
+  </div>
 </div>
 
-<!-- ── Core Workflow Diagram ────────────────────────────────── -->
-## 核心工作流
 
-```
+<!-- ══════════════════════════════════════════════════════════════
+     CORE WORKFLOW DIAGRAM
+     ══════════════════════════════════════════════════════════════ -->
+<div class="vp-section-header">
+  <h2 class="vp-section-title">核心工作流</h2>
+  <p class="vp-section-sub">模块化 AI 管道，每一步都可配置</p>
+</div>
+
+```plaintext
 视频输入
    │
    ▼
 ┌──────────────────────────────┐
-│   Step 1 · AI 语义拆条       │
+│   Step 1 · AI 语义拆条        │
 │   Qwen2.5-VL 视觉理解        │
-│   场景边界检测 · 语义聚类     │
+│   场景边界检测 · 语义聚类      │
 └──────────────────────────────┘
    │
    ▼
@@ -163,81 +224,121 @@ TTS 词级时间戳精准对齐字幕，MP4 / 剪映草稿输出
 └──────────────────────────────┘
 ```
 
-<!-- ── Tech Stack ────────────────────────────────────────────── -->
-## 技术栈
+
+<!-- ══════════════════════════════════════════════════════════════
+     TECH STACK TABLE
+     ══════════════════════════════════════════════════════════════ -->
+<div class="vp-section-header">
+  <h2 class="vp-section-title">技术栈</h2>
+  <p class="vp-section-sub">开源技术，透明可信</p>
+</div>
 
 <div class="vp-arch-table">
-
-| 模块 | 模型 / 技术 | 说明 |
-|------|-----------|------|
-| 语义拆条 | **Qwen2.5-VL** | 视频帧逐帧理解，语义场景边界检测 |
-| 情感评分 | 视觉 + 音频双维 | 画面信息密度 + 语调变化，综合排序 |
-| 解说生成 | **DeepSeek-V4** | 第一人称视角，7 种预设风格 + 角色设定 |
-| 配音合成 | **Edge-TTS** · **F5-TTS** | Edge 主流低延迟，F5 零样本音色克隆 |
-| 字幕对齐 | TTS Word-level Timing | 精确到每个字的起止时间，50ms 精度 |
-| 视频合成 | **FFmpeg** | H.264/H.265 编码，本地处理 |
-| 导出格式 | **MP4** · **剪映草稿** | 直出发布 / 继续精剪 |
-
+  <div class="vp-arch-row vp-arch-header">
+    <div class="vp-arch-cell">模块</div>
+    <div class="vp-arch-cell">模型 / 技术</div>
+    <div class="vp-arch-cell">说明</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">语义拆条</div>
+    <div class="vp-arch-cell vp-arch-model">Qwen2.5-VL</div>
+    <div class="vp-arch-cell">视频帧逐帧理解，语义场景边界检测</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">情感评分</div>
+    <div class="vp-arch-cell vp-arch-model">视觉 + 音频双维</div>
+    <div class="vp-arch-cell">画面信息密度 + 语调变化，综合排序</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">解说生成</div>
+    <div class="vp-arch-cell vp-arch-model">DeepSeek-V4</div>
+    <div class="vp-arch-cell">第一人称视角，7 种预设风格 + 角色设定</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">配音合成</div>
+    <div class="vp-arch-cell vp-arch-model">Edge-TTS · F5-TTS</div>
+    <div class="vp-arch-cell">Edge 主流低延迟，F5 零样本音色克隆</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">字幕对齐</div>
+    <div class="vp-arch-cell vp-arch-model">TTS Word-level Timing</div>
+    <div class="vp-arch-cell">精确到每个字的起止时间，50ms 精度</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">视频合成</div>
+    <div class="vp-arch-cell vp-arch-model">FFmpeg</div>
+    <div class="vp-arch-cell">H.264/H.265 编码，本地处理</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-cell vp-arch-label">导出格式</div>
+    <div class="vp-arch-cell vp-arch-model">MP4 · 剪映草稿</div>
+    <div class="vp-arch-cell">直出发布 / 继续精剪</div>
+  </div>
 </div>
 
-<!-- ── Quick Start ──────────────────────────────────────────── -->
-## 快速开始
+
+<!-- ══════════════════════════════════════════════════════════════
+     QUICK START CARDS
+     ══════════════════════════════════════════════════════════════ -->
+<div class="vp-section-header">
+  <h2 class="vp-section-title">快速开始</h2>
+  <p class="vp-section-sub">选择适合你的方式</p>
+</div>
 
 <div class="vp-start-grid">
-
-<a href="/guide/quick-start" class="vp-start-card">
-  <div class="vp-start-icon">🚀</div>
-  <div class="vp-start-title">5 分钟快速上手</div>
-  <div class="vp-start-desc">下载安装包 / Homebrew / 源码运行，三种方式任选</div>
-  <div class="vp-start-arrow">→</div>
-</a>
-
-<a href="/guide/ai-configuration" class="vp-start-card">
-  <div class="vp-start-icon">🔑</div>
-  <div class="vp-start-title">配置 AI API</div>
-  <div class="vp-start-desc">DeepSeek + Qwen API，合计约 ¥10/月，处理一部电影不足 1 元</div>
-  <div class="vp-start-arrow">→</div>
-</a>
-
-<a href="/features" class="vp-start-card">
-  <div class="vp-start-icon">📖</div>
-  <div class="vp-start-title">功能详解</div>
-  <div class="vp-start-desc">情感风格、字幕样式、导出格式、硬件要求全解析</div>
-  <div class="vp-start-arrow">→</div>
-</a>
-
+  <a href="/guide/quick-start" class="vp-start-card">
+    <div class="vp-start-icon">🚀</div>
+    <div class="vp-start-content">
+      <div class="vp-start-title">5 分钟快速上手</div>
+      <div class="vp-start-desc">下载安装包 / Homebrew / 源码运行，三种方式任选</div>
+    </div>
+    <div class="vp-start-arrow">→</div>
+  </a>
+  <a href="/guide/ai-configuration" class="vp-start-card">
+    <div class="vp-start-icon">🔑</div>
+    <div class="vp-start-content">
+      <div class="vp-start-title">配置 AI API</div>
+      <div class="vp-start-desc">DeepSeek + Qwen API，合计约 ¥10/月，处理一部电影不足 1 元</div>
+    </div>
+    <div class="vp-start-arrow">→</div>
+  </a>
+  <a href="/features" class="vp-start-card">
+    <div class="vp-start-icon">📖</div>
+    <div class="vp-start-content">
+      <div class="vp-start-title">功能详解</div>
+      <div class="vp-start-desc">情感风格、字幕样式、导出格式、硬件要求全解析</div>
+    </div>
+    <div class="vp-start-arrow">→</div>
+  </a>
 </div>
 
-<!-- ── Stats ─────────────────────────────────────────────────── -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     STATS ROW
+     ══════════════════════════════════════════════════════════════ -->
 <div class="vp-stats-row">
-
-<span class="vp-stat">
-  <span class="vp-stat-val">v3.0.0</span>
-  <span class="vp-stat-lbl">最新版本</span>
-</span>
-<span class="vp-stat-sep">|</span>
-<span class="vp-stat">
-  <span class="vp-stat-val">MIT</span>
-  <span class="vp-stat-lbl">开源协议</span>
-</span>
-<span class="vp-stat-sep">|</span>
-<span class="vp-stat">
-  <span class="vp-stat-val">Python 3.10+</span>
-  <span class="vp-stat-lbl">跨平台</span>
-</span>
-<span class="vp-stat-sep">|</span>
-<span class="vp-stat">
-  <span class="vp-stat-val">PySide6</span>
-  <span class="vp-stat-lbl">Qt 桌面端</span>
-</span>
-<span class="vp-stat-sep">|</span>
-<span class="vp-stat">
-  <span class="vp-stat-val">&lt;¥1</span>
-  <span class="vp-stat-lbl">单部电影成本</span>
-</span>
-
+  <div class="vp-stat">
+    <div class="vp-stat-val">v3.0.0</div>
+    <div class="vp-stat-lbl">最新版本</div>
+  </div>
+  <div class="vp-stat-sep">|</div>
+  <div class="vp-stat">
+    <div class="vp-stat-val">MIT</div>
+    <div class="vp-stat-lbl">开源协议</div>
+  </div>
+  <div class="vp-stat-sep">|</div>
+  <div class="vp-stat">
+    <div class="vp-stat-val">Python 3.10+</div>
+    <div class="vp-stat-lbl">跨平台</div>
+  </div>
+  <div class="vp-stat-sep">|</div>
+  <div class="vp-stat">
+    <div class="vp-stat-val">PySide6</div>
+    <div class="vp-stat-lbl">Qt 桌面端</div>
+  </div>
+  <div class="vp-stat-sep">|</div>
+  <div class="vp-stat">
+    <div class="vp-stat-val">&lt;¥1</div>
+    <div class="vp-stat-lbl">单部电影成本</div>
+  </div>
 </div>
-
-<style>
-/* Hero float cards injected via layout slot */
-</style>
