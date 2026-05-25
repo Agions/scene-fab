@@ -20,8 +20,8 @@ jobs:
           python-version: '3.11'
           enable-cache: true
           cache-dependency-glob: 'pyproject.toml'
-      - run: uv pip install --system ruff
-      - run: ruff check src/scenefab/ tests/ --output-format=github
+      - run: uv sync --frozen
+      - run: uv run ruff check src/scenefab/ tests/ --output-format=github
 
   type-check:
     runs-on: ubuntu-latest
@@ -32,9 +32,9 @@ jobs:
           python-version: '3.11'
           enable-cache: true
           cache-dependency-glob: 'pyproject.toml'
-      - run: uv pip install --system -e ".[dev]"
-      - run: ruff check src/scenefab/ --select F,E,N,W,B,C4,SIM
-      - run: mypy src/scenefab/ tests/
+      - run: uv sync --extra dev --frozen
+      - run: uv run ruff check src/scenefab/ --select F,E,N,W,B,C4,SIM
+      - run: uv run mypy src/scenefab/ tests/
 
   test:
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: true
           cache-dependency-glob: 'pyproject.toml'
-      - run: uv pip install --system -e ".[all,dev]"
+      - run: uv sync --extra all --extra dev --frozen
       # PySide6 相关测试需要 GUI 环境，CI 中跳过
       - run: |
           pytest tests/ -v --tb=short --cov=src/scenefab --cov-report=xml --cov-report=term-missing \
