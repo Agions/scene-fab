@@ -7,19 +7,13 @@
  */
 
 /* ────────────────────────────────────────────────────────────
-   0. FONT IMPORTS
+   0. DESIGN TOKENS (CSS Custom Properties)
    ──────────────────────────────────────────────────────────── */
-/* System fonts for reliability on all platforms */
 :root {
+  /* System fonts for reliability on all platforms */
   --vp-font-family-base: system-ui, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei SC', sans-serif;
   --vp-font-family-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, monospace;
-}
 
-
-/* ────────────────────────────────────────────────────────────
-   1. DESIGN TOKENS (CSS Custom Properties)
-   ──────────────────────────────────────────────────────────── */
-:root {
   /* ── 色彩体系 ──────────────────────────────────────────── */
   /* 背景层 */
   --vp-bg:          #070B12;
@@ -84,9 +78,6 @@
   --vp-spring:     cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   /* VitePress 覆盖变量 */
-  --vp-font-family-base: 'Inter', 'PingFang SC', 'Microsoft YaHei SC', sans-serif;
-  --vp-font-family-mono: 'JetBrains Mono', 'Cascadia Code', monospace;
-
   --vp-c-brand-1:        var(--vp-brand);
   --vp-c-brand-2:        var(--vp-brand-lo);
   --vp-c-brand-3:        var(--vp-brand-hi);
