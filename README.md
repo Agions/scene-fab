@@ -130,21 +130,6 @@ export DEEPSEEK_API_KEY="sk-..."
 
 ---
 
-## 竞品对比
-
-| 功能 | SceneFab | NarratoAI | AI解说大师 |
-|------|---------|-----------|-----------|
-| 语义拆条 | ✅ Qwen2.5-VL | ⚠️ 基础 | ⚠️ 基础 |
-| 影视解说 | ✅ 7种风格 | ✅ | ✅ |
-| 短剧解说 | ✅ | ❌ | ⚠️ |
-| 命令行原生 | ✅ | ❌ | ✅ |
-| Agent Skill 接入 | ✅ SKILL.md | ❌ | ✅ |
-| 剪映草稿导出 | ✅ | ❌ | ❌ |
-| 完全本地 | ✅ | ❌ | ❌ |
-| 开源 | ✅ MIT | ✅ | ❌ |
-
----
-
 ## 许可证
 
 [MIT License](LICENSE) · Copyright © 2025-2026 [Agions](https://github.com/Agions)
