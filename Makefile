@@ -13,8 +13,11 @@
 .SUFFIXES:
 .PHONY: help build build:win build:mac build:mac-arm build:linux clean test test-cov lint format docs
 
-# ── 版本号（单一真相来源：pyproject.toml）───────────────────────────
-VERSION := $(shell grep '^version = ' pyproject.toml 2>/dev/null | sed 's/version = "//;s/"//' | tr -d '[:space:]')
+# ── 版本号（单一真相来源：src/scenefab/__init__.py）────────────────────
+VERSION := $(shell grep '__version__' src/scenefab/__init__.py 2>/dev/null | sed "s/.*__version__ = ['\"]//;s/['\"]//" | tr -d '[:space:]')
+ifeq ($(VERSION),)
+  VERSION := 3.0.0
+endif
 PLATFORM := $(shell python3 -c "import sys; s='darwin' if sys.platform=='darwin' else 'win32' if sys.platform=='win32' else 'linux'; print(s)")
 
 # ── 颜色输出 ───────────────────────────────────────────────────────
@@ -81,16 +84,16 @@ test:
 	pytest tests/ -v
 
 test-cov:
-	pytest tests/ --cov=app --cov-report=html --cov-report=term
+	pytest tests/ --cov=src/scenefab --cov-report=html --cov-report=term-missing
 
 lint:
-	ruff check app tests
-	black --check app tests
-	isort --check-only app tests
+	ruff check src/scenefab tests
+	black --check src/scenefab tests
+	isort --check-only src/scenefab tests
 
 format:
-	black app tests
-	isort app tests
+	black src/scenefab tests
+	isort src/scenefab tests
 
 clean:
 	find . -type f -name "*.pyc" -delete

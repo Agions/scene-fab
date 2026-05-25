@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+---
+
+## [3.0.0] - 2026-05-25
+
+### 🚀 核心重构
+
+- **架构升级至 v3.0.0**：定位从 Voxplore → scene-fab 全面重命名
+- **动态版本管理**：`pyproject.toml` 使用 `dynamic = ["version"]`，所有版本号统一从 `scenefab.__version__` 读取，消除 9+ 处硬编码
+- **配置集中化**：`pytest.ini`、`.mypy.ini` 全部合并至 `pyproject.toml`
+- **CLI 命令完善**：新增 `commentary create-movie/create-drama` 和 `batch` 命令（SPEC 定义）
+- **CI/CD 优化**：pip → uv，ruff ignore 规则收归 pyproject.toml，`--cov=scenefab` → `--cov=src/scenefab`
+- **环境变量统一**：`VOXPLORE_*` → `SCENEFAB_*` 全部清理
+- **Goose → uv 迁移**：CI 构建改用 `astral-sh/setup-uv@v5`
+- **依赖清理**：移除废弃 `googletrans>=4.0.0`，添加 `ruff>=0.1.0`
+- **PEP 561 类型标记**：`py.typed` 创建并加入 `MANIFEST.in`
+
+### 🛠 开发体验
+
+- `exporters.py` 496行 → 51行重导出兼容层，消除重复维护负担
+- `MANIFEST.in` 路径修正为 `src/scenefab`
+- 文档路径修正：`SceneFab` → `scene-fab`
+- `deploy-pages.yml` 移除无效的 `cache-dependency-path`
+
+### 📝 文档
+
+- README/shields 升级至 v3.0.0
+- SPEC.md CLI 命令部分更新为 checked 状态
+
 
 ## [1.0.1] - 2026-05-09
 

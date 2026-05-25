@@ -57,9 +57,8 @@ google-generativeai>=0.8.0
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 pydantic>=2.0.0
-
-## 版本兼容
-packaging>=21.0
+## 翻译功能（可选）
+deepl>=1.18.0           # DeepL 翻译（高质量）
 
 # =======================
 # 开发与测试依赖
@@ -75,9 +74,13 @@ pytest-timeout>=2.1.0
 black>=23.11.0
 flake8>=6.1.0
 mypy>=1.7.0
+ruff>=0.1.0
 isort>=5.12.0
 
 ## 类型支持
 types-requests>=2.31.0
 types-PyYAML>=6.0.0
 types-PySide6>=6.6.0
+
+## 打包支持
+tomli>=2.0.0            # 读取 pyproject.toml（Python <3.11）

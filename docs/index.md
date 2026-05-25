@@ -212,7 +212,7 @@ TTS 词级时间戳精准对齐字幕，MP4 / 剪映草稿输出
 <div class="vp-stats-row">
 
 <span class="vp-stat">
-  <span class="vp-stat-val">v2.0.0</span>
+  <span class="vp-stat-val">v3.0.0</span>
   <span class="vp-stat-lbl">最新版本</span>
 </span>
 <span class="vp-stat-sep">|</span>

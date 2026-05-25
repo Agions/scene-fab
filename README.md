@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/Qt-6.5+-41C845?style=flat-square&logo=qt)](https://qt.io/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-silver?style=flat-square)](https://github.com/Agions/scene-fab)
-[![Releases](https://img.shields.io/badge/v2.0.0-10B981?style=flat-square)](https://github.com/Agions/scene-fab/releases)
+[![Releases](https://img.shields.io/badge/v3.0.0-10B981?style=flat-square)](https://github.com/Agions/scene-fab/releases)
 
 ---
 
