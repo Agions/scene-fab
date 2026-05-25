@@ -32,7 +32,7 @@ export default {
   Layout: HomeLayout,
 
   enhanceApp({ app, router, siteData }) {
-    // Register global components with common names
+    // VitePress built-in components
     app.component('Badge',          Badge)
     app.component('Card',           Card)
     app.component('CardGrid',        CardGrid)
@@ -43,5 +43,11 @@ export default {
     app.component('TimelineItem',   TimelineItem)
     app.component('Step',            Step)
     app.component('Steps',           Steps)
+
+    // Markdown container aliases used in index.md
+    app.component('card',             Card)
+    app.component('card-grid',       CardGrid)
+    app.component('step',            Step)
+    app.component('steps',            Steps)
   },
 } satisfies Theme

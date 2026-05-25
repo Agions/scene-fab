@@ -9,7 +9,11 @@
 /* ────────────────────────────────────────────────────────────
    0. FONT IMPORTS
    ──────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* System fonts for reliability on all platforms */
+:root {
+  --vp-font-family-base: system-ui, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei SC', sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, monospace;
+}
 
 
 /* ────────────────────────────────────────────────────────────
@@ -327,9 +331,8 @@ a:hover { color: var(--vp-brand-hi); }
   color: var(--vp-text-2) !important;
   line-height: 1.65 !important;
   margin: 0 0 36px !important;
-  max-width: 600px;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  max-width: 100%;
+  text-align: center;
 }
 
 /* Hero image */
