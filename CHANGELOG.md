@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-05-31
+
+> SceneFab v1.0.1 — 修复 GUI 启动问题
+
+### 🐛 Bug Fixes
+
+- **修复 GUI 启动报错** — 修正 `app.ui.components.containers.common_styles` 旧路径，重构为 `scenefab.ui.components.containers`
+- **CI 修复** — release-build workflow 路径与构建参数对齐
+
+---
+
 ## [1.0.0] - 2026-05-31
 
 > SceneFab v1.0.0 — AI 影视解说视频创作工具首个 PyPI 发行版。
