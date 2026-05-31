@@ -91,8 +91,16 @@
 
 ### 安装
 
+**方式一：从 PyPI 安装（待发布）**
 ```bash
 pip install scenefab
+```
+
+**方式二：从源码安装（推荐）**
+```bash
+git clone https://github.com/Agions/scene-fab.git
+cd scene-fab
+pip install -e .
 ```
 
 ### 运行
