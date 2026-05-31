@@ -16,7 +16,7 @@
 # ── 版本号（单一真相来源：src/scenefab/__init__.py）────────────────────
 VERSION := $(shell grep '__version__' src/scenefab/__init__.py 2>/dev/null | sed "s/.*__version__ = ['\"]//;s/['\"]//" | tr -d '[:space:]')
 ifeq ($(VERSION),)
-  VERSION := 3.0.0
+  VERSION := 1.0.0
 endif
 PLATFORM := $(shell python3 -c "import sys; s='darwin' if sys.platform=='darwin' else 'win32' if sys.platform=='win32' else 'linux'; print(s)")
 
