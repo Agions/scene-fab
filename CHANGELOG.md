@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-06-02
+
+> SceneFab v1.1.0 — 大型架构重构与质量改进
+
+### 🚀 Improvements
+
+- **8-Phase 架构重构** — 消除重复类型定义、清理冗余兼容层、拆分大文件、统一枚举与命名
+  - Phase 1: 合并 5 个重复类型定义 (EmotionType / ServiceStatus / ServiceHealth / AIServiceManager / ProjectMetadata)
+  - Phase 2: 删除 6 个冗余兼容层 (engine / models / ai_services / config_manager / exporters / video)
+  - Phase 3: 拆分 5 个 500+ 行 UI 大文件 (theme_optimizer / home_page / step_group / export_panel / export_monitor)
+  - Phase 4: 删除 ~160 行死代码 (`run_mashup` / `run_monologue` / `_analyze_single_frame`)
+  - Phase 5: 命名规范化 (`_signals.py` → `signals_bridge.py`, 10 个枚举集中到 `models/enums.py`)
+  - Phase 6: 配置精简 (删除 `.flake8`/`.pylintrc`, ruff 统一为唯一 linter, pyright 取消 UI 排除)
+  - Phase 7+8: UI 枚举导出 + 最终验收
+- **启用 ruff `UP` (pyupgrade) 规则** — 自动修复 1573 个 UP 错误 (typing.Dict/List → dict/list, 旧语法糖)
+- **依赖审计** — 同步 `requirements.txt` 与 `pyproject.toml`, 移除冗余工具 (googletrans / flake8 / isort), 升级 PySide6 6.9.0 / pydantic 2.5.0
+
+### 🔧 Internal
+
+- **CI 流水线**: PR Check 双 job (lint + test), merge-queue 友好
+- **代码质量门禁**: ruff 0 errors, pytest 351 passed + 20 skipped
+
+### 📦 Compatibility
+
+- **完全向后兼容 v1.0.x** — 所有公共 API 与 import 路径保持不变
+- **无破坏性变更** — 已发布的 v1.0.x 项目文件可直接打开
+
+---
+
 ## [1.0.1] - 2026-05-31
 
 > SceneFab v1.0.1 — 修复 GUI 启动问题
