@@ -25,12 +25,14 @@ from PySide6.QtWidgets import (
 )
 
 from scenefab.logger import Logger
+from scenefab.ui.main.components._monitor_widget import ExportMonitorWidget
+from scenefab.ui.main.components._progress_dialog import ExportProgressDialog
+from scenefab.ui.main.components._progress_widget import ExportProgressWidget
 
 from ...components.design_system import Colors
 from ...export.export_system import ExportStatus, ExportTask
 from ...main.components.export_stats import ExportStatisticsWidget
 from ...main.components.monitor_widgets import PerformanceChart
-
 
 class ExportProgressWidget(QWidget):
     """导出进度部件"""
@@ -529,3 +531,10 @@ class ExportProgressDialog(QDialog):
     def cleanup(self):
         """清理资源"""
         self.monitor_widget.cleanup()
+
+
+__all__ = [
+    "ExportProgressWidget",
+    "ExportMonitorWidget",
+    "ExportProgressDialog",
+]
