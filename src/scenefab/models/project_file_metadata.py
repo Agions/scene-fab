@@ -59,7 +59,7 @@ class ProjectFileMetadata:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ProjectFileMetadata":
         # 忽略未知字段，保持前向兼容
-        valid_fields = {f for f in cls.__dataclass_fields__}
+        valid_fields = set(cls.__dataclass_fields__)
         return cls(**{k: v for k, v in data.items() if k in valid_fields})
 
 
