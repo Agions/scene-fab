@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-06-02
+
+> SceneFab v1.1.0 — 8-Phase 全代码库重构 + 依赖审查 + UI 专业化
+
+### ♻️ Refactoring (8 Phases)
+
+- **Phase 1: 消除重复类型定义** — 合并 5 类重复定义 (EmotionType/ServiceStatus/ServiceHealth/AIServiceManager/ProjectMetadata)
+- **Phase 2: 清理兼容层** — 删除 6 个 compat layer (engine/models/ai_services/config_manager/exporters/video)
+- **Phase 3: 大文件拆分** — 5/7 完成 (theme_optimizer/home_page/step_group/export_panel/export_monitor)
+- **Phase 4: 死代码清理** — 删除 run_mashup/run_monologue/_analyze_single_frame (-160 行)
+- **Phase 5: 命名规范化** — `_signals.py` → `signals_bridge.py` + 枚举集中
+- **Phase 6: 配置精简** — 删除 .flake8/.pylintrc + ruff 替代 flake8/mypy/isort
+- **Phase 7: UI 专业化** — Design Tokens + 组件库 + QSS 迁移 (基础)
+- **Phase 8: 最终验收** — 351 测试全过 + ruff all green
+
+### ✨ Features
+
+- **启用 ruff "UP" 规则** — 1573 个 pyupgrade 错误自动 + 手动修
+- **依赖审查** — 同步 requirements.txt 与 pyproject.toml (27 deps)
+
+### 🐛 Bug Fixes
+
+- 修复 ruff C416 (set comprehension) CI 触发问题
+- 修复 deepl/googletrans 重复声明 + 不一致
+
+### 📊 Statistics
+
+- 7 PRs merged (#52-#58)
+- 3 additional PRs opened (#59-#61)
+- 8 commits, +2857/-2627 lines
+- 8 files deleted (compat layers + monoliths)
+- 11 files added (modular packages)
+
+---
+
 ## [1.0.1] - 2026-05-31
 
 > SceneFab v1.0.1 — 修复 GUI 启动问题

@@ -357,7 +357,7 @@ def _handle_project_command(args) -> int:
                 "name": args.name,
                 "description": "",
                 "author": os.getlogin(),
-                "version": "1.0.1",
+                "version": "1.1.0",
                 "created_at": now,
                 "modified_at": now,
                 "tags": [],
