@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 导出面板
@@ -7,7 +6,6 @@
 """
 
 import os
-from typing import Any, Dict, List
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (

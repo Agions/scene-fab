@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 导出进度监控组件
@@ -7,7 +6,7 @@
 """
 
 import time
-from typing import Dict, List, Optional
+from typing import Optional
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFont

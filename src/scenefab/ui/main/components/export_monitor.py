@@ -34,6 +34,7 @@ from ...export.export_system import ExportStatus, ExportTask
 from ...main.components.export_stats import ExportStatisticsWidget
 from ...main.components.monitor_widgets import PerformanceChart
 
+
 class ExportProgressWidget(QWidget):
     """导出进度部件"""
 

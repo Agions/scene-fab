@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 导出进度监控组件
@@ -7,7 +6,7 @@
 """
 
 import time
-from typing import Dict, List, Optional
+from typing import Optional
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFont
@@ -165,7 +164,7 @@ class ExportProgressWidget(QWidget):
         }
         return colors.get(self.task.status, Colors.TextMuted)
 
-    def _format_time(self, timestamp: Optional[float]) -> str:
+    def _format_time(self, timestamp: float | None) -> str:
         """格式化时间"""
         if not timestamp:
             return ""
