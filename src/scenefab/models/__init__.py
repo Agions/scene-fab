@@ -15,6 +15,13 @@
 - 旧的 from scenefab.models import ... 导入仍可正常工作
 """
 
+from .enums import (
+    ApplicationState,
+    ErrorSeverity,
+    ErrorType,
+    ServiceHealth,
+    ServiceStatus,
+)
 from .media import (
     AudioTrack,
     SubtitleItem,
@@ -44,6 +51,12 @@ from .video import (
 )
 
 __all__ = [
+    # enums (集中定义)
+    "ServiceStatus",
+    "ServiceHealth",
+    "ApplicationState",
+    "ErrorSeverity",
+    "ErrorType",
     # narration
     "NarrationStyle",
     "EmotionType",
