@@ -384,8 +384,5 @@ ARCHITECTURE.md
 _DEAD/
 
 # Build artifacts
-docs/build/
-docs/.vitepress/dist/
-docs/.vitepress/cache/
-assets/build/
-assets/dist/
+docs/
+assets/
