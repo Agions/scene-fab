@@ -1,11 +1,10 @@
 # SceneFab 依赖包
+# 权威定义在 pyproject.toml - 此文件仅用于 pip install -r requirements.txt
+# 保持两者同步是 CI 的责任
 
 ## 核心依赖 (PySide6 - LGPL 授权，商业友好)
-PySide6>=6.6.0
-Shiboken6>=6.6.0
-
-## UI 组件库 (如果使用 Qt-Fluent-Widgets)
-# PySide6-Fluent-Widgets>=1.11.0  # 暂不支持 PySide6
+PySide6>=6.9.0
+Shiboken6>=6.9.0
 
 ## 图像/视频处理
 opencv-python>=4.8.1
@@ -29,7 +28,6 @@ torch>=2.0.0                 # GPU 加速支持（可选，无 CUDA 时自动回
 
 ## 翻译功能（可选）
 deepl>=1.18.0           # DeepL 翻译（高质量）
-googletrans>=4.0.0     # Google 翻译（备用）
 
 ## 网络请求
 requests>=2.31.0
@@ -56,8 +54,10 @@ google-generativeai>=0.8.0
 ## Web/API 服务
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
-pydantic>=2.0.0
-## 翻译功能（可选，已在 #32 行声明 deepl）
+pydantic>=2.5.0
+
+## 元数据处理
+packaging>=21.0
 
 # =======================
 # 开发与测试依赖
@@ -69,12 +69,10 @@ pytest-cov>=4.1.0
 pytest-asyncio>=0.21.0
 pytest-timeout>=2.1.0
 
-## 代码质量
+## 代码质量（ruff 取代 flake8/mypy/isort）
 black>=23.11.0
-flake8>=6.1.0
-mypy>=1.7.0
 ruff>=0.1.0
-isort>=5.12.0
+mypy>=1.7.0              # 保留 mypy 用于类型检查（pyright 配合使用）
 
 ## 类型支持
 types-requests>=2.31.0
