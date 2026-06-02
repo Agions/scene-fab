@@ -7,11 +7,11 @@
 > **上传一部电影 → AI 自动完成语义拆条、解说稿、配音、字幕、合成导出**
 > 从「几天一条」变成「一天十条」。
 
-[![License: MIT](assets/badges/license-mit.svg)](LICENSE)
-[![Python](assets/badges/python.svg)](https://www.python.org/)
-[![PySide6](assets/badges/pyside6.svg)](https://qt.io/)
-[![Platform](assets/badges/platform.svg)](https://github.com/Agions/scene-fab/releases)
-[![Version](assets/badges/version.svg)](https://github.com/Agions/scene-fab/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PySide6](https://img.shields.io/badge/Qt-6.9+-41C845?style=for-the-badge&logo=qt&logoColor=white)](https://qt.io/)
+[![Platform](https://img.shields.io/badge/Platform-Win%20%7C%20macOS%20%7C%20Linux-silver?style=for-the-badge)](https://github.com/Agions/scene-fab/releases)
+[![Version](https://img.shields.io/badge/v1.1.0-10B981?style=for-the-badge)](https://github.com/Agions/scene-fab/releases)
 
 [**在线文档**](https://agions.github.io/scene-fab/) · [**下载安装**](https://github.com/Agions/scene-fab/releases) · [**报告问题**](https://github.com/Agions/scene-fab/issues/new) · [**功能建议**](https://github.com/Agions/scene-fab/discussions)
 
@@ -239,13 +239,3 @@ SceneFab 的诞生离不开以下开源项目：
 ⭐ 如果 SceneFab 对你有帮助，请给一个 Star · 🐛 遇到问题请提交 [Issue](https://github.com/Agions/scene-fab/issues)
 
 </div>
-
-<!--
-徽标说明：本仓库 README 中所有徽标均为自托管 SVG（位于 `assets/badges/`），
-不依赖任何第三方徽标服务（如 shields.io）。优势：
-  - 100% 离线可用（无外网请求）
-  - 零隐私追踪
-  - 风格与 SceneFab logo 系统统一（橙红渐变对应主题色）
-  - Version 徽标由 `scripts/generate_badges.py` 自动从 `pyproject.toml` 同步
-维护说明：bump 版本时运行 `python scripts/generate_badges.py` 即可。
--->
