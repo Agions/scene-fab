@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2026-06-04
+
+> SceneFab v2.1.0 — 架构升级：单源真相事件总线 + 类型化领域事件 + DI 现代化
+
+### 🚀 Features
+
+- **UnifiedEventBus 单源真相** (`scenefab.core.unified_event_bus`) — 取代 v1.x 两个并行 EventBus 实现。字符串事件 + DomainEvent 强类型事件统一入口；async/sync handler 混合；EventLog 内存重放；stats() 可观测
+- **类型化领域事件** (`scenefab.core.event_types`) — 8 个预定义 `DomainEvent`（PipelineStarted/StepCompleted/Completed、TaskCreated/ProgressUpdated/StatusChanged、LLMTokenGenerated、FFmpegExecuted）+ 自定义扩展
+- **UnifiedTask 状态机** (`scenefab.core.task_model`) — 合法状态转换图 + CancelToken + TaskSource + 状态变更自动发 DomainEvent
+- **DIContainer v2.1** (`scenefab.core.di_container`) — v1.x API 兼容 + SCOPED 作用域 + 解析钩子 + `get_app_container()` 全局自动注入 event_bus
+- **TaskStore 3 后端** (`scenefab.core.task_store`) — InMemory（+TTL）/ SQLite（持久化）/ Redis（可选）。FastAPI router 私货 `_tasks: dict` 替换为共享后端
+- **EventStore 持久化** (`scenefab.core.event_store`) — 3 后端 + 按 event_name / correlation_id 查询 + `install_event_store_into_bus()` 自动双写
+- **SettingsV2** (`scenefab.core.config_v2`) — pydantic-settings + 7 配置组（LLM/TTS/Pipeline/Storage/Security/API/App）+ env 自动映射 + JSON Schema 生成 + `reload()`
+- **WebSocket Hub** (`scenefab.core.ws_hub`) — 从 UnifiedEventBus 订阅事件并实时推送到 WS 客户端，支持按 event_names 过滤 + 按 event_filter 字段过滤
+
+### 🔧 Integrations
+
+- `TaskManager.create_task / set_status / update_progress` 现在自动发布 `TaskCreated / TaskStatusChanged / TaskProgressUpdated` 事件（v1.x 行为完全保留）
+- `PipelineEngine.run / _execute_step` 现在自动发布 `PipelineStarted / PipelineStepCompleted / PipelineCompleted` 事件（通过 `event_bus=` 注入）
+- `scenefab.core.EventBus` 和 `scenefab.event_bus.EventBus` 委托到 `UnifiedEventBus.get_default()`，**v1.x 公开 API 完全兼容**
+
+### 📚 Documentation
+
+- **ADR-006** — v2.1 架构升级：单源真相 + 类型化事件 + DI 现代化
+
+### 🧪 Tests
+
+- `tests/test_arch_v21.py` — 43 个 v2.1 新增测试（UnifiedEventBus / V1XCompatibility / UnifiedTask / DIContainer / TaskStore / SettingsV2 / EventStore / WSHub / 集成）
+- **76/76 全过**（33 v2.0 + 43 v2.1，**零回归**）
+
+---
+
 ## [2.0.0] - 2026-06-04
 
 > SceneFab v2.0.0 — 短剧解说特化与 DAG 并行流水线
