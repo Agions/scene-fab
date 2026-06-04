@@ -12,6 +12,7 @@ SceneFab 核心模块 v2.0
 - platform_adapter: 多平台智能适配 (v2.0)
 - streaming_llm_worker: LLM 流式输出 Worker (v2.0)
 """
+
 import logging
 import threading
 from collections.abc import Callable
@@ -35,6 +36,7 @@ from scenefab.application import ApplicationState
 @dataclass
 class ErrorInfo:
     """错误信息"""
+
     error_type: str
     severity: str  # LOW, MEDIUM, HIGH, CRITICAL
     message: str
@@ -134,48 +136,49 @@ event_bus = EventBus()
 # v2.0 新增模块（保持平铺 re-export）
 # ============================================
 
+from scenefab.core.audit import AuditEntry, AuditLogger
 from scenefab.core.base_worker import BaseWorker, WorkerResult
-from scenefab.core.audit import AuditLogger, AuditEntry
-from scenefab.core.pipeline_engine import (
-    PipelineEngine,
-    PipelineStep,
-    PipelineConfig,
-    StepStatus,
-    StepResult,
-)
-from scenefab.core.ffmpeg_safe import (
-    SafeFFmpegCommand,
-    FFmpegResult,
-    FFmpegSecurityError,
-    is_safe_path,
+from scenefab.core.batch_processor import (
+    BatchCheckpoint,
+    BatchConfig,
+    BatchProcessor,
+    BatchTask,
 )
 from scenefab.core.batch_processor import (
-    BatchProcessor,
-    BatchConfig,
-    BatchTask,
-    BatchCheckpoint,
     TaskStatus as BatchTaskStatus,
 )
-from scenefab.core.short_drama import (
-    ShortDramaStyle,
-    ShortDramaPreset,
-    ShortDramaNarrator,
-    TropeType,
-    EpisodeInfo,
-    SeriesContext,
+from scenefab.core.ffmpeg_safe import (
+    FFmpegResult,
+    FFmpegSecurityError,
+    SafeFFmpegCommand,
+    is_safe_path,
+)
+from scenefab.core.pipeline_engine import (
+    PipelineConfig,
+    PipelineEngine,
+    PipelineStep,
+    StepResult,
+    StepStatus,
 )
 from scenefab.core.platform_adapter import (
+    PLATFORM_CONFIGS,
+    CoverGenerator,
+    CoverStyle,
+    CropRegion,
+    MultiPlatformExporter,
     Platform,
     PlatformConfig,
-    PLATFORM_CONFIGS,
-    CropRegion,
     SmartCropper,
-    CoverStyle,
-    CoverGenerator,
-    MultiPlatformExporter,
+)
+from scenefab.core.short_drama import (
+    EpisodeInfo,
+    SeriesContext,
+    ShortDramaNarrator,
+    ShortDramaPreset,
+    ShortDramaStyle,
+    TropeType,
 )
 from scenefab.core.streaming_llm_worker import StreamingLLMWorker
-
 
 __all__ = [
     # v1.x 公开 API

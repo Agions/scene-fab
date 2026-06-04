@@ -32,12 +32,13 @@ import sqlite3
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from scenefab.core.audit import AuditLogger
 
@@ -47,6 +48,7 @@ logger = logging.getLogger(__name__)
 # ============================================
 # 状态 & 数据
 # ============================================
+
 
 class TaskStatus(str, Enum):
     PENDING = "pending"
@@ -60,6 +62,7 @@ class TaskStatus(str, Enum):
 @dataclass(slots=True)
 class BatchTask:
     """单个批量任务"""
+
     id: str
     video_path: Path
     output_dir: Path
@@ -68,7 +71,7 @@ class BatchTask:
     status: TaskStatus = TaskStatus.PENDING
     progress: float = 0.0
     error: str = ""
-    result_path: Optional[Path] = None
+    result_path: Path | None = None
     attempts: int = 0
     started_at: float = 0.0
     finished_at: float = 0.0
@@ -89,16 +92,17 @@ class BatchTask:
 @dataclass
 class BatchConfig:
     """批量处理配置"""
+
     tasks: list[BatchTask]
     parallel_count: int = 2
     auto_retry: bool = True
     max_retries: int = 2
     task_timeout_sec: int = 1800
-    checkpoint_path: Optional[Path] = None
-    on_task_started: Optional[Callable[[BatchTask], None]] = None
-    on_task_completed: Optional[Callable[[BatchTask], None]] = None
-    on_task_failed: Optional[Callable[[BatchTask], None]] = None
-    on_batch_finished: Optional[Callable[[list[BatchTask]], None]] = None
+    checkpoint_path: Path | None = None
+    on_task_started: Callable[[BatchTask], None] | None = None
+    on_task_completed: Callable[[BatchTask], None] | None = None
+    on_task_failed: Callable[[BatchTask], None] | None = None
+    on_batch_finished: Callable[[list[BatchTask]], None] | None = None
 
 
 # ============================================
@@ -160,14 +164,17 @@ class BatchCheckpoint:
                         task.attempts,
                         task.error,
                         str(task.result_path) if task.result_path else None,
-                        datetime.fromtimestamp(task.finished_at, timezone.utc).isoformat()
-                        if task.finished_at else None,
+                        datetime.fromtimestamp(
+                            task.finished_at, timezone.utc
+                        ).isoformat()
+                        if task.finished_at
+                        else None,
                         json.dumps(task.metadata, ensure_ascii=False),
                     ),
                 )
                 conn.commit()
 
-    def load(self, task_id: str) -> Optional[dict]:
+    def load(self, task_id: str) -> dict | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM batch_checkpoint WHERE task_id = ?", (task_id,)
@@ -205,6 +212,7 @@ class BatchCheckpoint:
 # 批量处理器
 # ============================================
 
+
 class BatchProcessor:
     """
     批量任务处理器
@@ -232,7 +240,7 @@ class BatchProcessor:
         self._finished = False
         self._lock = threading.RLock()
         self._audit = AuditLogger()
-        self.checkpoint: Optional[BatchCheckpoint] = None
+        self.checkpoint: BatchCheckpoint | None = None
         if config.checkpoint_path:
             self.checkpoint = BatchCheckpoint(config.checkpoint_path)
             self._restore_checkpoints()
@@ -268,9 +276,7 @@ class BatchProcessor:
                 self._task_queue.put(task)
 
         # 启动 worker
-        actual_workers = min(
-            self.config.parallel_count, self._task_queue.qsize() or 1
-        )
+        actual_workers = min(self.config.parallel_count, self._task_queue.qsize() or 1)
         for i in range(actual_workers):
             worker = threading.Thread(
                 target=self._worker_loop,
@@ -292,7 +298,7 @@ class BatchProcessor:
             f"{actual_workers} workers"
         )
 
-    def wait_until_done(self, timeout: Optional[float] = None) -> None:
+    def wait_until_done(self, timeout: float | None = None) -> None:
         """等待所有任务完成"""
         if not self._started:
             return
@@ -335,8 +341,10 @@ class BatchProcessor:
                 task = self._task_queue.get(timeout=0.5)
             except queue.Empty:
                 # 队列空 + 所有 worker 都闲着 = 完成
-                if not any(w.is_alive() and w != threading.current_thread()
-                           for w in self._workers):
+                if not any(
+                    w.is_alive() and w != threading.current_thread()
+                    for w in self._workers
+                ):
                     with self._lock:
                         if self._task_queue.empty():
                             self._finished = True
@@ -349,9 +357,7 @@ class BatchProcessor:
 
     def _process_task(self, task: BatchTask) -> None:
         """处理单个任务（含重试）"""
-        max_attempts = (
-            self.config.max_retries + 1 if self.config.auto_retry else 1
-        )
+        max_attempts = self.config.max_retries + 1 if self.config.auto_retry else 1
 
         for attempt in range(1, max_attempts + 1):
             if self._shutdown.is_set():
@@ -418,6 +424,7 @@ class BatchProcessor:
 
             except Exception as e:
                 import traceback
+
                 err_type = type(e).__name__
                 err_msg = str(e)[:500]
                 logger.error(f"Task {task.id} failed (attempt {attempt}): {e}")
@@ -428,7 +435,7 @@ class BatchProcessor:
 
                 if attempt < max_attempts:
                     # 退避重试
-                    backoff_sec = min(2 ** attempt, 30)
+                    backoff_sec = min(2**attempt, 30)
                     logger.info(f"Retrying task {task.id} in {backoff_sec}s...")
                     time.sleep(backoff_sec)
                 else:

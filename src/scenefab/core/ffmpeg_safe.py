@@ -42,23 +42,44 @@ logger = logging.getLogger(__name__)
 # ============================================
 
 ALLOWED_CODECS = {
-    "libx264", "libx265", "libvpx-vp9", "libvpx",
-    "h264_nvenc", "hevc_nvenc",  # NVIDIA GPU
-    "h264_qsv", "hevc_qsv",      # Intel Quick Sync
-    "h264_videotoolbox", "hevc_videotoolbox",  # macOS
+    "libx264",
+    "libx265",
+    "libvpx-vp9",
+    "libvpx",
+    "h264_nvenc",
+    "hevc_nvenc",  # NVIDIA GPU
+    "h264_qsv",
+    "hevc_qsv",  # Intel Quick Sync
+    "h264_videotoolbox",
+    "hevc_videotoolbox",  # macOS
     "copy",  # 流复制（不重新编码）
-    "png", "mjpeg",  # 帧提取
-    "aac", "libmp3lame", "libopus", "copy",  # 音频
+    "png",
+    "mjpeg",  # 帧提取
+    "aac",
+    "libmp3lame",
+    "libopus",  # 音频
 }
 
 ALLOWED_PRESETS = {
-    "ultrafast", "superfast", "veryfast", "faster", "fast",
-    "medium", "slow", "slower", "veryslow",
+    "ultrafast",
+    "superfast",
+    "veryfast",
+    "faster",
+    "fast",
+    "medium",
+    "slow",
+    "slower",
+    "veryslow",
 }
 
 ALLOWED_PIX_FMTS = {
-    "yuv420p", "yuv444p", "yuvj420p", "rgb24", "rgba",
-    "nv12", "yuv420p10le",
+    "yuv420p",
+    "yuv444p",
+    "yuvj420p",
+    "rgb24",
+    "rgba",
+    "nv12",
+    "yuv420p10le",
 }
 
 CRF_RANGE = (0, 51)
@@ -69,9 +90,21 @@ _DANGEROUS_CHARS = re.compile(r'[;&|`$(){}\[\]!<>\\\n\r"\'\x00]')
 
 # 禁止写入的系统目录
 _FORBIDDEN_OUTPUT_DIRS = (
-    "/etc", "/bin", "/sbin", "/usr", "/boot", "/lib", "/lib64",
-    "/sys", "/proc", "/dev", "/root", "/var/log",
-    "c:\\windows", "c:\\program files", "c:\\program files (x86)",
+    "/etc",
+    "/bin",
+    "/sbin",
+    "/usr",
+    "/boot",
+    "/lib",
+    "/lib64",
+    "/sys",
+    "/proc",
+    "/dev",
+    "/root",
+    "/var/log",
+    "c:\\windows",
+    "c:\\program files",
+    "c:\\program files (x86)",
 )
 
 
@@ -79,16 +112,18 @@ _FORBIDDEN_OUTPUT_DIRS = (
 # 数据模型
 # ============================================
 
+
 @dataclass
 class FFmpegResult:
     """FFmpeg 执行结果"""
+
     success: bool
     returncode: int
     stdout: str
     stderr: str
     duration_ms: int
     command: list[str]
-    output_path: Optional[Path] = None
+    output_path: Path | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -105,6 +140,7 @@ class FFmpegResult:
 # ============================================
 # 主类
 # ============================================
+
 
 class FFmpegSecurityError(ValueError):
     """FFmpeg 安全校验失败"""
@@ -124,13 +160,13 @@ class SafeFFmpegCommand:
     preset: str = "medium"
     crf: int = 23
     pix_fmt: str = "yuv420p"
-    bitrate_mbps: Optional[float] = None  # 覆盖 CRF
+    bitrate_mbps: float | None = None  # 覆盖 CRF
     filters: list[str] = field(default_factory=list)
     audio_codec: str = "aac"
     audio_bitrate_kbps: int = 192
     extra_args: list[str] = field(default_factory=list)
     timeout_sec: int = 600
-    hwaccel: Optional[str] = None  # "cuda" / "qsv" / "videotoolbox" / None
+    hwaccel: str | None = None  # "cuda" / "qsv" / "videotoolbox" / None
 
     # ==============================================================
     # 校验
@@ -172,9 +208,7 @@ class SafeFFmpegCommand:
                 f"Allowed: {sorted(ALLOWED_PRESETS)}"
             )
         if self.pix_fmt not in ALLOWED_PIX_FMTS:
-            raise FFmpegSecurityError(
-                f"Pixel format '{self.pix_fmt}' not in whitelist"
-            )
+            raise FFmpegSecurityError(f"Pixel format '{self.pix_fmt}' not in whitelist")
         if not (CRF_RANGE[0] <= self.crf <= CRF_RANGE[1]):
             raise FFmpegSecurityError(
                 f"CRF {self.crf} out of range [{CRF_RANGE[0]}, {CRF_RANGE[1]}]"
@@ -209,10 +243,13 @@ class SafeFFmpegCommand:
                 )
 
         # 6. hwaccel 白名单
-        if self.hwaccel is not None and self.hwaccel not in ("cuda", "qsv", "videotoolbox"):
+        if self.hwaccel is not None and self.hwaccel not in (
+            "cuda",
+            "qsv",
+            "videotoolbox",
+        ):
             raise FFmpegSecurityError(
-                f"HW accel '{self.hwaccel}' not in whitelist "
-                f"[cuda, qsv, videotoolbox]"
+                f"HW accel '{self.hwaccel}' not in whitelist [cuda, qsv, videotoolbox]"
             )
 
     # ==============================================================
@@ -274,6 +311,7 @@ class SafeFFmpegCommand:
             FFmpegResult
         """
         import time
+
         cmd = self.build()  # 已校验
         start_ms = int(time.time() * 1000)
         logger.info(f"FFmpeg execute: {' '.join(shlex.quote(c) for c in cmd[:6])}...")
@@ -363,7 +401,8 @@ class SafeFFmpegCommand:
 # 工具函数
 # ============================================
 
-def is_safe_path(path: str | Path, allowed_bases: Optional[list[Path]] = None) -> bool:
+
+def is_safe_path(path: str | Path, allowed_bases: list[Path] | None = None) -> bool:
     """
     检查路径是否安全（不指向系统目录、不含危险字符）
 

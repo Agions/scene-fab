@@ -31,37 +31,41 @@ logger = logging.getLogger(__name__)
 # 风格枚举
 # ============================================
 
+
 class ShortDramaStyle(str, Enum):
     """短剧解说风格"""
-    SUSPENSE = "short_drama_suspense"   # 短剧悬疑风：快节奏、强反转留白
-    ROMANCE = "short_drama_romance"     # 短剧甜宠风：甜蜜、轻快
-    REVENGE = "short_drama_revenge"     # 短剧复仇风：复仇爽感、霸气
+
+    SUSPENSE = "short_drama_suspense"  # 短剧悬疑风：快节奏、强反转留白
+    ROMANCE = "short_drama_romance"  # 短剧甜宠风：甜蜜、轻快
+    REVENGE = "short_drama_revenge"  # 短剧复仇风：复仇爽感、霸气
     COUNTERATTACK = "short_drama_counterattack"  # 短剧逆袭风：打脸爽文
-    GENERAL = "short_drama_general"     # 通用
+    GENERAL = "short_drama_general"  # 通用
 
 
 # ============================================
 # 数据模型
 # ============================================
 
+
 @dataclass(slots=True)
 class ShortDramaPreset:
     """短剧预设参数"""
+
     name: str
     style: ShortDramaStyle
     description: str = ""
 
     # 抽帧参数
-    frame_interval: float = 0.5           # 短剧节奏快
-    min_scene_length: float = 3.0         # 最小场景长度
-    confidence_threshold: float = 0.5     # 置信度阈值
-    max_segments_per_episode: int = 8     # 每集最多片段
+    frame_interval: float = 0.5  # 短剧节奏快
+    min_scene_length: float = 3.0  # 最小场景长度
+    confidence_threshold: float = 0.5  # 置信度阈值
+    max_segments_per_episode: int = 8  # 每集最多片段
 
     # 解说参数
     words_per_segment_min: int = 50
     words_per_segment_max: int = 80
-    speed: float = 1.15                   # 略快语速
-    include_cliffhanger: bool = True      # 末尾加"下集预告"
+    speed: float = 1.15  # 略快语速
+    include_cliffhanger: bool = True  # 末尾加"下集预告"
     include_episode_watermark: bool = True
 
     # 风格提示
@@ -162,43 +166,87 @@ class ShortDramaPreset:
 # 桥段识别
 # ============================================
 
+
 class TropeType(str, Enum):
     """短剧桥段类型"""
-    IDENTITY_REVEAL = "identity_reveal"   # 身份揭露
-    FACE_SLAP = "face_slap"               # 打脸
-    RESCUE = "rescue"                     # 救场
-    BETRAYAL = "betrayal"                 # 背叛
-    ROMANCE_CLIMAX = "romance_climax"     # 心动瞬间
-    CONFRONTATION = "confrontation"       # 对峙
-    REVEAL_TWIST = "reveal_twist"         # 反转
+
+    IDENTITY_REVEAL = "identity_reveal"  # 身份揭露
+    FACE_SLAP = "face_slap"  # 打脸
+    RESCUE = "rescue"  # 救场
+    BETRAYAL = "betrayal"  # 背叛
+    ROMANCE_CLIMAX = "romance_climax"  # 心动瞬间
+    CONFRONTATION = "confrontation"  # 对峙
+    REVEAL_TWIST = "reveal_twist"  # 反转
     GENERAL = "general"
 
 
 _TROPE_KEYWORDS: dict[TropeType, list[str]] = {
     TropeType.IDENTITY_REVEAL: [
-        "真实身份", "原来是你", "隐藏", "太子", "总裁", "董事长",
-        "幕后", "boss", "真凶", "间谍", "卧底",
+        "真实身份",
+        "原来是你",
+        "隐藏",
+        "太子",
+        "总裁",
+        "董事长",
+        "幕后",
+        "boss",
+        "真凶",
+        "间谍",
+        "卧底",
     ],
     TropeType.FACE_SLAP: [
-        "打脸", "逆转", "没想到", "碾压", "跪", "认错",
-        "后悔", "求饶", "跪舔", "道歉",
+        "打脸",
+        "逆转",
+        "没想到",
+        "碾压",
+        "跪",
+        "认错",
+        "后悔",
+        "求饶",
+        "跪舔",
+        "道歉",
     ],
     TropeType.RESCUE: [
-        "救", "从天而降", "及时赶到", "英雄救美", "出手",
+        "救",
+        "从天而降",
+        "及时赶到",
+        "英雄救美",
+        "出手",
     ],
     TropeType.BETRAYAL: [
-        "背叛", "出卖", "背后捅刀", "陷害", "污蔑",
+        "背叛",
+        "出卖",
+        "背后捅刀",
+        "陷害",
+        "污蔑",
     ],
     TropeType.ROMANCE_CLIMAX: [
-        "告白", "亲吻", "拥抱", "心动", "脸红", "撒娇",
-        "壁咚", "强吻", "床咚", "公主抱",
+        "告白",
+        "亲吻",
+        "拥抱",
+        "心动",
+        "脸红",
+        "撒娇",
+        "壁咚",
+        "强吻",
+        "床咚",
+        "公主抱",
     ],
     TropeType.CONFRONTATION: [
-        "对峙", "质问", "怒斥", "指责", "对质",
+        "对峙",
+        "质问",
+        "怒斥",
+        "指责",
+        "对质",
     ],
     TropeType.REVEAL_TWIST: [
-        "反转", "真相", "竟然", "其实", "万万没想到",
-        "令人震惊", "大跌眼镜",
+        "反转",
+        "真相",
+        "竟然",
+        "其实",
+        "万万没想到",
+        "令人震惊",
+        "大跌眼镜",
     ],
 }
 
@@ -207,9 +255,11 @@ _TROPE_KEYWORDS: dict[TropeType, list[str]] = {
 # 短剧特化解说器
 # ============================================
 
+
 @dataclass
 class EpisodeInfo:
     """单集信息"""
+
     path: Path
     episode_number: int = 0
     title: str = ""
@@ -220,6 +270,7 @@ class EpisodeInfo:
 @dataclass
 class SeriesContext:
     """整季上下文（供各集共享）"""
+
     series_title: str = ""
     total_episodes: int = 0
     character_map: dict[str, str] = field(default_factory=dict)
@@ -304,11 +355,13 @@ class ShortDramaNarrator:
             if file.suffix.lower() not in video_exts:
                 continue
             ep_num = self._extract_episode_number(file.name)
-            episodes.append(EpisodeInfo(
-                path=file,
-                episode_number=ep_num,
-                title=file.stem,
-            ))
+            episodes.append(
+                EpisodeInfo(
+                    path=file,
+                    episode_number=ep_num,
+                    title=file.stem,
+                )
+            )
         # 按集数排序
         episodes.sort(key=lambda e: e.episode_number)
         logger.info(
@@ -337,7 +390,7 @@ class ShortDramaNarrator:
         self,
         episodes: list[EpisodeInfo],
         output_dir: Path,
-        context: Optional[SeriesContext] = None,
+        context: SeriesContext | None = None,
     ) -> list[Path]:
         """
         整季批量生成
@@ -365,9 +418,7 @@ class ShortDramaNarrator:
 
             # 实际生成由上层 pipeline 调用
             # 此处仅记录上下文
-            context.add_plot_point(
-                f"EP{ep.episode_number:02d}: {ep.title} (generated)"
-            )
+            context.add_plot_point(f"EP{ep.episode_number:02d}: {ep.title} (generated)")
             context.previous_episode_summary = ep.summary or ep.title
             results.append(output_file)
 
@@ -388,9 +439,9 @@ class ShortDramaNarrator:
         """
         prompt = f"""基于当前集剧情，生成一个 15 字以内的悬念钩子，让观众必须点开下一集。
 
-剧情总结：{episode_context.get('summary', '')}
-关键冲突：{episode_context.get('conflict', '')}
-桥段类型：{episode_context.get('trope', 'general')}
+剧情总结：{episode_context.get("summary", "")}
+关键冲突：{episode_context.get("conflict", "")}
+桥段类型：{episode_context.get("trope", "general")}
 
 要求：
 - 制造强烈好奇心

@@ -35,11 +35,12 @@ import sqlite3
 import threading
 import time
 import uuid
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -48,13 +49,15 @@ logger = logging.getLogger(__name__)
 # 数据模型
 # ============================================
 
+
 @dataclass(slots=True)
 class AuditEntry:
     """单条审计记录"""
+
     timestamp: str
-    action: str           # e.g. "llm_api_call", "ffmpeg_execute", "file_export"
+    action: str  # e.g. "llm_api_call", "ffmpeg_execute", "file_export"
     parameters: dict[str, Any]
-    result: str           # "success" | "failure" | "cancelled"
+    result: str  # "success" | "failure" | "cancelled"
     duration_ms: int = 0
     error_message: str = ""
     error_type: str = ""
@@ -127,12 +130,14 @@ class AuditLogger:
     _instance: Optional["AuditLogger"] = None
     _instance_lock = threading.Lock()
 
-    def __new__(cls, db_path: Optional[Path] = None) -> "AuditLogger":
+    def __new__(cls, db_path: Path | None = None) -> "AuditLogger":
         """单例模式"""
         with cls._instance_lock:
             if cls._instance is None:
                 instance = super().__new__(cls)
-                instance._init(db_path or Path("~/.cache/scenefab/audit.db").expanduser())
+                instance._init(
+                    db_path or Path("~/.cache/scenefab/audit.db").expanduser()
+                )
                 cls._instance = instance
             elif db_path is not None and Path(db_path) != Path(cls._instance.db_path):
                 # 允许切换 db 路径（主要用于测试）
@@ -209,7 +214,7 @@ class AuditLogger:
     def track(
         self,
         action: str,
-        parameters: Optional[dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
         task_id: str = "",
         step_id: str = "",
     ) -> Iterator[dict]:
@@ -251,9 +256,9 @@ class AuditLogger:
 
     def query(
         self,
-        action: Optional[str] = None,
-        task_id: Optional[str] = None,
-        result: Optional[str] = None,
+        action: str | None = None,
+        task_id: str | None = None,
+        result: str | None = None,
         limit: int = 100,
     ) -> list[AuditEntry]:
         """查询审计记录"""
@@ -275,7 +280,7 @@ class AuditLogger:
             rows = conn.execute(sql, args).fetchall()
             return [AuditEntry.from_row(row) for row in rows]
 
-    def count(self, action: Optional[str] = None) -> int:
+    def count(self, action: str | None = None) -> int:
         """统计记录数"""
         sql = "SELECT COUNT(*) FROM audit_log"
         args: list[Any] = []
@@ -285,11 +290,12 @@ class AuditLogger:
         with self._connect() as conn:
             return conn.execute(sql, args).fetchone()[0]
 
-    def clear(self, before_timestamp: Optional[str] = None) -> int:
+    def clear(self, before_timestamp: str | None = None) -> int:
         """清理旧记录（返回删除条数）"""
         if before_timestamp is None:
             # 默认清理 90 天前
             from datetime import timedelta
+
             cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
             before_timestamp = cutoff
 

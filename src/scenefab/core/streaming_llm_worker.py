@@ -23,10 +23,11 @@ LLM 流式输出 UI Worker — v2.0 重构
 """
 
 import logging
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any, Optional
 
-from scenefab.core.base_worker import BaseWorker, WorkerResult
 from scenefab.core.audit import AuditLogger
+from scenefab.core.base_worker import BaseWorker, WorkerResult
 
 logger = logging.getLogger(__name__)
 
@@ -41,24 +42,25 @@ class StreamingLLMWorker(BaseWorker):
     # 额外 Signals（继承自 BaseWorker）
     try:
         from PySide6.QtCore import Signal as _Signal
-        token_received = _Signal(str)         # 收到新 token
-        sentence_completed = _Signal(str)     # 一句话完成
+
+        token_received = _Signal(str)  # 收到新 token
+        sentence_completed = _Signal(str)  # 一句话完成
     except ImportError:
         # Headless 模式
-        token_received = BaseWorker.progress   # type: ignore[assignment]
+        token_received = BaseWorker.progress  # type: ignore[assignment]
         sentence_completed = BaseWorker.status  # type: ignore[assignment]
 
     def __init__(
         self,
         prompt: str,
         provider: str = "deepseek",
-        model: Optional[str] = None,
+        model: str | None = None,
         style: str = "documentary",
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
-        on_token: Optional[Callable[[str], None]] = None,
-        on_sentence: Optional[Callable[[str], None]] = None,
+        on_token: Callable[[str], None] | None = None,
+        on_sentence: Callable[[str], None] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(name=f"StreamingLLMWorker[{provider}]", cancellable=True)
@@ -97,6 +99,7 @@ class StreamingLLMWorker(BaseWorker):
                 from scenefab.services.ai.script_stream import (
                     StreamingScriptGenerator,
                 )
+
                 gen = StreamingScriptGenerator()
                 # 同步包装异步流式
                 for token in self._consume_streaming(gen):
@@ -146,6 +149,7 @@ class StreamingLLMWorker(BaseWorker):
     def _mock_streaming(self) -> None:
         """模拟流式输出（无 LLM 环境用于测试）"""
         import time
+
         mock_text = (
             f"这是 [{self.provider}] 模型的模拟流式输出。"
             f"实际生产环境会调用真实 LLM API。 "

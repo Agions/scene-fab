@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from scenefab.core.audit import AuditLogger
-from scenefab.core.ffmpeg_safe import SafeFFmpegCommand, FFmpegResult
+from scenefab.core.ffmpeg_safe import FFmpegResult, SafeFFmpegCommand
 
 logger = logging.getLogger(__name__)
 
@@ -44,31 +44,34 @@ logger = logging.getLogger(__name__)
 # 平台定义
 # ============================================
 
+
 class Platform(str, Enum):
     """目标平台"""
-    DOUYIN = "douyin"         # 抖音 9:16
-    KUAISHOU = "kuaishou"     # 快手 9:16
-    BILIBILI = "bilibili"     # B站 16:9
-    XIAOHONGSHU = "xhs"       # 小红书 3:4
-    XIGUA = "xigua"           # 西瓜视频 16:9
-    YOUTUBE = "youtube"       # YouTube 16:9
-    TIKTOK = "tiktok"         # TikTok 9:16
-    JIANYING = "jianying"     # 剪映草稿（特殊）
+
+    DOUYIN = "douyin"  # 抖音 9:16
+    KUAISHOU = "kuaishou"  # 快手 9:16
+    BILIBILI = "bilibili"  # B站 16:9
+    XIAOHONGSHU = "xhs"  # 小红书 3:4
+    XIGUA = "xigua"  # 西瓜视频 16:9
+    YOUTUBE = "youtube"  # YouTube 16:9
+    TIKTOK = "tiktok"  # TikTok 9:16
+    JIANYING = "jianying"  # 剪映草稿（特殊）
 
 
 @dataclass(slots=True)
 class PlatformConfig:
     """平台配置参数"""
+
     platform: Platform
     display_name: str
-    resolution: tuple[int, int]      # (width, height)
-    aspect_ratio: str               # "9:16" / "16:9" / "3:4"
+    resolution: tuple[int, int]  # (width, height)
+    aspect_ratio: str  # "9:16" / "16:9" / "3:4"
     max_duration_sec: int
-    subtitle_position: str          # bottom_center / bottom / top / middle
-    intro_style: str                # fast_paced / cinematic / standard
+    subtitle_position: str  # bottom_center / bottom / top / middle
+    intro_style: str  # fast_paced / cinematic / standard
     cover_resolution: tuple[int, int]
     bitrate_mbps: float
-    safe_area_padding_pct: float    # 安全边距（避免内容被裁切）
+    safe_area_padding_pct: float  # 安全边距（避免内容被裁切）
     supports_vertical: bool
     requires_cover: bool
 
@@ -79,7 +82,7 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
         display_name="抖音",
         resolution=(1080, 1920),
         aspect_ratio="9:16",
-        max_duration_sec=1800,        # 30 分钟
+        max_duration_sec=1800,  # 30 分钟
         subtitle_position="bottom_center",
         intro_style="fast_paced",
         cover_resolution=(1080, 1464),
@@ -107,7 +110,7 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
         display_name="B站",
         resolution=(1920, 1080),
         aspect_ratio="16:9",
-        max_duration_sec=3600,        # 60 分钟
+        max_duration_sec=3600,  # 60 分钟
         subtitle_position="bottom",
         intro_style="cinematic",
         cover_resolution=(1920, 1080),
@@ -121,7 +124,7 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
         display_name="小红书",
         resolution=(1080, 1440),
         aspect_ratio="3:4",
-        max_duration_sec=900,         # 15 分钟
+        max_duration_sec=900,  # 15 分钟
         subtitle_position="middle",
         intro_style="standard",
         cover_resolution=(1080, 1440),
@@ -149,7 +152,7 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
         display_name="YouTube",
         resolution=(1920, 1080),
         aspect_ratio="16:9",
-        max_duration_sec=7200,        # 2 小时
+        max_duration_sec=7200,  # 2 小时
         subtitle_position="bottom",
         intro_style="cinematic",
         cover_resolution=(1920, 1080),
@@ -163,7 +166,7 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
         display_name="TikTok",
         resolution=(1080, 1920),
         aspect_ratio="9:16",
-        max_duration_sec=600,         # 10 分钟
+        max_duration_sec=600,  # 10 分钟
         subtitle_position="bottom_center",
         intro_style="fast_paced",
         cover_resolution=(1080, 1920),
@@ -175,7 +178,7 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
     Platform.JIANYING: PlatformConfig(
         platform=Platform.JIANYING,
         display_name="剪映草稿",
-        resolution=(0, 0),            # 不重新编码
+        resolution=(0, 0),  # 不重新编码
         aspect_ratio="original",
         max_duration_sec=7200,
         subtitle_position="original",
@@ -193,9 +196,11 @@ PLATFORM_CONFIGS: dict[Platform, PlatformConfig] = {
 # 智能裁剪
 # ============================================
 
+
 @dataclass
 class CropRegion:
     """裁剪区域"""
+
     x: int
     y: int
     width: int
@@ -232,6 +237,7 @@ class SmartCropper:
         # 实际项目会调用 Vision API 检测主体位置
         try:
             import cv2 as _cv2  # type: ignore[import-not-found]
+
             cap = _cv2.VideoCapture(str(source))
             width = int(cap.get(_cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(_cv2.CAP_PROP_FRAME_HEIGHT))
@@ -271,16 +277,18 @@ class SmartCropper:
 # 封面生成
 # ============================================
 
+
 @dataclass
 class CoverStyle:
     """封面样式"""
+
     bg_color: str = "#1a1a1a"
     title_color: str = "#ffffff"
     title_size: int = 72
     title_font: str = "Noto Sans CJK SC"
     subtitle_color: str = "#ff6b6b"
     subtitle_size: int = 36
-    style_template: str = "default"   # default / vertical / minimal
+    style_template: str = "default"  # default / vertical / minimal
 
 
 class CoverGenerator:
@@ -294,8 +302,8 @@ class CoverGenerator:
         frame_path: Path,
         title: str,
         subtitle: str = "",
-        style: Optional[CoverStyle] = None,
-        output_path: Optional[Path] = None,
+        style: CoverStyle | None = None,
+        output_path: Path | None = None,
     ) -> Path:
         """
         生成平台专属封面
@@ -319,6 +327,7 @@ class CoverGenerator:
         # 实际项目可用 PIL/Pillow 实现更复杂效果
         try:
             from scenefab.utils.security import SecurityError, get_ffmpeg_executor
+
             executor = get_ffmpeg_executor()
             text_filter = (
                 f"drawtext=text='{title}':fontcolor={style.title_color}:"
@@ -334,13 +343,23 @@ class CoverGenerator:
             safe_frame = str(Path(frame_path).absolute())
             safe_output = str(Path(output_path).absolute())
 
-            result = executor.run([
-                "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
-                "-i", safe_frame,
-                "-vf", text_filter,
-                "-frames:v", "1",
-                safe_output,
-            ], timeout=30)
+            result = executor.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    safe_frame,
+                    "-vf",
+                    text_filter,
+                    "-frames:v",
+                    "1",
+                    safe_output,
+                ],
+                timeout=30,
+            )
 
             if result.returncode == 0:
                 logger.info(f"Cover generated: {output_path}")
@@ -355,20 +374,23 @@ class CoverGenerator:
 # 多平台导出器
 # ============================================
 
+
 @dataclass
 class ExportRequest:
     """单平台导出请求"""
+
     platform: Platform
     output_path: Path
     config: PlatformConfig
-    crop: Optional[CropRegion] = None
-    cover_path: Optional[Path] = None
+    crop: CropRegion | None = None
+    cover_path: Path | None = None
     duration_sec: float = 0.0
 
 
 @dataclass
 class ExportResult:
     """单平台导出结果"""
+
     platform: Platform
     output_path: Path
     success: bool
@@ -386,8 +408,8 @@ class MultiPlatformExporter:
 
     def __init__(
         self,
-        cropper: Optional[SmartCropper] = None,
-        cover_generator: Optional[CoverGenerator] = None,
+        cropper: SmartCropper | None = None,
+        cover_generator: CoverGenerator | None = None,
     ) -> None:
         self.cropper = cropper or SmartCropper()
         self.cover_generator = cover_generator or CoverGenerator()
@@ -399,9 +421,9 @@ class MultiPlatformExporter:
         platforms: list[Platform],
         title: str = "",
         subtitle: str = "",
-        subtitle_text_path: Optional[Path] = None,
-        cover_frame: Optional[Path] = None,
-        output_dir: Optional[Path] = None,
+        subtitle_text_path: Path | None = None,
+        cover_frame: Path | None = None,
+        output_dir: Path | None = None,
         parallel: bool = True,
     ) -> dict[Platform, ExportResult]:
         """
@@ -454,7 +476,8 @@ class MultiPlatformExporter:
                     frame_path=frame,
                     title=title,
                     subtitle=subtitle,
-                    output_path=output_dir / f"{source.stem}_{platform.value}_cover.png",
+                    output_path=output_dir
+                    / f"{source.stem}_{platform.value}_cover.png",
                 )
             requests.append(req)
 
@@ -479,7 +502,7 @@ class MultiPlatformExporter:
         self,
         source: Path,
         requests: list[ExportRequest],
-        subtitle_path: Optional[Path],
+        subtitle_path: Path | None,
     ) -> dict[Platform, ExportResult]:
         results: dict[Platform, ExportResult] = {}
         for req in requests:
@@ -490,7 +513,7 @@ class MultiPlatformExporter:
         self,
         source: Path,
         requests: list[ExportRequest],
-        subtitle_path: Optional[Path],
+        subtitle_path: Path | None,
     ) -> dict[Platform, ExportResult]:
         results: dict[Platform, ExportResult] = {}
         with ThreadPoolExecutor(max_workers=min(len(requests), 4)) as executor:
@@ -515,10 +538,11 @@ class MultiPlatformExporter:
         self,
         source: Path,
         req: ExportRequest,
-        subtitle_path: Optional[Path],
+        subtitle_path: Path | None,
     ) -> ExportResult:
         """导出单平台版本"""
         import time
+
         start_ms = int(time.time() * 1000)
         cfg = req.config
 
@@ -567,7 +591,8 @@ class MultiPlatformExporter:
                 success=True,
                 duration_ms=duration_ms,
                 file_size_bytes=req.output_path.stat().st_size
-                if req.output_path.exists() else 0,
+                if req.output_path.exists()
+                else 0,
             )
         except Exception as e:
             duration_ms = int(time.time() * 1000) - start_ms

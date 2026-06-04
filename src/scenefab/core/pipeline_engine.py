@@ -43,10 +43,11 @@ DAG 并行流水线引擎 — v2.0 重构
 
 import logging
 import time
+from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from scenefab.core.audit import AuditLogger
 
@@ -57,8 +58,10 @@ logger = logging.getLogger(__name__)
 # 状态
 # ============================================
 
+
 class StepStatus(str, Enum):
     """步骤执行状态"""
+
     PENDING = "pending"
     READY = "ready"
     RUNNING = "running"
@@ -71,9 +74,11 @@ class StepStatus(str, Enum):
 # 数据模型
 # ============================================
 
+
 @dataclass
 class PipelineConfig:
     """流水线配置"""
+
     max_workers: int = 2
     step_timeout_sec: int = 600
     fail_fast: bool = True  # 任一步失败时是否立即停止
@@ -83,11 +88,12 @@ class PipelineConfig:
 @dataclass
 class StepResult:
     """单步执行结果"""
+
     step_id: str
     status: StepStatus
     output: Any = None
-    error: Optional[str] = None
-    error_type: Optional[str] = None
+    error: str | None = None
+    error_type: str | None = None
     duration_ms: int = 0
     start_time: float = 0.0
 
@@ -105,18 +111,20 @@ class PipelineStep:
         always_run: 即便上游失败也执行（如清理步骤）
         timeout_sec: 单步超时（覆盖全局）
     """
+
     id: str
     func: Callable[[dict], Any]
     dependencies: list[str] = field(default_factory=list)
-    parallel_group: Optional[str] = None
+    parallel_group: str | None = None
     always_run: bool = False
-    timeout_sec: Optional[int] = None
+    timeout_sec: int | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================
 # 引擎
 # ============================================
+
 
 class PipelineEngine:
     """
@@ -171,9 +179,7 @@ class PipelineEngine:
         for step in self.steps.values():
             for dep in step.dependencies:
                 if dep not in self.steps:
-                    raise ValueError(
-                        f"Step '{step.id}' has unknown dependency '{dep}'"
-                    )
+                    raise ValueError(f"Step '{step.id}' has unknown dependency '{dep}'")
 
         # 无循环依赖（拓扑排序检测）
         visiting: set[str] = set()
@@ -200,7 +206,7 @@ class PipelineEngine:
     # 执行
     # ==============================================================
 
-    def run(self, context: Optional[dict] = None) -> dict[str, Any]:
+    def run(self, context: dict | None = None) -> dict[str, Any]:
         """
         执行流水线
 
@@ -230,8 +236,11 @@ class PipelineEngine:
 
                 if not ready_steps and not pending_futures:
                     # 没有可执行且无正在运行 → 死锁
-                    stuck = [sid for sid, st in self.states.items()
-                             if st == StepStatus.PENDING]
+                    stuck = [
+                        sid
+                        for sid, st in self.states.items()
+                        if st == StepStatus.PENDING
+                    ]
                     raise RuntimeError(
                         f"Pipeline stuck: pending steps have unresolvable deps: {stuck}"
                     )
@@ -242,9 +251,7 @@ class PipelineEngine:
                     for step in group:
                         if self.config.enable_parallel and len(group) > 1:
                             # 并行执行
-                            future = executor.submit(
-                                self._execute_step, step, context
-                            )
+                            future = executor.submit(self._execute_step, step, context)
                             pending_futures[future] = step
                         else:
                             # 串行执行（单步）
@@ -262,6 +269,7 @@ class PipelineEngine:
                     else:
                         # 等待任一完成（短超时）
                         import concurrent.futures
+
                         try:
                             concurrent.futures.wait(
                                 pending_futures.keys(),
@@ -274,8 +282,7 @@ class PipelineEngine:
                 # 失败快速终止
                 if self.config.fail_fast:
                     if any(
-                        self.states[s.id] == StepStatus.FAILED
-                        and not s.always_run
+                        self.states[s.id] == StepStatus.FAILED and not s.always_run
                         for s in self.steps.values()
                     ):
                         logger.warning("Pipeline fail_fast triggered, skipping pending")
@@ -331,20 +338,19 @@ class PipelineEngine:
             # always_run 步骤：只要依赖都已"终止"（COMPLETED/FAILED）即可执行
             if step.always_run:
                 if all(
-                    self.states[dep] in (StepStatus.COMPLETED, StepStatus.FAILED, StepStatus.SKIPPED)
+                    self.states[dep]
+                    in (StepStatus.COMPLETED, StepStatus.FAILED, StepStatus.SKIPPED)
                     for dep in step.dependencies
                 ):
                     ready.append(step)
                 continue
             # 普通步骤：依赖必须全部 COMPLETED
             if all(
-                self.states[dep] == StepStatus.COMPLETED
-                for dep in step.dependencies
+                self.states[dep] == StepStatus.COMPLETED for dep in step.dependencies
             ):
                 # 如果有任一依赖 FAILED 则 SKIPPED
                 if any(
-                    self.states[dep] == StepStatus.FAILED
-                    for dep in step.dependencies
+                    self.states[dep] == StepStatus.FAILED for dep in step.dependencies
                 ):
                     self.states[step.id] = StepStatus.SKIPPED
                     self.results[step.id] = StepResult(
@@ -357,9 +363,7 @@ class PipelineEngine:
                     ready.append(step)
         return ready
 
-    def _group_by_parallel(
-        self, steps: list[PipelineStep]
-    ) -> list[list[PipelineStep]]:
+    def _group_by_parallel(self, steps: list[PipelineStep]) -> list[list[PipelineStep]]:
         """按 parallel_group 分组，保留组内步骤一起并行"""
         groups: dict[str, list[PipelineStep]] = {}
         order: list[str] = []
@@ -416,6 +420,7 @@ class PipelineEngine:
 
         except Exception as e:
             import traceback
+
             duration_ms = int((time.time() - start_time) * 1000)
             tb = traceback.format_exc()
             err_type = type(e).__name__
@@ -465,7 +470,7 @@ class PipelineEngine:
     def get_state(self, step_id: str) -> StepStatus:
         return self.states.get(step_id, StepStatus.PENDING)
 
-    def get_result(self, step_id: str) -> Optional[StepResult]:
+    def get_result(self, step_id: str) -> StepResult | None:
         return self.results.get(step_id)
 
     def summary(self) -> dict:

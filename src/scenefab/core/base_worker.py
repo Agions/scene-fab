@@ -38,34 +38,41 @@ logger = logging.getLogger(__name__)
 # === 尝试导入 PySide6 ===
 try:
     from PySide6.QtCore import QObject, QThread, Signal
+
     _QT_AVAILABLE = True
 except ImportError:
     _QT_AVAILABLE = False
     QObject = object  # type: ignore[misc,assignment]
     QThread = object  # type: ignore[misc,assignment]
+
     class _DummySignal:  # noqa: D401
         """PySide6 不可用时的占位 Signal"""
+
         def __init__(self, *args, **kwargs):
             self._handlers = []
+
         def connect(self, handler):
             self._handlers.append(handler)
+
         def emit(self, *args):
             for h in self._handlers:
                 try:
                     h(*args)
                 except Exception as e:
                     logger.error(f"Signal handler error: {e}")
+
     Signal = _DummySignal  # type: ignore[misc,assignment]
 
 
 @dataclass
 class WorkerResult:
     """Worker 执行结果"""
+
     success: bool
     data: Any = None
-    error: Optional[str] = None
-    error_type: Optional[str] = None
-    traceback: Optional[str] = None
+    error: str | None = None
+    error_type: str | None = None
+    traceback: str | None = None
     duration_ms: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -112,7 +119,7 @@ class BaseWorker(QThread if _QT_AVAILABLE else threading.Thread):  # type: ignor
         self._cancel_event = threading.Event()
         self._pause_event = threading.Event()
         self._pause_event.set()  # 默认非暂停
-        self._result: Optional[WorkerResult] = None
+        self._result: WorkerResult | None = None
         self._start_time_ms: int = 0
 
     # ==============================================================
@@ -171,7 +178,7 @@ class BaseWorker(QThread if _QT_AVAILABLE else threading.Thread):  # type: ignor
             return True
         return False
 
-    def get_result(self) -> Optional[WorkerResult]:
+    def get_result(self) -> WorkerResult | None:
         return self._result
 
     # ==============================================================
@@ -217,6 +224,7 @@ class BaseWorker(QThread if _QT_AVAILABLE else threading.Thread):  # type: ignor
         负责异常捕获、结果包装、Signal 发送
         """
         import time
+
         self._start_time_ms = int(time.time() * 1000)
         try:
             self.run()
@@ -262,9 +270,11 @@ class BaseWorker(QThread if _QT_AVAILABLE else threading.Thread):  # type: ignor
         else:
             # 包装 run 调用，注入 _execute 异常处理
             original_run = self.run
+
             def wrapped_run():
                 # 用 _execute 的异常处理逻辑
                 self._execute()
+
             self.run = wrapped_run
             threading.Thread.start(self)
 

@@ -2,6 +2,7 @@
 """
 v2.0 核心模块测试 — BaseWorker / Audit / Pipeline / FFmpeg / Batch / ShortDrama / Platform
 """
+
 import json
 import sqlite3
 import tempfile
@@ -12,13 +13,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # === BaseWorker ===
 
-class TestBaseWorker:
 
+class TestBaseWorker:
     def test_worker_result_dataclass(self):
         from scenefab.core.base_worker import WorkerResult
+
         r = WorkerResult(success=True, data="test", duration_ms=100)
         assert r.success
         assert r.data == "test"
@@ -66,10 +67,10 @@ class TestBaseWorker:
 
 # === AuditLogger ===
 
-class TestAuditLogger:
 
+class TestAuditLogger:
     def test_log_entry(self):
-        from scenefab.core.audit import AuditLogger, AuditEntry
+        from scenefab.core.audit import AuditEntry, AuditLogger
 
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test_audit.db"
@@ -129,8 +130,8 @@ class TestAuditLogger:
 
 # === PipelineEngine (DAG) ===
 
-class TestPipelineEngine:
 
+class TestPipelineEngine:
     def test_simple_pipeline(self):
         from scenefab.core.pipeline_engine import PipelineEngine, PipelineStep
 
@@ -166,21 +167,33 @@ class TestPipelineEngine:
                 time.sleep(duration)
                 timings[name] = time.time() - start
                 return name
+
             return _step
 
         engine.add_step(PipelineStep(id="base", func=slow_step("base", 0.1)))
-        engine.add_step(PipelineStep(
-            id="branch_a", func=slow_step("branch_a", 0.2),
-            dependencies=["base"], parallel_group="group1",
-        ))
-        engine.add_step(PipelineStep(
-            id="branch_b", func=slow_step("branch_b", 0.2),
-            dependencies=["base"], parallel_group="group1",
-        ))
-        engine.add_step(PipelineStep(
-            id="final", func=slow_step("final", 0.1),
-            dependencies=["branch_a", "branch_b"],
-        ))
+        engine.add_step(
+            PipelineStep(
+                id="branch_a",
+                func=slow_step("branch_a", 0.2),
+                dependencies=["base"],
+                parallel_group="group1",
+            )
+        )
+        engine.add_step(
+            PipelineStep(
+                id="branch_b",
+                func=slow_step("branch_b", 0.2),
+                dependencies=["base"],
+                parallel_group="group1",
+            )
+        )
+        engine.add_step(
+            PipelineStep(
+                id="final",
+                func=slow_step("final", 0.1),
+                dependencies=["branch_a", "branch_b"],
+            )
+        )
 
         start = time.time()
         result = engine.run({})
@@ -204,7 +217,9 @@ class TestPipelineEngine:
         from scenefab.core.pipeline_engine import PipelineEngine, PipelineStep
 
         engine = PipelineEngine()
-        engine.add_step(PipelineStep(id="a", func=lambda c: None, dependencies=["nonexistent"]))
+        engine.add_step(
+            PipelineStep(id="a", func=lambda c: None, dependencies=["nonexistent"])
+        )
         with pytest.raises(ValueError, match="unknown dependency"):
             engine.run({})
 
@@ -220,7 +235,9 @@ class TestPipelineEngine:
             raise AssertionError("should not be called")
 
         engine.add_step(PipelineStep(id="fail", func=fail_func))
-        engine.add_step(PipelineStep(id="after", func=should_skip, dependencies=["fail"]))
+        engine.add_step(
+            PipelineStep(id="after", func=should_skip, dependencies=["fail"])
+        )
 
         result = engine.run({})
         summary = engine.summary()
@@ -228,7 +245,11 @@ class TestPipelineEngine:
         assert summary["skipped"] == 1
 
     def test_always_run_step(self):
-        from scenefab.core.pipeline_engine import PipelineEngine, PipelineStep, StepStatus
+        from scenefab.core.pipeline_engine import (
+            PipelineEngine,
+            PipelineStep,
+            StepStatus,
+        )
 
         engine = PipelineEngine(fail_fast=True)
         cleanup_ran = []
@@ -240,9 +261,14 @@ class TestPipelineEngine:
             cleanup_ran.append(True)
 
         engine.add_step(PipelineStep(id="fail", func=fail_func))
-        engine.add_step(PipelineStep(
-            id="cleanup", func=cleanup, dependencies=["fail"], always_run=True,
-        ))
+        engine.add_step(
+            PipelineStep(
+                id="cleanup",
+                func=cleanup,
+                dependencies=["fail"],
+                always_run=True,
+            )
+        )
 
         # 拦截 audit 调用，专注于行为验证
         with patch("scenefab.core.pipeline_engine.AuditLogger") as mock_audit_cls:
@@ -259,10 +285,10 @@ class TestPipelineEngine:
 
 # === SafeFFmpegCommand ===
 
-class TestSafeFFmpegCommand:
 
+class TestSafeFFmpegCommand:
     def test_basic_build(self):
-        from scenefab.core.ffmpeg_safe import SafeFFmpegCommand, FFmpegSecurityError
+        from scenefab.core.ffmpeg_safe import FFmpegSecurityError, SafeFFmpegCommand
 
         # 创建临时输入文件
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
@@ -284,7 +310,7 @@ class TestSafeFFmpegCommand:
             input_path.unlink()
 
     def test_codec_whitelist(self):
-        from scenefab.core.ffmpeg_safe import SafeFFmpegCommand, FFmpegSecurityError
+        from scenefab.core.ffmpeg_safe import FFmpegSecurityError, SafeFFmpegCommand
 
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
             input_path = Path(f.name)
@@ -301,7 +327,7 @@ class TestSafeFFmpegCommand:
             input_path.unlink()
 
     def test_dangerous_chars_in_filter(self):
-        from scenefab.core.ffmpeg_safe import SafeFFmpegCommand, FFmpegSecurityError
+        from scenefab.core.ffmpeg_safe import FFmpegSecurityError, SafeFFmpegCommand
 
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
             input_path = Path(f.name)
@@ -318,7 +344,7 @@ class TestSafeFFmpegCommand:
             input_path.unlink()
 
     def test_crf_out_of_range(self):
-        from scenefab.core.ffmpeg_safe import SafeFFmpegCommand, FFmpegSecurityError
+        from scenefab.core.ffmpeg_safe import FFmpegSecurityError, SafeFFmpegCommand
 
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
             input_path = Path(f.name)
@@ -335,7 +361,7 @@ class TestSafeFFmpegCommand:
             input_path.unlink()
 
     def test_forbidden_output_path(self):
-        from scenefab.core.ffmpeg_safe import SafeFFmpegCommand, FFmpegSecurityError
+        from scenefab.core.ffmpeg_safe import FFmpegSecurityError, SafeFFmpegCommand
 
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
             input_path = Path(f.name)
@@ -361,11 +387,14 @@ class TestSafeFFmpegCommand:
 
 # === BatchProcessor ===
 
-class TestBatchProcessor:
 
+class TestBatchProcessor:
     def test_simple_batch(self):
         from scenefab.core.batch_processor import (
-            BatchProcessor, BatchConfig, BatchTask, TaskStatus,
+            BatchConfig,
+            BatchProcessor,
+            BatchTask,
+            TaskStatus,
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -375,16 +404,19 @@ class TestBatchProcessor:
             for i in range(3):
                 vp = tmpdir / f"ep{i:02d}.mp4"
                 vp.write_bytes(b"fake")
-                tasks.append(BatchTask(
-                    id=f"ep{i:02d}",
-                    video_path=vp,
-                    output_dir=tmpdir / "out",
-                ))
+                tasks.append(
+                    BatchTask(
+                        id=f"ep{i:02d}",
+                        video_path=vp,
+                        output_dir=tmpdir / "out",
+                    )
+                )
 
             # Mock pipeline
             class MockPipeline:
                 def __init__(self, task):
                     self.task = task
+
                 def run(self, **kwargs):
                     output = self.task.output_dir / f"{self.task.id}.mp4"
                     output.parent.mkdir(parents=True, exist_ok=True)
@@ -401,7 +433,10 @@ class TestBatchProcessor:
 
     def test_batch_retry_on_failure(self):
         from scenefab.core.batch_processor import (
-            BatchProcessor, BatchConfig, BatchTask, TaskStatus,
+            BatchConfig,
+            BatchProcessor,
+            BatchTask,
+            TaskStatus,
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -415,6 +450,7 @@ class TestBatchProcessor:
             class FlakeyPipeline:
                 def __init__(self, task):
                     self.task = task
+
                 def run(self, **kwargs):
                     attempt_count[0] += 1
                     if attempt_count[0] < 2:
@@ -434,22 +470,29 @@ class TestBatchProcessor:
 
     def test_checkpoint_resume(self):
         from scenefab.core.batch_processor import (
-            BatchProcessor, BatchConfig, BatchTask, BatchCheckpoint,
+            BatchCheckpoint,
+            BatchConfig,
+            BatchProcessor,
+            BatchTask,
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
             cp_path = tmpdir / "checkpoint.db"
-            tasks = [BatchTask(
-                id="ep01", video_path=tmpdir / "ep.mp4",
-                output_dir=tmpdir / "out",
-            )]
+            tasks = [
+                BatchTask(
+                    id="ep01",
+                    video_path=tmpdir / "ep.mp4",
+                    output_dir=tmpdir / "out",
+                )
+            ]
             (tmpdir / "ep.mp4").write_bytes(b"fake")
 
             # 第一次跑
             class MockPipeline:
                 def __init__(self, task):
                     self.task = task
+
                 def run(self, **kwargs):
                     output = self.task.output_dir / f"{self.task.id}.mp4"
                     output.parent.mkdir(parents=True, exist_ok=True)
@@ -457,7 +500,8 @@ class TestBatchProcessor:
                     return str(output)
 
             config = BatchConfig(
-                tasks=tasks, parallel_count=1,
+                tasks=tasks,
+                parallel_count=1,
                 checkpoint_path=cp_path,
             )
             processor = BatchProcessor(config, pipeline_factory=MockPipeline)
@@ -466,12 +510,16 @@ class TestBatchProcessor:
             assert tasks[0].status.value == "completed"
 
             # 第二次跑（应从断点恢复，不重复处理）
-            tasks2 = [BatchTask(
-                id="ep01", video_path=tmpdir / "ep.mp4",
-                output_dir=tmpdir / "out",
-            )]
+            tasks2 = [
+                BatchTask(
+                    id="ep01",
+                    video_path=tmpdir / "ep.mp4",
+                    output_dir=tmpdir / "out",
+                )
+            ]
             config2 = BatchConfig(
-                tasks=tasks2, parallel_count=1,
+                tasks=tasks2,
+                parallel_count=1,
                 checkpoint_path=cp_path,
             )
             processor2 = BatchProcessor(config2, pipeline_factory=MockPipeline)
@@ -480,20 +528,27 @@ class TestBatchProcessor:
 
 # === ShortDrama ===
 
-class TestShortDrama:
 
+class TestShortDrama:
     def test_preset_suspense(self):
         from scenefab.core.short_drama import ShortDramaPreset, ShortDramaStyle
+
         p = ShortDramaPreset.suspense()
         assert p.style == ShortDramaStyle.SUSPENSE
         assert "悬疑" in p.name
 
     def test_trope_detection(self):
-        from scenefab.core.short_drama import ShortDramaNarrator, ShortDramaPreset, TropeType
+        from scenefab.core.short_drama import (
+            ShortDramaNarrator,
+            ShortDramaPreset,
+            TropeType,
+        )
 
         narrator = ShortDramaNarrator(preset=ShortDramaPreset.suspense())
 
-        assert narrator.detect_trope("主角的真实身份曝光了") == TropeType.IDENTITY_REVEAL
+        assert (
+            narrator.detect_trope("主角的真实身份曝光了") == TropeType.IDENTITY_REVEAL
+        )
         assert narrator.detect_trope("狠狠打脸反派") == TropeType.FACE_SLAP
         assert narrator.detect_trope("男主突然出现救了她") == TropeType.RESCUE
         assert narrator.detect_trope("普通场景") == TropeType.GENERAL
@@ -530,8 +585,8 @@ class TestShortDrama:
 
 # === Platform Adapter ===
 
-class TestPlatformAdapter:
 
+class TestPlatformAdapter:
     def test_platform_configs_exist(self):
         from scenefab.core.platform_adapter import PLATFORM_CONFIGS, Platform
 
@@ -556,12 +611,13 @@ class TestPlatformAdapter:
         assert not cfg.supports_vertical
 
     def test_smart_cropper_16_9_to_9_16(self):
-        from scenefab.core.platform_adapter import SmartCropper, CropRegion
+        from scenefab.core.platform_adapter import CropRegion, SmartCropper
 
         # 直接用 stub 替代，避免依赖 cv2 真实存在
         class StubCap:
             def __init__(self, w, h):
                 self._w, self._h = w, h
+
             def get(self, prop):
                 # cv2.CAP_PROP_FRAME_WIDTH=3, CAP_PROP_FRAME_HEIGHT=4
                 if prop == 3:
@@ -569,6 +625,7 @@ class TestPlatformAdapter:
                 if prop == 4:
                     return float(self._h)
                 return 0
+
             def release(self):
                 pass
 
@@ -576,6 +633,7 @@ class TestPlatformAdapter:
         # 通过 sys.modules 注入假 cv2
         import sys
         from types import ModuleType
+
         fake_cv2 = ModuleType("cv2")
         fake_cv2.CAP_PROP_FRAME_WIDTH = 3
         fake_cv2.CAP_PROP_FRAME_HEIGHT = 4
@@ -592,18 +650,19 @@ class TestPlatformAdapter:
 
     def test_crop_to_ffmpeg_filter(self):
         from scenefab.core.platform_adapter import CropRegion
+
         crop = CropRegion(x=100, y=50, width=800, height=600)
         assert crop.to_ffmpeg_filter() == "crop=800:600:100:50"
 
 
 # === 集成测试 ===
 
-class TestIntegration:
 
+class TestIntegration:
     def test_audit_during_pipeline(self):
         """Pipeline 执行的每步都应记录到审计日志"""
-        from scenefab.core.pipeline_engine import PipelineEngine, PipelineStep
         from scenefab.core.audit import AuditLogger
+        from scenefab.core.pipeline_engine import PipelineEngine, PipelineStep
 
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "audit.db"
@@ -611,9 +670,13 @@ class TestIntegration:
 
             engine = PipelineEngine(max_workers=1)
             engine.add_step(PipelineStep(id="step1", func=lambda c: "result1"))
-            engine.add_step(PipelineStep(
-                id="step2", func=lambda c: "result2", dependencies=["step1"],
-            ))
+            engine.add_step(
+                PipelineStep(
+                    id="step2",
+                    func=lambda c: "result2",
+                    dependencies=["step1"],
+                )
+            )
 
             engine.run({})
 
