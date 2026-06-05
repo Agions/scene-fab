@@ -131,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚀 核心功能
 
-- **AI 视频解说生成** (Monologue Maker)：Qwen2.5-VL 视频理解 + DeepSeek-V4 解说生成 + SenseVoice ASR + Edge-TTS/F5-TTS 配音
+- **AI 视频解说生成** (Monologue Maker)：Qwen3.7 视频理解 + DeepSeek-V4 解说生成 + SenseVoice ASR + Edge-TTS/F5-TTS 配音
 - **AI 视频混剪** (Mashup Maker)：智能分组 + 情绪峰值检测 + 视角映射
 - **导出支持**：DirectVideoExporter (MP4/MOV/GIF) + JianyingExporter (剪映草稿)
 - **导出预设**：B站 (1080P 60fps)、YouTube (4K 60fps)、Twitter、TikTok、微信
