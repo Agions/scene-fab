@@ -1,5 +1,6 @@
 ---
-title: 首页
+layout: home
+title: SceneFab
 titleTemplate: false
 
 hero:
