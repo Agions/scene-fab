@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scenefab"
-version = "2.0.0"
+version = "2.1.0"
 description = "SceneFab - AI 影视解说视频创作工具，一键完成智能拆条 · 解说生成 · 配音合成"
 readme = "README.md"
 license = {text = "MIT"}
@@ -60,6 +60,7 @@ dependencies = [
     "uvicorn>=0.27.0",
     # Data validation
     "pydantic>=2.5.0",
+    "pydantic-settings>=2.0.0",
     # Config
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0.1",

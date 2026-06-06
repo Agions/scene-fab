@@ -2,111 +2,24 @@
 
 """
 多模型视觉分析适配器
-支持 Qwen2.5-VL (72B SOTA)、GPT-5 Vision、Gemini 3 Vision 等多种 Vision 模型
+支持 Qwen3.7 (Max/Plus)、GPT-5 Vision、Gemini 3.5 Flash 等多种 Vision 模型
 """
 
 import json
 import logging
 import os
-from abc import ABC, abstractmethod
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
+
+# 基类和常量从 vision_base 导入，避免循环导入
+from .vision_base import (
+    FIRST_PERSON_ANALYSIS_PROMPT,
+    VISION_ANALYSIS_PROMPT,
+    VisionAnalysisResult,
+    VisionProvider,
+)
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class VisionAnalysisResult:
-    """视觉分析结果"""
-    description: str = ""
-    content_type: str = "unknown"
-    objects: list[str] = field(default_factory=list)
-    text_content: str = ""
-    emotion: str = "neutral"
-    color_tone: str = "neutral"
-    confidence: float = 0.0
-    raw_response: str = ""
-    # 第一人称解说专用字段
-    scene_narrative: str = ""      # 场景叙事（"我"看到什么）
-    protagonist_action: str = ""    # 主角动作
-    environment_mood: str = ""      # 环境氛围
-    first_person_hook: str = ""     # 适合第一人称的开场钩子
-
-
-# ============================================================================
-# 默认提示词（通用场景理解）
-# ============================================================================
-VISION_ANALYSIS_PROMPT = """分析这张视频截图，返回JSON格式：
-{
-    "description": "详细描述画面内容（50-100字）",
-    "content_type": "person/landscape/indoor/outdoor/text/product/animal/food/action",
-    "objects": ["检测到的主要物体列表"],
-    "text": "画面中出现的文字（如果有）",
-    "emotion": "neutral/happy/sad/excited/calm/tense/romantic",
-    "color_tone": "warm/cold/neutral",
-    "suitable_for": {
-        "commentary": 0-100,
-        "monologue": 0-100,
-        "mashup": 0-100
-    }
-}
-只返回JSON，不要其他内容。"""
-
-
-# ============================================================================
-# 第一人称解说专用提示词（Qwen2.5-VL 增强版）
-# ============================================================================
-FIRST_PERSON_ANALYSIS_PROMPT = """你是一位专业的电影分镜师和第一人称叙事导演。
-
-分析这段视频截图，用"我"（画面中主角）的视角描述所见所行。
-
-返回JSON格式：
-{
-    "description": "客观描述画面内容（30-60字）",
-    "content_type": "person/landscape/indoor/outdoor/product/action/scenery",
-    "objects": ["画面中主要物体"],
-    "emotion": "neutral/happy/sad/calm/excited/tense/wonder/awe",
-    "color_tone": "warm/cold/muted/vibrant",
-    "protagonist_action": "主角正在做什么（用动词，简洁）",
-    "environment_mood": "环境氛围关键词（3-5个）",
-    "first_person_hook": "一句适合第一人称的开场叙述（10-20字，要有画面感）",
-    "narrative_angle": "这个场景适合从哪个角度切入叙事（旁观/内心独白/现场解说）"
-}
-
-注意：
-- protagist_action 站在主角立场描述，而非旁观者
-- first_person_hook 要有沉浸感，像主角在说话
-- 只返回JSON，不要解释"""
-
-
-# ============================================================================
-# Provider 基类
-# ============================================================================
-class VisionProvider(ABC):
-    """视觉分析提供者基类"""
-
-    @abstractmethod
-    def analyze_image(self, image_base64: str,
-                      prompt: str = VISION_ANALYSIS_PROMPT) -> dict[str, Any]:
-        """分析图片，返回解析后的字典"""
-        pass
-
-    @abstractmethod
-    def get_name(self) -> str:
-        pass
-
-    @staticmethod
-    def _parse_json_response(content: str) -> dict[str, Any]:
-        """从可能包含 markdown 的响应中提取 JSON"""
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0]
-        try:
-            return json.loads(content.strip())
-        except json.JSONDecodeError:
-            return {"description": content.strip()}
 
 
 # ============================================================================
@@ -186,11 +99,11 @@ class QwenVLProvider(VisionProvider):
 
 
 # ============================================================================
-# 通义千问 Qwen2.5-VL（2025年2月新版，72B SOTA）⭐ 主力推荐
+# 通义千问 Qwen3.7（2026年6月最新，多模态 Agent）⭐ 主力推荐
 # ============================================================================
 class Qwen25VLProvider(VisionProvider):
     """
-    通义千问 Qwen2.5-VL（72B）
+    通义千问 Qwen3.7（Max/Plus）
 
     2025年2月发布，视频理解 SOTA，支持 Native 视频输入。
     推荐作为第一人称解说场景理解的主力模型。
@@ -204,12 +117,12 @@ class Qwen25VLProvider(VisionProvider):
         self.model = model
 
     def get_name(self) -> str:
-        return f"Qwen2.5-VL/{self.model}"
+        return f"Qwen3.7/{self.model}"
 
     def analyze_image(self, image_base64: str,
                       prompt: str = FIRST_PERSON_ANALYSIS_PROMPT) -> dict[str, Any]:
         """
-        使用 Qwen2.5-VL 进行第一人称解说专用分析。
+        使用 Qwen3.7 进行第一人称解说专用分析。
         默认 prompt 使用 FIRST_PERSON_ANALYSIS_PROMPT。
         """
         from openai import OpenAI
@@ -390,7 +303,7 @@ class VisionAnalyzerFactory:
     视觉分析器工厂
 
     根据配置自动选择可用的 Vision 提供者，支持 fallback 降级。
-    优先顺序：Qwen2.5-VL > Qwen-VL > GPT-4o > Gemini
+    优先顺序：Qwen3.7 > Qwen-VL > GPT-4o > Gemini
 
     用法:
         factory = VisionAnalyzerFactory(config)
@@ -398,12 +311,20 @@ class VisionAnalyzerFactory:
         result = provider.analyze_image(base64_data)
     """
 
-    PROVIDER_MAP = {
-        "openai": OpenAIVisionProvider,
-        "qwen": QwenVLProvider,
-        "qwen25": Qwen25VLProvider,
-        "gemini": GeminiVisionProvider,
-    }
+    def _get_provider_map(self) -> dict[str, type]:
+        """延迟加载 Provider 映射，避免循环导入"""
+        from .providers.gemini35_flash import Gemini35FlashProvider
+        from .providers.qwen37 import Qwen37Provider
+        return {
+            "openai": OpenAIVisionProvider,
+            "qwen": QwenVLProvider,
+            "qwen25": Qwen25VLProvider,
+            "qwen37": Qwen37Provider,
+            "gemini": GeminiVisionProvider,
+            "gemini35": Gemini35FlashProvider,
+        }
+
+    PROVIDER_MAP = {}  # 保留兼容，实际用 _get_provider_map()
 
     def __init__(self, config: dict[str, Any]):
         self._config = config
@@ -411,16 +332,20 @@ class VisionAnalyzerFactory:
         self._init_providers()
 
     def _init_providers(self):
+        from .providers.gemini35_flash import Gemini35FlashProvider
+        from .providers.qwen37 import Qwen37Provider
+
         llm = self._config.get("LLM", {})
 
-        # Qwen2.5-VL（最优先，2025年2月最新，视频理解 SOTA）
-        qwen25_key = os.getenv("QWEN_API_KEY") or llm.get("qwen", {}).get("api_key", "")
-        if qwen25_key and not qwen25_key.startswith("${"):
-            self._providers.append(Qwen25VLProvider(
-                api_key=qwen25_key,
-                model="qwen2.5-vl-72b-instruct",
+        # Qwen3.7（最优先，2026年6月最新，多模态 Agent）
+        qwen37_key = os.getenv("QWEN_API_KEY") or llm.get("qwen", {}).get("api_key", "")
+        vision_model = os.getenv("VISION_MODEL", "qwen3.7-plus")
+        if qwen37_key and not qwen37_key.startswith("${"):
+            self._providers.append(Qwen37Provider(
+                api_key=qwen37_key,
+                model=vision_model,
             ))
-            logger.info("✅ Qwen2.5-VL (72B) 已启用 — 视频理解 SOTA")
+            logger.info(f"✅ Qwen3.7 ({vision_model}) 已启用 — 多模态 Agent")
 
         # Qwen-VL Plus（备选）
         qwen_key = os.getenv("QWEN_API_KEY") or llm.get("qwen", {}).get("api_key", "")
@@ -439,11 +364,20 @@ class VisionAnalyzerFactory:
                 base_url=llm.get("openai", {}).get("base_url"),
             ))
 
-        # Gemini
+        # Gemini 3.5 Flash（2026年5月最新）
         gemini_key = os.getenv("GEMINI_API_KEY") or llm.get("gemini", {}).get("api_key", "")
         if gemini_key and not gemini_key.startswith("${"):
-            self._providers.append(GeminiVisionProvider(
+            self._providers.append(Gemini35FlashProvider(
                 api_key=gemini_key,
+                model="gemini-3.5-flash",
+            ))
+            logger.info("✅ Gemini 3.5 Flash 已启用 — Flash 级别成本")
+
+        # Gemini 旧版（备选）
+        gemini_legacy_key = os.getenv("GEMINI_API_KEY") or llm.get("gemini", {}).get("api_key", "")
+        if gemini_legacy_key and not gemini_legacy_key.startswith("${"):
+            self._providers.append(GeminiVisionProvider(
+                api_key=gemini_legacy_key,
                 model="gemini-2.5-flash-preview-0506",
             ))
 
