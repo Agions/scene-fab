@@ -7,7 +7,7 @@ hero:
   text: AI 影视解说创作工具
   tagline: 智能拆条 · AI 解说生成 · 一键配音合成
   image:
-    src: /logo.png
+    src: /logo.svg
     alt: SceneFab
   actions:
     - theme: brand
@@ -55,38 +55,115 @@ features:
   <p class="vp-section-sub">从几天一条，到一天十条</p>
 </div>
 
-| 项目 | 传统方式（剪映/PR） | SceneFab |
-|------|------|--------|
-| 打点切分 | 手动逐帧，耗时数小时 | AI 语义理解，自动拆条 |
-| 解说文案 | 人工观看撰写，30 分钟+ | DeepSeek 生成，30 秒完成 |
-| 配音制作 | 需配音演员或购买版权 | TTS 免费合成，任意音色 |
-| 制作时间 | 1–3 小时/条 | **5–15 分钟/条** |
-| 导出格式 | 仅 MP4 | MP4 + 剪映草稿 JSON |
+<div class="vp-compare">
+  <div class="vp-compare-header">
+    <div>项目</div>
+    <div>传统方式（剪映/PR）</div>
+    <div>SceneFab</div>
+  </div>
+  <div class="vp-compare-row">
+    <div class="vp-compare-label">打点切分</div>
+    <div>手动逐帧，耗时数小时</div>
+    <div class="vp-compare-wins">AI 语义理解，自动拆条</div>
+  </div>
+  <div class="vp-compare-row">
+    <div class="vp-compare-label">解说文案</div>
+    <div>人工观看撰写，30 分钟+</div>
+    <div class="vp-compare-wins">DeepSeek 生成，30 秒完成</div>
+  </div>
+  <div class="vp-compare-row">
+    <div class="vp-compare-label">配音制作</div>
+    <div>需配音演员或购买版权</div>
+    <div class="vp-compare-wins">TTS 免费合成，任意音色</div>
+  </div>
+  <div class="vp-compare-row">
+    <div class="vp-compare-label">制作时间</div>
+    <div>1–3 小时/条</div>
+    <div class="vp-compare-highlight">5–15 分钟/条</div>
+  </div>
+  <div class="vp-compare-row">
+    <div class="vp-compare-label">导出格式</div>
+    <div>仅 MP4</div>
+    <div class="vp-compare-wins">MP4 + 剪映草稿 JSON</div>
+  </div>
+</div>
 
 <!-- 4-STEP WORKFLOW -->
 <div class="vp-section-header">
   <h2 class="vp-section-title">4 步创作流程</h2>
 </div>
 
-| 步骤 | 操作 | 说明 |
-|------|------|------|
-| ① 上传 | 拖拽或选择文件夹 | 支持 mp4/mov/avi/webm |
-| ② AI 拆条 | Qwen2.5-VL 逐帧理解 | 按情节/场景自动切分 |
-| ③ 解说 + 配音 | DeepSeek-V4 + Edge-TTS | 生成文案，合成配音 |
-| ④ 导出 | FFmpeg / 剪映草稿 | MP4 / JSON 格式输出 |
+<div class="vp-workflow">
+  <div class="vp-step">
+    <div class="vp-step-num">1</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">上传视频</div>
+      <div class="vp-step-desc">拖拽或选择文件夹，支持 mp4/mov/avi/webm</div>
+    </div>
+    <div class="vp-step-arrow">→</div>
+  </div>
+  <div class="vp-step">
+    <div class="vp-step-num">2</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">AI 拆条</div>
+      <div class="vp-step-desc">Qwen2.5-VL 逐帧理解，按情节/场景自动切分</div>
+    </div>
+    <div class="vp-step-arrow">→</div>
+  </div>
+  <div class="vp-step">
+    <div class="vp-step-num">3</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">解说 + 配音</div>
+      <div class="vp-step-desc">DeepSeek-V4 生成文案，Edge-TTS 合成配音</div>
+    </div>
+    <div class="vp-step-arrow">→</div>
+  </div>
+  <div class="vp-step">
+    <div class="vp-step-num">4</div>
+    <div class="vp-step-body">
+      <div class="vp-step-title">导出</div>
+      <div class="vp-step-desc">FFmpeg / 剪映草稿，MP4 / JSON 格式输出</div>
+    </div>
+  </div>
+</div>
 
 <!-- TECH STACK -->
 <div class="vp-section-header">
   <h2 class="vp-section-title">技术栈</h2>
 </div>
 
-| 模块 | 技术 | 说明 |
-|------|------|------|
-| 语义拆条 | Qwen2.5-VL | 视频帧逐帧理解，语义场景边界检测 |
-| 解说生成 | DeepSeek-V4 | 第一人称视角，7 种预设风格 |
-| 配音合成 | Edge-TTS / F5-TTS | 零样本音色克隆，50ms 字幕对齐 |
-| 视频合成 | FFmpeg | H.264/H.265 本地编码 |
-| 导出 | MP4 · 剪映草稿 | 直出发布 / 继续精剪 |
+<div class="vp-arch-table">
+  <div class="vp-arch-row vp-arch-header">
+    <div>模块</div>
+    <div>技术</div>
+    <div>说明</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-label">语义拆条</div>
+    <div class="vp-arch-model">Qwen2.5-VL</div>
+    <div>视频帧逐帧理解，语义场景边界检测</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-label">解说生成</div>
+    <div class="vp-arch-model">DeepSeek-V4</div>
+    <div>第一人称视角，7 种预设风格</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-label">配音合成</div>
+    <div class="vp-arch-model">Edge-TTS / F5-TTS</div>
+    <div>零样本音色克隆，50ms 字幕对齐</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-label">视频合成</div>
+    <div class="vp-arch-model">FFmpeg</div>
+    <div>H.264/H.265 本地编码</div>
+  </div>
+  <div class="vp-arch-row">
+    <div class="vp-arch-label">导出</div>
+    <div class="vp-arch-model">MP4 · 剪映草稿</div>
+    <div>直出发布 / 继续精剪</div>
+  </div>
+</div>
 
 <!-- STATS -->
 <div class="vp-stats-row">
