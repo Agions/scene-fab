@@ -22,28 +22,22 @@ hero:
       link: https://github.com/Agions/scene-fab
 
 features:
-  - icon:
-      src: /icons/multi-video.svg
+  - icon: 🎬
     title: AI 智能语义拆条
     details: 基于 Qwen2.5-VL 理解视频语义，按情节/场景自动切分，无需手动打点
-  - icon:
-      src: /icons/monologue.svg
+  - icon: 🎙️
     title: 多风格解说生成
     details: DeepSeek-V4 生成情感丰富解说稿，7 种预设风格一键切换
-  - icon:
-      src: /icons/emotion.svg
+  - icon: 🎭
     title: 情感峰值选段
     details: 视觉+音频双维度情感评分，优先选取叙事高潮片段
-  - icon:
-      src: /icons/module.svg
+  - icon: 🔊
     title: 智能配音合成
     details: Edge-TTS / F5-TTS 文字转语音，50ms 精度字幕对齐
-  - icon:
-      src: /icons/style.svg
+  - icon: 🎨
     title: 7 种情感风格
     details: 治愈 · 悬疑 · 励志 · 怀旧 · 浪漫 · 幽默 · 纪录片 + 角色自定义
-  - icon:
-      src: /icons/export.svg
+  - icon: 📦
     title: 多格式导出
     details: H.264/H.265 MP4 直出，或原生剪映草稿 JSON，无缝继续精剪
 ---
