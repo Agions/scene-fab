@@ -249,7 +249,6 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 
 ### 未来规划 🔮
 
-- [ ] 直播解说模式（实时视频流接入 + 低延迟 AI 解说）
 - [ ] 智能字幕翻译（保留时序的多语言翻译）
 - [ ] 云端协作（项目云存储 + 多人审稿）
 - [ ] 移动端预览（iOS / Android 实时预览 App）
