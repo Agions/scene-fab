@@ -119,7 +119,6 @@ export default defineConfig({
         text: '参考',
         items: [
           { text: 'AI 模型',         link: '/ai-models' },
-          { text: '模型更新日志',    link: '/model-updates' },
           { text: '疑难排查',        link: '/guide/troubleshooting' },
           { text: '架构概览',        link: '/architecture' },
         ],
@@ -195,7 +194,6 @@ export default defineConfig({
           text: '参考',
           items: [
             { text: 'AI 模型',            link: '/ai-models' },
-            { text: '模型更新日志',       link: '/model-updates' },
             { text: '架构概览',           link: '/architecture' },
             { text: '安全设计',           link: '/security' },
           ],
@@ -215,7 +213,6 @@ export default defineConfig({
           text: 'AI 模型',
           items: [
             { text: 'AI 模型总览',         link: '/ai-models' },
-            { text: '模型更新日志',        link: '/model-updates' },
           ],
         },
       ],
