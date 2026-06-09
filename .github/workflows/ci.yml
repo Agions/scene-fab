@@ -26,7 +26,7 @@ jobs:
   type-check:
     # 已恢复 (2026-06-09): 修复 112 个 mypy 错误后重新启用
     # 不阻塞本 release: continue-on-error: true 保留报警, 不当 merge gate
-    # baseline 锁: 1193 errors (来自 --check-untyped-defs)
+    # baseline 锁: 56 errors (mypty 1.16.1 f-string bug 不可修)
     # 后续目标: 渐进清 attr-defined / union-attr / assignment 三大户
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
           error_count=$(grep -oE "Found [0-9]+ errors? in" /tmp/mypy_output.txt | grep -oE "[0-9]+" | head -1)
           error_count=${error_count:-0}
           echo "Mypy errors: ${error_count}"
-          baseline=1200  # baseline = CI 实测 1138 + 62 缓冲 (CI 比本地多装依赖, 错误略少)
+          baseline=60  # 56 local f-string bug + 4 buffer
           if [ "${error_count}" -gt "${baseline}" ]; then
             echo "::error::Mypy error count ${error_count} exceeds baseline ${baseline}"
             cat /tmp/mypy_output.txt | tail -50
