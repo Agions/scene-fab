@@ -46,7 +46,7 @@ jobs:
           uv run mypy src/scenefab/ --check-untyped-defs > /tmp/mypy_output.txt 2>&1
           error_count=$(grep -c "^src/" /tmp/mypy_output.txt || echo 0)
           echo "Mypy errors: ${error_count}"
-          baseline=1300  # baseline = 当前 1193 + 107 缓冲
+          baseline=1200  # baseline = CI 实测 1138 + 62 缓冲 (CI 比本地多装依赖, 错误略少)
           if [ "${error_count}" -gt "${baseline}" ]; then
             echo "::error::Mypy error count ${error_count} exceeds baseline ${baseline}"
             cat /tmp/mypy_output.txt | tail -50
