@@ -1,11 +1,13 @@
 """
-v2.2 解说生成状态机 — Phase 1 骨架 + Phase 2 真实实现
+v2.2 解说生成状态机 — Phase 1 骨架 + Phase 2/3 真实实现
 
 公开 API:
 - NarrationContext / Persona / Platform / NarrationStyle / Bridge / BridgeType
 - NarrationState / NarrationStateMachine / NarrationConfig / StepResult
+- NarrationEvaluator / EvalResult / DimensionScore (Phase 3)
 - register_default_steps (Phase 1 骨架 Step)
 - register_phase2_steps (Phase 2 真实实现 — 替换 UNDERSTAND/STORYGRAPH/DRAFT)
+- register_phase3_steps (Phase 3 真实实现 — 替换 EVALUATE/HOOK_REWRITE)
 
 v2.2 决策: 见 docs/adr/007-narration-state-machine.md
 """
@@ -22,6 +24,11 @@ from .narration_context import (
     Platform,
     PlatformSpec,
 )
+from .narration_evaluator import (
+    DimensionScore,
+    EvalResult,
+    NarrationEvaluator,
+)
 from .narration_state_machine import (
     NarrationConfig,
     NarrationState,
@@ -37,6 +44,15 @@ from .narration_steps_phase2 import (
     register_phase2_steps,
     storygraph_step,
     understand_step,
+)
+from .narration_steps_phase3 import (
+    evaluate_step as evaluate_step_phase3,
+)
+from .narration_steps_phase3 import (
+    hook_rewrite_step as hook_rewrite_step_phase3,
+)
+from .narration_steps_phase3 import (
+    register_phase3_steps,
 )
 
 __all__ = [
@@ -58,11 +74,18 @@ __all__ = [
     "StateTransition",
     "StepResult",
     "TransitionReason",
+    # Evaluator
+    "DimensionScore",
+    "EvalResult",
+    "NarrationEvaluator",
     # Steps
     "register_default_steps",
     "register_phase2_steps",
+    "register_phase3_steps",
     "understand_step",
     "storygraph_step",
     "draft_step",
+    "evaluate_step_phase3",
+    "hook_rewrite_step_phase3",
     "_build_narration_prompt",
 ]
