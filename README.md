@@ -202,9 +202,7 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 │                   业务服务层 (services/)                           │
 │  ai/          LLM · Vision · TTS · ASR 适配器                    │
 │  video/       FFmpeg · 帧提取 · 合成 · 缓存                      │
-│  emotion/     情绪弧线分析 · 节奏检测                             │
-│  cover/       智能封面 · 元数据生成                               │
-│  data_feedback/ 多平台数据回流 · 效果分析                         │
+│  video_understanding/  长视频剧情理解 (v2.2 状态机 UNDERSTAND)   │
 │  export/      MP4 · 剪映草稿 · 8 平台导出                        │
 └──────────────────────────┬───────────────────────────────────────┘
                            │
@@ -268,7 +266,7 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 |------|------|------|
 | `feat` | 新功能 | `feat(pipeline): commentary 5-step pipeline` |
 | `fix` | Bug 修复 | `fix(ci): correct vision_providers import path` |
-| `perf` | 性能优化 | `perf(emotion): parallel detection + audio cache` |
+| `perf` | 性能优化 | `perf(pipeline): parallel narration state machine` |
 | `docs` | 文档更新 | `docs(readme): professional redesign` |
 
 ---
