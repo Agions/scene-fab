@@ -1,5 +1,5 @@
 """
-v2.2 解说生成状态机 — Phase 1 骨架 + Phase 2/3 真实实现
+v2.2 解说生成状态机 — Phase 1 骨架 + Phase 2/3/4 真实实现
 
 公开 API:
 - NarrationContext / Persona / Platform / NarrationStyle / Bridge / BridgeType
@@ -8,6 +8,7 @@ v2.2 解说生成状态机 — Phase 1 骨架 + Phase 2/3 真实实现
 - register_default_steps (Phase 1 骨架 Step)
 - register_phase2_steps (Phase 2 真实实现 — 替换 UNDERSTAND/STORYGRAPH/DRAFT)
 - register_phase3_steps (Phase 3 真实实现 — 替换 EVALUATE/HOOK_REWRITE)
+- register_phase4_steps (Phase 4 真实实现 — 替换 TTS_LENGTH_ADJUST/TTS/ASSEMBLE)
 
 v2.2 决策: 见 docs/adr/007-narration-state-machine.md
 """
@@ -54,6 +55,13 @@ from .narration_steps_phase3 import (
 from .narration_steps_phase3 import (
     register_phase3_steps,
 )
+from .narration_steps_phase4 import (
+    assemble_step,
+    probe_audio_duration,
+    register_phase4_steps,
+    tts_length_adjust_step,
+    tts_step,
+)
 
 __all__ = [
     # Context
@@ -82,10 +90,15 @@ __all__ = [
     "register_default_steps",
     "register_phase2_steps",
     "register_phase3_steps",
+    "register_phase4_steps",
     "understand_step",
     "storygraph_step",
     "draft_step",
     "evaluate_step_phase3",
     "hook_rewrite_step_phase3",
+    "tts_length_adjust_step",
+    "tts_step",
+    "assemble_step",
+    "probe_audio_duration",
     "_build_narration_prompt",
 ]
