@@ -111,6 +111,7 @@ export default defineConfig({
         text: '核心教程',
         items: [
           { text: 'AI 工作流详解',   link: '/guide/ai-video-guide' },
+          { text: '第一人称生产规范', link: '/guide/first-person-narration-production' },
           { text: '导出格式',        link: '/guide/exporting' },
           { text: '界面介绍',        link: '/guide/interface' },
         ],
@@ -152,6 +153,7 @@ export default defineConfig({
           text: '核心教程',
           items: [
             { text: 'AI 工作流详解',      link: '/guide/ai-video-guide' },
+            { text: '第一人称生产规范',    link: '/guide/first-person-narration-production' },
             { text: 'AI 配置指南',         link: '/guide/ai-configuration' },
             { text: '导出格式',            link: '/guide/exporting' },
           ],
@@ -186,6 +188,7 @@ export default defineConfig({
           text: '核心教程',
           items: [
             { text: 'AI 工作流详解',      link: '/guide/ai-video-guide' },
+            { text: '第一人称生产规范',    link: '/guide/first-person-narration-production' },
             { text: '界面介绍',           link: '/guide/interface' },
             { text: '导出格式',           link: '/guide/exporting' },
           ],
