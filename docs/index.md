@@ -42,6 +42,10 @@ features:
     details: 文档、配置、导出预设和状态机实现保持同一套生产语言。
 ---
 
+<script setup>
+import { withBase } from 'vitepress'
+</script>
+
 <div class="vp-doc container">
 
 <section class="sf-section">
@@ -54,32 +58,32 @@ features:
   </div>
 
   <div class="sf-grid cols-3">
-    <a class="sf-link-card" href="/scene-fab/guide/quick-start.html">
+    <a class="sf-link-card" :href="withBase('/guide/quick-start.html')">
       <div class="sf-card-label">新用户</div>
       <div class="sf-card-title">安装、配置和验证</div>
       <p class="sf-card-text">完成运行环境、API Key、基础命令和第一次启动检查。</p>
     </a>
-    <a class="sf-link-card" href="/scene-fab/guide/first-person-narration-production.html">
+    <a class="sf-link-card" :href="withBase('/guide/first-person-narration-production.html')">
       <div class="sf-card-label">内容团队</div>
       <div class="sf-card-title">短剧解说生产规范</div>
       <p class="sf-card-text">从素材来源到脚本、配音、字幕、竖屏导出和复盘的完整流程。</p>
     </a>
-    <a class="sf-link-card" href="/scene-fab/guide/exporting.html">
+    <a class="sf-link-card" :href="withBase('/guide/exporting.html')">
       <div class="sf-card-label">发布运营</div>
       <div class="sf-card-title">平台导出与发布参数</div>
       <p class="sf-card-text">按平台控制画布、码率、字幕安全区和剪映草稿交付。</p>
     </a>
-    <a class="sf-link-card" href="/scene-fab/guide/ai-configuration.html">
+    <a class="sf-link-card" :href="withBase('/guide/ai-configuration.html')">
       <div class="sf-card-label">配置负责人</div>
       <div class="sf-card-title">AI 服务配置</div>
       <p class="sf-card-text">管理解说生成、视觉理解、ASR 和 TTS 所需的服务参数。</p>
     </a>
-    <a class="sf-link-card" href="/scene-fab/guide/troubleshooting.html">
+    <a class="sf-link-card" :href="withBase('/guide/troubleshooting.html')">
       <div class="sf-card-label">排障</div>
       <div class="sf-card-title">常见问题处理</div>
       <p class="sf-card-text">定位安装、模型、视频处理、字幕同步和导出失败。</p>
     </a>
-    <a class="sf-link-card" href="/scene-fab/architecture.html">
+    <a class="sf-link-card" :href="withBase('/architecture.html')">
       <div class="sf-card-label">架构审阅</div>
       <div class="sf-card-title">系统架构概览</div>
       <p class="sf-card-text">理解状态机、视频服务、AI 服务、导出服务和资源层职责。</p>
