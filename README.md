@@ -8,7 +8,7 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/v2.2.0-FF6B35?style=flat-square&logo=git&logoColor=white)](https://github.com/Agions/scene-fab/releases)
+[![Version](https://img.shields.io/badge/v2.1.1-FF6B35?style=flat-square&logo=git&logoColor=white)](https://github.com/Agions/scene-fab/releases)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Agions/scene-fab?style=flat-square&color=FACC15)](https://github.com/Agions/scene-fab/stargazers)
 [![Forks](https://img.shields.io/github/forks/Agions/scene-fab?style=flat-square&color=8B5CF6)](https://github.com/Agions/scene-fab/network/members)
@@ -37,7 +37,6 @@
 - [架构](#架构)
 - [技术栈](#技术栈)
 - [路线图](#路线图)
-- [贡献](#贡献)
 - [许可证](#许可证)
 
 ---
@@ -139,20 +138,6 @@
 | 🍎 macOS | Intel | `SceneFab-x.x.x-x64.dmg` |
 | 🐧 Linux | x64 | `SceneFab-x.x.x-x64.AppImage` |
 
-### 从源码安装
-
-```bash
-# 克隆仓库
-git clone https://github.com/Agions/scene-fab.git
-cd scene-fab
-
-# 安装依赖
-pip install -e .
-
-# 启动 GUI
-scenefab gui
-```
-
 ### 配置 AI（只需一个 Key）
 
 ```bash
@@ -185,7 +170,7 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                    UI 层 (PySide6 6.9)                            │
-│   HomePage · 5-Step Wizard · MonitorPanel · Worker               │
+│     SceneFabMainWindow · 工作台 · 创作流程 · 项目资产 · 系统设置      │
 └──────────────────────────┬───────────────────────────────────────┘
                            │ Signal/Slot
                            ▼
@@ -225,7 +210,6 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 | **视频处理** | [FFmpeg](https://ffmpeg.org/) · [OpenCV](https://opencv.org/) |
 | **UI 框架** | [PySide6](https://doc.qt.io/qtforpython/) · Qt Design Tokens |
 | **数据存储** | SQLite 3 · 本地优先 |
-| **代码质量** | [Ruff](https://github.com/astral-sh/ruff) · [pytest](https://docs.pytest.org/) · GitHub Actions CI |
 | **AI Agent** | Hermes Agent · MCP Protocol |
 
 ---
@@ -234,13 +218,14 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 
 ### 已完成 ✅
 
-- v2.2.0 — AI 模型升级（Qwen3.7 / Gemini 3.5 Flash / 新 TTS）· 数据回流 · 情绪分析 · 爆款预测
+- v2.1.1 — 解说生成状态机（5 状态 + 评估循环）· 架构清理
 - v2.1.0 — 统一架构（EventBus + DI + 类型化事件）
 - v2.0.0 — DAG 并行流水线 · FFmpeg 安全加固 · 短剧批量 · 8 平台适配
-- v1.1.0 — 8-Phase 架构重构 · ruff UP 规则 · 完全向后兼容
+- v1.1.0 — 8-Phase 架构重构 · 影视解说基础工作流
 
 ### 进行中 🚧
 
+- [ ] v2.2.0 — AI 模型升级（Qwen3.7 / Gemini 3.5 Flash / 新 TTS）· 数据回流 · 情绪分析 · 爆款预测
 - [ ] Web Dashboard（轻量级远程监控 + 任务管理）
 - [ ] 插件市场（用户自定义 AI Provider / TTS 音色）
 - [ ] 多语言 i18n（日 / 韩 / 英 / 西）
@@ -250,24 +235,6 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 - [ ] 智能字幕翻译（保留时序的多语言翻译）
 - [ ] 云端协作（项目云存储 + 多人审稿）
 - [ ] 移动端预览（iOS / Android 实时预览 App）
-
----
-
-## 贡献
-
-欢迎 PR / Issue / Discussion！
-
-1. **Fork** 本仓库
-2. 创建 feature 分支（`git checkout -b feat/amazing-feature`）
-3. 提交改动（遵循 [Conventional Commits](https://www.conventionalcommits.org/)）
-4. 推送分支并创建 [Pull Request](https://github.com/Agions/scene-fab/pulls)
-
-| 类型 | 用途 | 示例 |
-|------|------|------|
-| `feat` | 新功能 | `feat(pipeline): commentary 5-step pipeline` |
-| `fix` | Bug 修复 | `fix(ci): correct vision_providers import path` |
-| `perf` | 性能优化 | `perf(pipeline): parallel narration state machine` |
-| `docs` | 文档更新 | `docs(readme): professional redesign` |
 
 ---
 
@@ -281,6 +248,6 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 
 ⭐ 如果 SceneFab 对你有帮助，请给一个 Star
 
-[🚀 下载](https://github.com/Agions/scene-fab/releases) · [📖 文档](https://agions.github.io/scene-fab/) · [🐛 Issue](https://github.com/Agions/scene-fab/issues) · [🤝 贡献](https://github.com/Agions/scene-fab/blob/main/CONTRIBUTING.md)
+[🚀 下载](https://github.com/Agions/scene-fab/releases) · [📖 文档](https://agions.github.io/scene-fab/) · [🐛 Issue](https://github.com/Agions/scene-fab/issues)
 
 </div>
