@@ -36,26 +36,8 @@ resources/
     └── light_theme.qss       # light production workspace theme
 ```
 
-## Development Plan
+## Runtime Scope
 
-1. Resource baseline: keep only app icons, platform bundle icons, and runtime
-   QSS themes in this directory.
-2. UI integration: route all application icon loading through
-   `resources/icons`, and keep platform packaging targets at `resources/icon.*`.
-3. Theme evolution: add new QSS selectors only when a widget has a stable
-   `objectName` or a shared Qt role.
-4. Asset growth: add workflow-specific media only when it is required by a
-   shipped screen; avoid placeholder, duplicated, or decorative-only assets.
-5. Verification: after resource updates, validate image dimensions, platform
-   icon formats, old-brand text removal, and QSS compatibility.
-
-## Maintenance Commands
-
-```bash
-python scripts/resource_assets.py generate
-python scripts/resource_assets.py check
-pytest tests/test_resources.py
-```
-
-`generate` refreshes PNG and Windows ICO assets on every platform. It also
-refreshes `icon.icns` when macOS `iconutil` is available.
+Resources here are loaded by the desktop app and packaging targets only. Keep
+workflow media, screenshots, temporary exports, and draft experiments outside
+this directory unless they are part of a shipped screen.

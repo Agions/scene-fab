@@ -116,7 +116,6 @@ class Application(QObject):
             ("config_manager", self._init_config_manager),
             ("event_bus", self._init_event_bus),
             ("error_handler", self._init_error_handler),
-            ("icon_manager", self._init_icon_manager),
             ("services", self._init_services),
         ]
 
@@ -221,6 +220,9 @@ class Application(QObject):
             # 保存配置
             self._save_configuration()
 
+            # 统一关闭事件总线（释放投递线程池）
+            self._shutdown_event_bus()
+
             # 清理资源
             self._cleanup()
 
@@ -228,6 +230,18 @@ class Application(QObject):
 
         except Exception as e:
             self.error_occurred.emit("SHUTDOWN_ERROR", f"Shutdown failed: {str(e)}")
+
+    def _shutdown_event_bus(self) -> None:
+        """关闭已注册的事件总线，释放其后台投递线程池（幂等）。"""
+        bus = self._service_container.get_by_name("event_bus")
+        close = getattr(bus, "close", None)
+        if callable(close):
+            try:
+                close()
+            except Exception as e:  # noqa: BLE001
+                self.error_occurred.emit(
+                    "SHUTDOWN_ERROR", f"Error closing event bus: {str(e)}"
+                )
 
     def run(self) -> int:
         """运行应用程序主循环"""
@@ -430,31 +444,14 @@ class Application(QObject):
                 self.logger.error(f"错误处理器初始化失败: {e}")
             return False
 
-    def _init_icon_manager(self) -> bool:
-        """初始化图标管理器"""
-        try:
-            from scenefab.ui.icon_manager import init_icon_manager
-
-            # 初始化图标管理器 - 现在它可以处理QApplication不存在的情况
-            icon_manager = init_icon_manager("resources/icons")
-            self.register_service("icon_manager", icon_manager)
-
-            self.logger.info("图标管理器初始化完成")
-            return True
-
-        except Exception as e:
-            if hasattr(self, "logger"):
-                self.logger.error(f"图标管理器初始化失败: {e}")
-            return False
-
     def _init_services(self) -> bool:
         """初始化其他服务"""
         try:
-            # 使用已存在的服务代替
-            from scenefab.services.service_manager import get_ai_service_manager
+            # AI 服务统一从权威 manager 暴露（P2: 移除 ServiceManager 二次注册）
+            from scenefab.services.ai.manager import get_ai_service
 
-            # 创建并注册AI服务管理器
-            ai_service_manager = get_ai_service_manager()
+            # 注册全局单例 AI 服务管理器
+            ai_service_manager = get_ai_service()
             self.register_service("ai_service_manager", ai_service_manager)
 
             # 初始化项目管理相关服务
