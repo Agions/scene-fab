@@ -31,12 +31,20 @@
 
 ## 📑 目录
 
+- [📑 目录](#-目录)
 - [它是什么？](#它是什么)
+  - [为什么选择 SceneFab](#为什么选择-scenefab)
 - [核心能力](#核心能力)
 - [快速开始](#快速开始)
+  - [下载安装](#下载安装)
+  - [配置 AI（只需一个 Key）](#配置-ai只需一个-key)
+  - [常用命令](#常用命令)
 - [架构](#架构)
 - [技术栈](#技术栈)
 - [路线图](#路线图)
+  - [已完成 ✅](#已完成-)
+  - [进行中 🚧](#进行中-)
+  - [未来规划 🔮](#未来规划-)
 - [许可证](#许可证)
 
 ---
@@ -49,14 +57,14 @@
 
 ### 为什么选择 SceneFab
 
-| 痛点 | SceneFab 解法 |
-|------|--------------|
-| 写一篇解说稿要 2-3 小时 | DeepSeek-V4 多 LLM 联合生成，7+ 风格，分钟级出稿 |
-| 配音需要专业设备 | Edge-TTS / F5-TTS 双引擎，50+ 音色 + 零样本克隆 |
-| 字幕对齐手动逐句调整 | TTS Word-level Timing，50ms 精度自动对齐 |
-| 短剧整季 25 集一个个做 | DAG 并行流水线，整季 15 分钟批量出 |
-| 多平台尺寸不同要反复剪 | 8 平台智能适配，一键导出抖音/B站/小红书 |
-| 视频文件上传到云端不安全 | **完全本地处理**，素材隐私 100% 安全 |
+| 痛点                     | SceneFab 解法                                    |
+| ------------------------ | ------------------------------------------------ |
+| 写一篇解说稿要 2-3 小时  | DeepSeek-V4 多 LLM 联合生成，7+ 风格，分钟级出稿 |
+| 配音需要专业设备         | Edge-TTS / F5-TTS 双引擎，50+ 音色 + 零样本克隆  |
+| 字幕对齐手动逐句调整     | TTS Word-level Timing，50ms 精度自动对齐         |
+| 短剧整季 25 集一个个做   | DAG 并行流水线，整季 15 分钟批量出               |
+| 多平台尺寸不同要反复剪   | 8 平台智能适配，一键导出抖音/B站/小红书          |
+| 视频文件上传到云端不安全 | **完全本地处理**，素材隐私 100% 安全             |
 
 > **目标用户**：影视解说自媒体人 · 短剧批量生产团队 · 混剪创作者 · AI 视频工具开发者
 
@@ -131,12 +139,12 @@
 
 前往 [Releases](https://github.com/Agions/scene-fab/releases) 页面下载：
 
-| 平台 | 架构 | 安装包 |
-|------|------|--------|
-| 🪟 Windows | x64 | `SceneFab-x.x.x-x64-setup.exe` |
-| 🍎 macOS | Apple Silicon | `SceneFab-x.x.x-aarch64.dmg` |
-| 🍎 macOS | Intel | `SceneFab-x.x.x-x64.dmg` |
-| 🐧 Linux | x64 | `SceneFab-x.x.x-x64.AppImage` |
+| 平台       | 架构          | 安装包                         |
+| ---------- | ------------- | ------------------------------ |
+| 🪟 Windows | x64           | `SceneFab-x.x.x-x64-setup.exe` |
+| 🍎 macOS   | Apple Silicon | `SceneFab-x.x.x-aarch64.dmg`   |
+| 🍎 macOS   | Intel         | `SceneFab-x.x.x-x64.dmg`       |
+| 🐧 Linux   | x64           | `SceneFab-x.x.x-x64.AppImage`  |
 
 ### 配置 AI（只需一个 Key）
 
@@ -202,15 +210,15 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 
 ## 技术栈
 
-| 层 | 技术 |
-|---|---|
+| 层           | 技术                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------ |
 | **视觉理解** | [Qwen3.7](https://help.aliyun.com/zh/model-studio/) · [Gemini 3.5 Flash](https://ai.google.dev/) |
-| **解说生成** | [DeepSeek-V4](https://www.deepseek.com/) · 多 LLM Fallback |
-| **语音合成** | [Edge-TTS](https://github.com/rany2/edge-tts) · [F5-TTS](https://github.com/SWivid/F5-TTS) |
-| **视频处理** | [FFmpeg](https://ffmpeg.org/) · [OpenCV](https://opencv.org/) |
-| **UI 框架** | [PySide6](https://doc.qt.io/qtforpython/) · Qt Design Tokens |
-| **数据存储** | SQLite 3 · 本地优先 |
-| **AI Agent** | Hermes Agent · MCP Protocol |
+| **解说生成** | [DeepSeek-V4](https://www.deepseek.com/) · 多 LLM Fallback                                       |
+| **语音合成** | [Edge-TTS](https://github.com/rany2/edge-tts) · [F5-TTS](https://github.com/SWivid/F5-TTS)       |
+| **视频处理** | [FFmpeg](https://ffmpeg.org/) · [OpenCV](https://opencv.org/)                                    |
+| **UI 框架**  | [PySide6](https://doc.qt.io/qtforpython/) · Qt Design Tokens                                     |
+| **数据存储** | SQLite 3 · 本地优先                                                                              |
+| **AI Agent** | Hermes Agent · MCP Protocol                                                                      |
 
 ---
 
@@ -226,9 +234,7 @@ scenefab export master.mp4 --platforms douyin,bilibili,xiaohongshu
 ### 进行中 🚧
 
 - [ ] v2.2.0 — AI 模型升级（Qwen3.7 / Gemini 3.5 Flash / 新 TTS）· 数据回流 · 情绪分析 · 爆款预测
-- [ ] Web Dashboard（轻量级远程监控 + 任务管理）
 - [ ] 插件市场（用户自定义 AI Provider / TTS 音色）
-- [ ] 多语言 i18n（日 / 韩 / 英 / 西）
 
 ### 未来规划 🔮
 
