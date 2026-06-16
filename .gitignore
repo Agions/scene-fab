@@ -383,7 +383,13 @@ ARCHITECTURE.md
 _DEAD/
 
 # Build artifacts
-docs/
+# 注意：仅忽略 docs 的构建产物/依赖，不能忽略整个 docs/（源文件需入库，
+# 否则 CI 全新检出会缺文件导致死链/构建失败）。
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+docs/node_modules/
+docs/package-lock.json
 assets/
 
 
