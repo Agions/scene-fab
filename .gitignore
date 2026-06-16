@@ -385,3 +385,6 @@ _DEAD/
 # Build artifacts
 docs/
 assets/
+
+
+.claude
