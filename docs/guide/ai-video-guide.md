@@ -114,6 +114,6 @@ Hook: 前 3 秒交代冲突、身份、危险或结果。
 
 ## 相关文档
 
-- [第一人称生产规范](./first-person-narration-production)
-- [AI 配置指南](./ai-configuration)
-- [导出发布](./exporting)
+- [第一人称生产规范](./first-person-narration-production.md)
+- [AI 配置指南](./ai-configuration.md)
+- [导出发布](./exporting.md)
