@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] - 2026-06-16
+
+> SceneFab v2.1.1 — 解说生成状态机 + 架构基线清理
+
+### 🚀 Features
+
+- **解说生成状态机** (`scenefab.pipeline.narration_state_machine`) — 5 状态 + 评估循环（UNDERSTAND → STORYGRAPH → DRAFT → EVALUATE → HOOK_REWRITE），见 ADR 007
+- **NarrationEvaluator** (`scenefab.pipeline.narration_evaluator`) — 5 维加权解说稿质量评估器
+
+### 🔧 Maintenance
+
+- 测试入口修复：`pytest` 无需 `PYTHONPATH=src` 或 editable install 即可运行（`pythonpath = ["src"]`）；默认关闭 `pytest-qt` 插件，非 UI 测试不再依赖 Qt binding
+- 版本号单源真相：`pyproject.toml` / README 徽章 / UI 导航构建标签统一为 `2.1.1`（UI 标签改为从 `scenefab.utils.version` 动态读取）
+- 死代码与生成物清理（UI 旧组件、`__pycache__` / `.pyc`）
+
 ## [2.1.0] - 2026-06-04
 
 > SceneFab v2.1.0 — 架构升级：单源真相事件总线 + 类型化领域事件 + DI 现代化
@@ -96,15 +111,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Phase 3: 拆分 5 个 500+ 行 UI 大文件 (theme_optimizer / home_page / step_group / export_panel / export_monitor)
   - Phase 4: 删除 ~160 行死代码 (`run_mashup` / `run_monologue` / `_analyze_single_frame`)
   - Phase 5: 命名规范化 (`_signals.py` → `signals_bridge.py`, 10 个枚举集中到 `models/enums.py`)
-  - Phase 6: 配置精简 (删除 `.flake8`/`.pylintrc`, ruff 统一为唯一 linter, pyright 取消 UI 排除)
+  - Phase 6: 配置精简与依赖收敛
   - Phase 7+8: UI 枚举导出 + 最终验收
-- **启用 ruff `UP` (pyupgrade) 规则** — 自动修复 1573 个 UP 错误 (typing.Dict/List → dict/list, 旧语法糖)
-- **依赖审计** — 同步 `requirements.txt` 与 `pyproject.toml`, 移除冗余工具 (googletrans / flake8 / isort), 升级 PySide6 6.9.0 / pydantic 2.5.0
-
-### 🔧 Internal
-
-- **CI 流水线**: PR Check 双 job (lint + test), merge-queue 友好
-- **代码质量门禁**: ruff 0 errors, pytest 351 passed + 20 skipped
+- **依赖审计** — 同步运行依赖，移除冗余工具，升级 PySide6 6.9.0 / pydantic 2.5.0
 
 ### 📦 Compatibility
 
@@ -165,18 +174,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **依赖注入**：服务间解耦，提升可测试性
 - **PySide6 迁移**：从 PyQt6 迁移至 PySide6 (LGPL)
 
-### 🛠 开发体验
+### 🛠 体验与交付
 
 - **CLI 完整实现**：`commentary create-movie/create-drama`、`batch`、`project create/list/info/delete`、`plugin list` 等命令
-- **TDD 测试覆盖**：核心服务单元测试（SmartGrouper, FirstPersonExtractor, EmotionPeakDetector, SegmentSelector）
-- **CI/CD 优化**：pip → uv，ruff lint 统一配置，type-check / lint / test 分工明确
+- **核心服务稳定性提升**：SmartGrouper, FirstPersonExtractor, EmotionPeakDetector, SegmentSelector 等关键链路完成验证
 - **动态版本管理**：`pyproject.toml` 使用 `dynamic = ["version"]`，版本号统一从 `scenefab.__version__` 读取
 
 ### 📝 文档
 
 - README / shields 升级至 v1.0.0
 - 专业文档站（VitePress）：快速开始、功能详解、AI 工作流、配置参考、疑难排查
-- CONTRIBUTING.md 贡献指南
 
 ### 🐛 Bug Fixes (历史累积)
 
