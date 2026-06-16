@@ -1,174 +1,237 @@
 ---
 layout: home
-title: SceneFab
+title: SceneFab 文档中心
 titleTemplate: false
 
 hero:
   name: SceneFab
-  text: AI 影视解说创作工具
-  tagline: 智能拆条 · AI 解说生成 · 一键配音合成
+  text: 第一人称影视解说生产文档
+  tagline: 面向短剧和影视解说团队的标准化手册：素材采集、标签标注、脚本生成、配音字幕、竖屏导出和发布复盘集中在一套流程里。
   image:
     src: /logo.svg
     alt: SceneFab
   actions:
     - theme: brand
-      text: 快速开始 →
+      text: 查看生产流程
+      link: /guide/first-person-narration-production
+    - theme: alt
+      text: 5 分钟上手
       link: /guide/quick-start
     - theme: alt
-      text: 查看功能
-      link: /features
-    - theme: alt
-      text: GitHub ⭐
-      link: https://github.com/Agions/scene-fab
+      text: 导出参数
+      link: /guide/exporting
 
 features:
-  - icon: 🎬
-    title: AI 智能语义拆条
-    details: 基于 Qwen2.5-VL 理解视频语义，按情节/场景自动切分，无需手动打点
-  - icon: 🎙️
-    title: 多风格解说生成
-    details: DeepSeek-V4 生成情感丰富解说稿，7 种预设风格一键切换
-  - icon: 🎭
-    title: 情感峰值选段
-    details: 视觉+音频双维度情感评分，优先选取叙事高潮片段
-  - icon: 🔊
-    title: 智能配音合成
-    details: Edge-TTS / F5-TTS 文字转语音，50ms 精度字幕对齐
-  - icon: 🎨
-    title: 7 种情感风格
-    details: 治愈 · 悬疑 · 励志 · 怀旧 · 浪漫 · 幽默 · 纪录片 + 角色自定义
-  - icon: 📦
-    title: 多格式导出
-    details: H.264/H.265 MP4 直出，或原生剪映草稿 JSON，无缝继续精剪
+  - icon: 文
+    title: 第一人称脚本
+    details: 用“我”的视角组织动机、冲突和转折，避免只复述画面。
+  - icon: 标
+    title: 短剧内容标签
+    details: 结构化记录题材、爽点、人物关系、集数上下文和下集钩子。
+  - icon: 声
+    title: 配音字幕一体化
+    details: 以配音时长和字幕安全区倒推脚本文字量，减少后期返工。
+  - icon: 屏
+    title: 竖屏交付
+    details: 默认面向 1080x1920，兼顾抖音、TikTok、Shorts、小红书和 B 站竖屏。
+  - icon: 质
+    title: 质量门禁
+    details: Hook、桥段、关系一致性、字数、字幕同步和发布参数都有验收点。
+  - icon: 架
+    title: 工程化流程
+    details: 文档、配置、导出预设和状态机实现保持同一套生产语言。
 ---
 
 <div class="vp-doc container">
 
-<!-- COMPARISON TABLE -->
-<div class="vp-section-header">
-  <h2 class="vp-section-title">vs 传统视频剪辑软件</h2>
-  <p class="vp-section-sub">从几天一条，到一天十条</p>
-</div>
-
-<div class="vp-compare">
-  <div class="vp-compare-header">
-    <div>项目</div>
-    <div>传统方式（剪映/PR）</div>
-    <div>SceneFab</div>
-  </div>
-  <div class="vp-compare-row">
-    <div class="vp-compare-label">打点切分</div>
-    <div>手动逐帧，耗时数小时</div>
-    <div class="vp-compare-wins">AI 语义理解，自动拆条</div>
-  </div>
-  <div class="vp-compare-row">
-    <div class="vp-compare-label">解说文案</div>
-    <div>人工观看撰写，30 分钟+</div>
-    <div class="vp-compare-wins">DeepSeek 生成，30 秒完成</div>
-  </div>
-  <div class="vp-compare-row">
-    <div class="vp-compare-label">配音制作</div>
-    <div>需配音演员或购买版权</div>
-    <div class="vp-compare-wins">TTS 免费合成，任意音色</div>
-  </div>
-  <div class="vp-compare-row">
-    <div class="vp-compare-label">制作时间</div>
-    <div>1–3 小时/条</div>
-    <div class="vp-compare-highlight">5–15 分钟/条</div>
-  </div>
-  <div class="vp-compare-row">
-    <div class="vp-compare-label">导出格式</div>
-    <div>仅 MP4</div>
-    <div class="vp-compare-wins">MP4 + 剪映草稿 JSON</div>
-  </div>
-</div>
-
-<!-- 4-STEP WORKFLOW -->
-<div class="vp-section-header">
-  <h2 class="vp-section-title">4 步创作流程</h2>
-</div>
-
-<div class="vp-workflow">
-  <div class="vp-step">
-    <div class="vp-step-num">1</div>
-    <div class="vp-step-body">
-      <div class="vp-step-title">上传视频</div>
-      <div class="vp-step-desc">拖拽或选择文件夹，支持 mp4/mov/avi/webm</div>
+<section class="sf-section">
+  <div class="sf-section-head">
+    <div>
+      <div class="sf-section-kicker">DOCUMENT MAP</div>
+      <h2 class="sf-section-title">按工作角色进入文档</h2>
     </div>
-    <div class="vp-step-arrow">→</div>
+    <p class="sf-section-copy">新版文档把使用入口、生产规范、导出参数和架构参考分开，创作者不需要先读完整工程说明。</p>
   </div>
-  <div class="vp-step">
-    <div class="vp-step-num">2</div>
-    <div class="vp-step-body">
-      <div class="vp-step-title">AI 拆条</div>
-      <div class="vp-step-desc">Qwen2.5-VL 逐帧理解，按情节/场景自动切分</div>
-    </div>
-    <div class="vp-step-arrow">→</div>
-  </div>
-  <div class="vp-step">
-    <div class="vp-step-num">3</div>
-    <div class="vp-step-body">
-      <div class="vp-step-title">解说 + 配音</div>
-      <div class="vp-step-desc">DeepSeek-V4 生成文案，Edge-TTS 合成配音</div>
-    </div>
-    <div class="vp-step-arrow">→</div>
-  </div>
-  <div class="vp-step">
-    <div class="vp-step-num">4</div>
-    <div class="vp-step-body">
-      <div class="vp-step-title">导出</div>
-      <div class="vp-step-desc">FFmpeg / 剪映草稿，MP4 / JSON 格式输出</div>
-    </div>
-  </div>
-</div>
 
-<!-- TECH STACK -->
-<div class="vp-section-header">
-  <h2 class="vp-section-title">技术栈</h2>
-</div>
+  <div class="sf-grid cols-3">
+    <a class="sf-link-card" href="/scene-fab/guide/quick-start.html">
+      <div class="sf-card-label">新用户</div>
+      <div class="sf-card-title">安装、配置和验证</div>
+      <p class="sf-card-text">完成运行环境、API Key、基础命令和第一次启动检查。</p>
+    </a>
+    <a class="sf-link-card" href="/scene-fab/guide/first-person-narration-production.html">
+      <div class="sf-card-label">内容团队</div>
+      <div class="sf-card-title">短剧解说生产规范</div>
+      <p class="sf-card-text">从素材来源到脚本、配音、字幕、竖屏导出和复盘的完整流程。</p>
+    </a>
+    <a class="sf-link-card" href="/scene-fab/guide/exporting.html">
+      <div class="sf-card-label">发布运营</div>
+      <div class="sf-card-title">平台导出与发布参数</div>
+      <p class="sf-card-text">按平台控制画布、码率、字幕安全区和剪映草稿交付。</p>
+    </a>
+    <a class="sf-link-card" href="/scene-fab/guide/ai-configuration.html">
+      <div class="sf-card-label">配置负责人</div>
+      <div class="sf-card-title">AI 服务配置</div>
+      <p class="sf-card-text">管理解说生成、视觉理解、ASR 和 TTS 所需的服务参数。</p>
+    </a>
+    <a class="sf-link-card" href="/scene-fab/guide/troubleshooting.html">
+      <div class="sf-card-label">排障</div>
+      <div class="sf-card-title">常见问题处理</div>
+      <p class="sf-card-text">定位安装、模型、视频处理、字幕同步和导出失败。</p>
+    </a>
+    <a class="sf-link-card" href="/scene-fab/architecture.html">
+      <div class="sf-card-label">架构审阅</div>
+      <div class="sf-card-title">系统架构概览</div>
+      <p class="sf-card-text">理解状态机、视频服务、AI 服务、导出服务和资源层职责。</p>
+    </a>
+  </div>
+</section>
 
-<div class="vp-arch-table">
-  <div class="vp-arch-row vp-arch-header">
-    <div>模块</div>
-    <div>技术</div>
-    <div>说明</div>
+<section class="sf-section">
+  <div class="sf-section-head">
+    <div>
+      <div class="sf-section-kicker">WORKFLOW</div>
+      <h2 class="sf-section-title">标准生产流</h2>
+    </div>
+    <p class="sf-section-copy">每一步都产出可复用的结构化信息，避免脚本、配音和导出阶段反复返工。</p>
   </div>
-  <div class="vp-arch-row">
-    <div class="vp-arch-label">语义拆条</div>
-    <div class="vp-arch-model">Qwen2.5-VL</div>
-    <div>视频帧逐帧理解，语义场景边界检测</div>
-  </div>
-  <div class="vp-arch-row">
-    <div class="vp-arch-label">解说生成</div>
-    <div class="vp-arch-model">DeepSeek-V4</div>
-    <div>第一人称视角，7 种预设风格</div>
-  </div>
-  <div class="vp-arch-row">
-    <div class="vp-arch-label">配音合成</div>
-    <div class="vp-arch-model">Edge-TTS / F5-TTS</div>
-    <div>零样本音色克隆，50ms 字幕对齐</div>
-  </div>
-  <div class="vp-arch-row">
-    <div class="vp-arch-label">视频合成</div>
-    <div class="vp-arch-model">FFmpeg</div>
-    <div>H.264/H.265 本地编码</div>
-  </div>
-  <div class="vp-arch-row">
-    <div class="vp-arch-label">导出</div>
-    <div class="vp-arch-model">MP4 · 剪映草稿</div>
-    <div>直出发布 / 继续精剪</div>
-  </div>
-</div>
 
-<!-- STATS -->
-<div class="vp-stats-row">
-  <div class="vp-stat"><div class="vp-stat-val">v3.0.0</div><div class="vp-stat-lbl">最新版本</div></div>
-  <div class="vp-stat-sep">|</div>
-  <div class="vp-stat"><div class="vp-stat-val">&lt;¥1</div><div class="vp-stat-lbl">单部电影成本</div></div>
-  <div class="vp-stat-sep">|</div>
-  <div class="vp-stat"><div class="vp-stat-val">MIT</div><div class="vp-stat-lbl">开源协议</div></div>
-  <div class="vp-stat-sep">|</div>
-  <div class="vp-stat"><div class="vp-stat-val">Python 3.10+</div><div class="vp-stat-lbl">跨平台</div></div>
-</div>
+  <div class="sf-flow">
+    <div class="sf-flow-row sf-flow-head">
+      <div class="sf-flow-cell">阶段</div>
+      <div class="sf-flow-cell">任务</div>
+      <div class="sf-flow-cell">结构化输入</div>
+      <div class="sf-flow-cell">交付物</div>
+    </div>
+    <div class="sf-flow-row">
+      <div class="sf-flow-cell sf-step-no">01</div>
+      <div class="sf-flow-cell">素材导入</div>
+      <div class="sf-flow-cell">来源、授权、集数、平台方向、目标时长</div>
+      <div class="sf-flow-cell">可追溯素材清单</div>
+    </div>
+    <div class="sf-flow-row">
+      <div class="sf-flow-cell sf-step-no">02</div>
+      <div class="sf-flow-cell">剧情标注</div>
+      <div class="sf-flow-cell">题材、爽点、人物关系、关键秘密、前情摘要</div>
+      <div class="sf-flow-cell">短剧内容模型</div>
+    </div>
+    <div class="sf-flow-row">
+      <div class="sf-flow-cell sf-step-no">03</div>
+      <div class="sf-flow-cell">场景理解</div>
+      <div class="sf-flow-cell">场景摘要、桥段类型、冲突强度、视觉重点</div>
+      <div class="sf-flow-cell">可生成脚本的剧情上下文</div>
+    </div>
+    <div class="sf-flow-row">
+      <div class="sf-flow-cell sf-step-no">04</div>
+      <div class="sf-flow-cell">脚本生成</div>
+      <div class="sf-flow-cell">第一人称视角、平台字数、Hook、结尾钩子</div>
+      <div class="sf-flow-cell">可配音解说稿</div>
+    </div>
+    <div class="sf-flow-row">
+      <div class="sf-flow-cell sf-step-no">05</div>
+      <div class="sf-flow-cell">配音字幕</div>
+      <div class="sf-flow-cell">语速、音色、词级时间戳、字幕安全区</div>
+      <div class="sf-flow-cell">音频、字幕和时间轴</div>
+    </div>
+    <div class="sf-flow-row">
+      <div class="sf-flow-cell sf-step-no">06</div>
+      <div class="sf-flow-cell">导出发布</div>
+      <div class="sf-flow-cell">画布、码率、平台预设、封面和标题方向</div>
+      <div class="sf-flow-cell">成片、草稿和复盘记录</div>
+    </div>
+  </div>
+</section>
+
+<section class="sf-section">
+  <div class="sf-section-head">
+    <div>
+      <div class="sf-section-kicker">SHORT DRAMA MODEL</div>
+      <h2 class="sf-section-title">短剧解说必须结构化的内容</h2>
+    </div>
+    <p class="sf-section-copy">调研样本显示，短剧解说的成功要素集中在题材标签、关系冲突、反转爽点和连续钩子。</p>
+  </div>
+
+  <div class="sf-grid cols-2">
+    <div class="sf-card">
+      <div class="sf-card-title">高频标签</div>
+      <div class="sf-tags">
+        <span class="sf-tag">女性成长</span>
+        <span class="sf-tag">都市爱情</span>
+        <span class="sf-tag">打脸虐渣</span>
+        <span class="sf-tag">穿越重生</span>
+        <span class="sf-tag">马甲</span>
+        <span class="sf-tag">家庭伦理</span>
+        <span class="sf-tag">甜宠闪婚</span>
+        <span class="sf-tag">战神归来</span>
+      </div>
+    </div>
+    <div class="sf-card">
+      <div class="sf-card-title">桥段优先级</div>
+      <p class="sf-card-text">身份揭露、对峙冲突、打脸反转、救场、背叛、心动、结尾悬念。脚本生成和质量评估都应围绕这些桥段展开。</p>
+    </div>
+  </div>
+</section>
+
+<section class="sf-section">
+  <div class="sf-section-head">
+    <div>
+      <div class="sf-section-kicker">QUALITY GATES</div>
+      <h2 class="sf-section-title">上线前验收项</h2>
+    </div>
+    <p class="sf-section-copy">质量门禁不是后期检查表，而是贯穿脚本生成、配音和导出的生产约束。</p>
+  </div>
+
+  <div class="sf-grid cols-3">
+    <div class="sf-check-card">
+      <div class="sf-card-title">脚本</div>
+      <div class="sf-check-list">
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>前 3 秒出现冲突、身份、危险、目标或反转。</span></div>
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>每 6-10 秒推进一次新信息。</span></div>
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>结尾留下后果、悬念或下一集钩子。</span></div>
+      </div>
+    </div>
+    <div class="sf-check-card">
+      <div class="sf-card-title">音频字幕</div>
+      <div class="sf-check-list">
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>字幕不超过两行，移动端首屏可读。</span></div>
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>字幕与配音偏差目标小于 50ms。</span></div>
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>配音响度稳定，原声不压过解说。</span></div>
+      </div>
+    </div>
+    <div class="sf-check-card">
+      <div class="sf-card-title">发布</div>
+      <div class="sf-check-list">
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>默认竖屏画布 1080x1920。</span></div>
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>字幕避开互动栏、标题栏和底部进度区。</span></div>
+        <div class="sf-check-item"><span class="sf-check-dot"></span><span>成片、剪映草稿和复盘字段一并归档。</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sf-section">
+  <div class="sf-section-head">
+    <div>
+      <div class="sf-section-kicker">DELIVERY</div>
+      <h2 class="sf-section-title">平台交付基线</h2>
+    </div>
+    <p class="sf-section-copy">先用统一基线减少返工，再按平台标题、封面和发布时间做运营侧差异化。</p>
+  </div>
+
+  <div class="sf-grid cols-3">
+    <div class="sf-card sf-metric">
+      <div class="sf-metric-value">1080x1920</div>
+      <div class="sf-metric-label">短视频默认画布</div>
+    </div>
+    <div class="sf-card sf-metric">
+      <div class="sf-metric-value">8-12 Mbps</div>
+      <div class="sf-metric-label">竖屏推荐码率</div>
+    </div>
+    <div class="sf-card sf-metric">
+      <div class="sf-metric-value">120-720 字</div>
+      <div class="sf-metric-label">30-180 秒中文解说稿区间</div>
+    </div>
+  </div>
+</section>
 
 </div>
