@@ -397,20 +397,49 @@ a:hover {
   color: var(--vp-text-1) !important;
 }
 
+/* VitePress 特性区结构为 .VPFeatures > .container > .items > .item > .VPFeature。
+   网格必须落在真正的容器 .items 上（而非 .VPFeatures），否则 .items 仍是
+   窄 flex 容器，导致每张卡片塌缩、文字逐字换行。 */
 .VPFeatures {
+  max-width: 1100px;
+  padding: 0 24px;
+}
+
+.VPFeatures .container {
+  max-width: 100%;
+}
+
+.VPFeatures .items {
   display: grid !important;
   gap: 14px !important;
   grid-template-columns: repeat(3, 1fr) !important;
-  margin: 0 auto;
-  max-width: 1100px;
-  padding: 0 24px;
+  margin: 0 !important;
+}
+
+/* 每个 .item 是网格单元，清除 VitePress 默认的 padding/百分比宽度 */
+.VPFeatures .item {
+  padding: 0 !important;
+  width: 100% !important;
 }
 
 .VPFeature {
   background: var(--vp-bg-elevated) !important;
   border: 1px solid var(--vp-border) !important;
   border-radius: var(--vp-radius) !important;
+  height: 100%;
   padding: 22px !important;
+}
+
+/* 窄屏回退：双列 / 单列 */
+@media (max-width: 768px) {
+  .VPFeatures .items {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 480px) {
+  .VPFeatures .items {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .VPFeature .icon {
@@ -672,7 +701,7 @@ a:hover {
     font-size: 1.85rem !important;
   }
 
-  .VPFeatures,
+  .VPFeatures .items,
   .sf-grid.cols-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -718,7 +747,7 @@ a:hover {
     font-size: 1rem !important;
   }
 
-  .VPFeatures,
+  .VPFeatures .items,
   .sf-grid.cols-2,
   .sf-grid.cols-3 {
     grid-template-columns: 1fr !important;
