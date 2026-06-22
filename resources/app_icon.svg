@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#111111"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="play-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+
+  <!-- Subtle inner border -->
+  <rect x="24" y="24" width="464" height="464" rx="88" stroke="url(#accent)" stroke-width="2" opacity="0.15"/>
+
+  <!-- Viewfinder / scene frame corners -->
+  <!-- Top-left -->
+  <path d="M128 168 L128 128 L168 128" stroke="url(#accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Top-right -->
+  <path d="M344 128 L384 128 L384 168" stroke="url(#accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bottom-left -->
+  <path d="M128 344 L128 384 L168 384" stroke="url(#accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bottom-right -->
+  <path d="M344 384 L384 384 L384 344" stroke="url(#accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Play button triangle with glow -->
+  <g filter="url(#glow)">
+    <path d="M216 172 L216 340 L352 256 Z" fill="url(#play-fill)" opacity="0.9"/>
+  </g>
+
+  <!-- AI sparkle - four-pointed star, upper right -->
+  <g transform="translate(388,148)">
+    <path d="M0 -16 L4 -4 L16 0 L4 4 L0 16 L-4 4 L-16 0 L-4 -4 Z" fill="#22d3ee" opacity="0.85"/>
+  </g>
+
+  <!-- Smaller secondary sparkle -->
+  <g transform="translate(412,180) scale(0.5)">
+    <path d="M0 -16 L4 -4 L16 0 L4 4 L0 16 L-4 4 L-16 0 L-4 -4 Z" fill="#a78bfa" opacity="0.6"/>
+  </g>
+
+  <!-- SF monogram -->
+  <text x="256" y="456" text-anchor="middle" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="800" font-size="64" fill="url(#accent)" letter-spacing="12">SF</text>
+</svg>
