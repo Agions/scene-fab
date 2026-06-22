@@ -335,6 +335,7 @@ docs/build/
 .trae
 .agents
 .gemini
+.claude
 .agent
 # 规划文档（禁止提交）
 UPGRADE_PLAN.md
@@ -391,6 +392,3 @@ docs/.vitepress/.temp/
 docs/node_modules/
 docs/package-lock.json
 assets/
-
-
-.claude
