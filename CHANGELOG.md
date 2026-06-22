@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.2] - 2026-06-22
+
+> SceneFab v2.1.2 — 修复 #82 二级启动失败 + 发布链加固
+
+### 🐛 Bug Fixes
+
+- **fix(startup):** 修复 issue #82 — `scenefab.ui.config_manager` 中 `ConfigManager.get()` 对缺失 key 抛 AttributeError,改为返回 `None`/`default` 并记录 info 级别日志,应用启动不再因缺失 `user.json` 配置崩溃（PR #84 + 新增 `tests/test_issue82_regression.py` 198 行回归测试）
+
+### 🔧 Maintenance
+
+- **fix(ci):** `release-build.yml` 的 `publish-pypi` job 现在 depends on `create-release`,保证 4 平台 PyInstaller build + GitHub Release 页面全部成功后才推 PyPI（PR #85）
+
 ## [2.1.1] - 2026-06-16
 
 > SceneFab v2.1.1 — 解说生成状态机 + 架构基线清理
