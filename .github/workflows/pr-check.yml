@@ -72,11 +72,17 @@ jobs:
       - run: uv sync --extra all --extra dev --frozen
       - name: Build wheel from PR branch
         run: |
-          uv run python -m pip install --quiet build
-          uv run python -m build --wheel --outdir dist/
+          # `uv tool run` invokes `build` in an ephemeral, isolated
+          # venv — avoids the `python -m pip` problem in venvs created
+          # by `uv` (which intentionally do not include pip), and does
+          # not require us to add `build` to the project dev deps just
+          # for this CI gate.
+          uv tool run --from build pyproject-build --wheel --outdir dist/
       - name: Install wheel into a clean venv
         run: |
-          python -m venv /tmp/scenefab-smoke-venv
+          # Use a fresh plain venv (not uv-managed) so the resulting
+          # interpreter has pip and we can install the wheel.
+          /usr/bin/python3 -m venv /tmp/scenefab-smoke-venv
           /tmp/scenefab-smoke-venv/bin/pip install --quiet \
             dist/scenefab-*.whl PySide6
       - name: Verify entrypoint does not regress to #82 fatal patterns
