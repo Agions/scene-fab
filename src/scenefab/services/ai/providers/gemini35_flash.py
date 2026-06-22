@@ -1,92 +1,82 @@
 #!/usr/bin/env python3
 
 """
-Qwen3.7 Vision Provider
+Gemini 3.5 Flash Vision Provider
 
-阿里云百炼 Qwen3.7 视觉理解模型适配器
-- 支持 OpenAI 兼容 API
-- 支持 video_url + fps 参数
-- 支持 qwen3.7-max 和 qwen3.7-plus 两种模型
-- Vision Arena 全球前五、中国第一
+Google Gemini 3.5 Flash 视觉理解模型适配器
+- Flash 级别成本，接近 Pro 级别智能
+- 4 倍输出速度
+- 支持 100 万 token 上下文
+- 视频上限 45 分钟（含音频）/ 1 小时（无音频）
 
-API 文档：https://help.aliyun.com/zh/model-studio/developer-reference/qwen3-7
+API 文档：https://ai.google.dev/docs/gemini_api
 """
 
+import base64
+import json
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
-from openai import OpenAI
+import httpx
 
 from ..vision_base import VisionAnalysisResult, VisionProvider
 
 logger = logging.getLogger(__name__)
 
 
-class Qwen37Provider(VisionProvider):
+class Gemini35FlashProvider(VisionProvider):
     """
-    通义千问 Qwen3.7 视觉理解 Provider
+    Google Gemini 3.5 Flash 视觉理解 Provider
 
-    2026年6月发布，统一多模态 Agent 模型，支持：
-    - 图像理解
-    - 视频理解（支持 fps 控制）
-    - GUI Agent 能力
-    - 事件时间戳定位
+    2026年5月19日发布，核心优势：
+    - Flash 级别成本，接近 Pro 级别智能
+    - 输出 token 速度是其他前沿模型的 4 倍
+    - Terminal-Bench 2.1: 76.2%（超越 Gemini 3.1 Pro）
+    - CharXiv Reasoning: 84.2%
 
-    模型选择：
-    - qwen3.7-max: 推荐首选，质量最高
-    - qwen3.7-plus: 轻量快速，适合高吞吐场景
+    视频处理能力：
+    - 45 分钟（含音频）
+    - 1 小时（无音频）
     """
+
+    # API 配置
+    API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
     # 模型配置
     MODELS = {
-        "qwen3.7-max": {
-            "name": "Qwen3.7 Max",
-            "description": "最强多模态 Agent，Vision Arena 前五",
+        "gemini-3.5-flash": {
+            "name": "Gemini 3.5 Flash",
+            "description": "Flash 级别成本，接近 Pro 级别智能",
             "max_context": 1_000_000,  # 100万 token
-        },
-        "qwen3.7-plus": {
-            "name": "Qwen3.7 Plus",
-            "description": "轻量快速，适合批量处理",
-            "max_context": 1_000_000,
+            "max_video_duration": 45 * 60,  # 45分钟（含音频）
         },
     }
-
-    # 默认视频抽帧参数
-    DEFAULT_FPS = 2.0
-    DEFAULT_MAX_FRAMES = 256
 
     def __init__(
         self,
         api_key: str,
-        model: str = "qwen3.7-max",
-        base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        model: str = "gemini-3.5-flash",
     ):
         """
-        初始化 Qwen3.7 Provider
+        初始化 Gemini 3.5 Flash Provider
 
         Args:
-            api_key: 阿里云百炼 API Key
-            model: 模型名称 (qwen3.7-max / qwen3.7-plus)
-            base_url: API 基础 URL
+            api_key: Google AI API Key
+            model: 模型名称
         """
         self.api_key = api_key
         self.model = model
-        self.base_url = base_url
-
-        # 初始化 OpenAI 客户端
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=base_url,
-        )
+        self.client = httpx.Client(timeout=300.0)
 
         # 获取模型配置
-        self.model_config = self.MODELS.get(model, self.MODELS["qwen3.7-max"])
+        self.model_config = self.MODELS.get(model, self.MODELS["gemini-3.5-flash"])
 
-        logger.info(f"Qwen3.7 Provider 初始化完成: {model}")
+        logger.info(f"Gemini 3.5 Flash Provider 初始化完成: {model}")
 
     def get_name(self) -> str:
-        return f"Qwen3.7/{self.model}"
+        return f"Gemini/{self.model}"
 
     def is_available(self) -> bool:
         """检查 Provider 是否可用"""
@@ -95,8 +85,8 @@ class Qwen37Provider(VisionProvider):
     def analyze_video(
         self,
         video_path: str,
-        fps: float = DEFAULT_FPS,
-        max_frames: int = DEFAULT_MAX_FRAMES,
+        fps: float = 2.0,
+        max_frames: int = 256,
         prompt: str | None = None,
     ) -> VisionAnalysisResult:
         """
@@ -104,7 +94,7 @@ class Qwen37Provider(VisionProvider):
 
         Args:
             video_path: 视频文件路径或 URL
-            fps: 抽帧频率 [0.1, 10]，静态/长视频 1.0，动态 5.0
+            fps: 抽帧频率
             max_frames: 最大抽帧数
             prompt: 自定义提示词
 
@@ -115,30 +105,51 @@ class Qwen37Provider(VisionProvider):
             prompt = self._get_default_prompt()
 
         try:
-            # 构建视频内容
-            video_content = {
-                "type": "video_url",
-                "video_url": {"url": video_path, "fps": fps},
+            # 读取视频文件
+            video_path_obj = Path(video_path)
+            if video_path_obj.exists():
+                with open(video_path_obj, "rb") as f:
+                    video_data = base64.b64encode(f.read()).decode("utf-8")
+                mime_type = self._get_mime_type(video_path)
+            else:
+                # URL 方式
+                return VisionAnalysisResult(
+                    description="暂不支持 URL 方式，请使用本地文件",
+                    raw_response="URL not supported",
+                )
+
+            # 构建请求
+            url = f"{self.API_BASE}/models/{self.model}:generateContent?key={self.api_key}"
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "inline_data": {
+                                    "mime_type": mime_type,
+                                    "data": video_data,
+                                }
+                            },
+                            {"text": prompt},
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 4096,
+                },
             }
 
             # 调用 API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {  # type: ignore[unused-ignore, misc, object]
-                        "role": "user",
-                        "content": [video_content, {"type": "text", "text": prompt}],
-                    }
-                ],
-                max_tokens=4096,
-            )
+            response = self.client.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
 
             # 解析响应
-            result_text = response.choices[0].message.content or ""
+            result_text = result["candidates"][0]["content"]["parts"][0]["text"]
             return self._parse_response(result_text)
 
         except Exception as e:
-            logger.error(f"Qwen3.7 视频分析失败: {e}")
+            logger.error(f"Gemini 3.5 Flash 视频分析失败: {e}")
             return VisionAnalysisResult(
                 description=f"分析失败: {str(e)}",
                 raw_response=str(e),
@@ -163,30 +174,38 @@ class Qwen37Provider(VisionProvider):
             prompt = self._get_default_prompt()
 
         try:
-            # 构建图像内容
-            image_content = {
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"},
+            # 构建请求
+            url = f"{self.API_BASE}/models/{self.model}:generateContent?key={self.api_key}"
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "inline_data": {
+                                    "mime_type": "image/jpeg",
+                                    "data": image_base64,
+                                }
+                            },
+                            {"text": prompt},
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 4096,
+                },
             }
 
             # 调用 API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {  # type: ignore[unused-ignore, misc, object]
-                        "role": "user",
-                        "content": [image_content, {"type": "text", "text": prompt}],
-                    }
-                ],
-                max_tokens=4096,
-            )
+            response = self.client.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
 
             # 解析响应
-            result_text = response.choices[0].message.content or ""
+            result_text = result["candidates"][0]["content"]["parts"][0]["text"]
             return self._parse_response(result_text)
 
         except Exception as e:
-            logger.error(f"Qwen3.7 图像分析失败: {e}")
+            logger.error(f"Gemini 3.5 Flash 图像分析失败: {e}")
             return VisionAnalysisResult(
                 description=f"分析失败: {str(e)}",
                 raw_response=str(e),
@@ -195,7 +214,7 @@ class Qwen37Provider(VisionProvider):
     def analyze_video_with_timestamps(
         self,
         video_path: str,
-        fps: float = DEFAULT_FPS,
+        fps: float = 2.0,
     ) -> dict[str, Any]:
         """
         分析视频并返回事件时间戳
@@ -232,11 +251,7 @@ class Qwen37Provider(VisionProvider):
 
         # 尝试解析 JSON
         try:
-            import json
-
-            # 从响应中提取 JSON
             response_text = result.raw_response
-            # 查找 JSON 块
             if "```json" in response_text:
                 json_str = response_text.split("```json")[1].split("```")[0].strip()
             elif "```" in response_text:
@@ -252,6 +267,23 @@ class Qwen37Provider(VisionProvider):
                 "events": [],
                 "key_segments": [],
             }
+
+    def _get_mime_type(self, file_path: str) -> str:
+        """获取文件 MIME 类型"""
+        ext = Path(file_path).suffix.lower()
+        mime_types = {
+            ".mp4": "video/mp4",
+            ".avi": "video/x-msvideo",
+            ".mov": "video/quicktime",
+            ".mkv": "video/x-matroska",
+            ".webm": "video/webm",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+        }
+        return mime_types.get(ext, "application/octet-stream")
 
     def _get_default_prompt(self) -> str:
         """获取默认分析提示词"""
@@ -276,8 +308,6 @@ class Qwen37Provider(VisionProvider):
         result = VisionAnalysisResult(raw_response=response_text)
 
         try:
-            import json
-
             # 尝试从响应中提取 JSON
             if "```json" in response_text:
                 json_str = response_text.split("```json")[1].split("```")[0].strip()
@@ -299,31 +329,31 @@ class Qwen37Provider(VisionProvider):
             result.protagonist_action = data.get("protagonist_action", "")
             result.environment_mood = data.get("environment_mood", "")
             result.first_person_hook = data.get("first_person_hook", "")
-            result.confidence = 0.9  # Qwen3.7 置信度较高
+            result.confidence = 0.85  # Gemini 3.5 Flash 置信度
 
         except Exception as e:
-            logger.warning(f"解析 Qwen3.7 响应失败: {e}")
+            logger.warning(f"解析 Gemini 响应失败: {e}")
             result.description = response_text[:500]  # 截取前500字符
 
         return result
 
 
 # 便捷函数
-def create_qwen37_provider(
+def create_gemini35_flash_provider(
     api_key: str | None = None,
-    model: str = "qwen3.7-max",
-) -> Qwen37Provider:
+    model: str = "gemini-3.5-flash",
+) -> Gemini35FlashProvider:
     """
-    创建 Qwen3.7 Provider 实例
+    创建 Gemini 3.5 Flash Provider 实例
 
     Args:
         api_key: API Key，默认从环境变量读取
         model: 模型名称
 
     Returns:
-        Qwen37Provider: Provider 实例
+        Gemini35FlashProvider: Provider 实例
     """
     if api_key is None:
-        api_key = os.getenv("QWEN_API_KEY", "")
+        api_key = os.getenv("GEMINI_API_KEY", "")
 
-    return Qwen37Provider(api_key=api_key, model=model)
+    return Gemini35FlashProvider(api_key=api_key, model=model)

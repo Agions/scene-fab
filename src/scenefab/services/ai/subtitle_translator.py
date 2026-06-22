@@ -13,8 +13,6 @@ import logging
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from scenefab.services.ai.model_catalog import DEFAULT_MODELS
-
 from .subtitle_types import SubtitleExtractionResult, SubtitleSegment
 
 logger = logging.getLogger(__name__)
@@ -228,7 +226,7 @@ class SubtitleTranslator:
 
             try:
                 response = client.chat.completions.create(
-                    model=DEFAULT_MODELS["openai"],
+                    model="gpt-4o-mini",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3,
                     max_tokens=2000,

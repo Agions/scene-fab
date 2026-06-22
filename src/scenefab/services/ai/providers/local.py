@@ -18,7 +18,6 @@ from ..base_llm_provider import (
     ModelManagerMixin,
     ProviderError,
 )
-from ..model_catalog import DEFAULT_MODELS, provider_models
 
 
 class LocalProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
@@ -32,8 +31,34 @@ class LocalProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
     - 其他 OpenAI 兼容的本地服务
     """
 
-    MODELS = provider_models("local")
-    DEFAULT_MODEL = DEFAULT_MODELS["local"]
+    # 模型列表
+    MODELS = {
+        "llama3.2": {
+            "name": "Llama 3.2",
+            "description": "Meta Llama 3.2 (Ollama)",
+            "max_tokens": 4096,
+            "context_length": 128000,
+        },
+        "qwen2.5": {
+            "name": "Qwen 2.5",
+            "description": "阿里通义千问 2.5 (Ollama)",
+            "max_tokens": 4096,
+            "context_length": 128000,
+        },
+        "deepseek-r1": {
+            "name": "DeepSeek-R1",
+            "description": "DeepSeek 推理模型 (Ollama)",
+            "max_tokens": 4096,
+            "context_length": 128000,
+        },
+        "phi4": {
+            "name": "Phi-4",
+            "description": "Microsoft Phi-4 (Ollama)",
+            "max_tokens": 4096,
+            "context_length": 16000,
+        },
+    }
+    DEFAULT_MODEL = "llama3.2"
 
     def __init__(
         self,
@@ -57,12 +82,12 @@ class LocalProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
         """获取模型实际名称"""
         if model == "default":
             defaults = {
-                "ollama": self.DEFAULT_MODEL,
+                "ollama": "llama3.2",
                 "lmstudio": "local-model",
                 "llamacpp": "local-model",
                 "openai-compatible": "local-model",
             }
-            return defaults.get(self.backend, self.DEFAULT_MODEL)
+            return defaults.get(self.backend, "llama3.2")
         return model
 
     async def generate(self, request: LLMRequest) -> LLMResponse:

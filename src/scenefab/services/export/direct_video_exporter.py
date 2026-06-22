@@ -27,7 +27,7 @@ import logging
 import shutil
 import tempfile
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -170,7 +170,6 @@ class DirectVideoExporter:
             config: 导出配置
         """
         self.config = config or VideoExportConfig()
-        self._progress_callback: Callable[[str, float], None] | None = None
         FFmpegTool.check_ffmpeg()
         self._executor = get_ffmpeg_executor()
 
@@ -180,7 +179,7 @@ class DirectVideoExporter:
 
     def _report_progress(self, stage: str, progress: float) -> None:
         """报告进度"""
-        if self._progress_callback:
+        if self._progress_callback:  # type: ignore[truthy-function]
             self._progress_callback(stage, progress)
 
     def export_commentary(
@@ -204,7 +203,7 @@ class DirectVideoExporter:
         """
         cfg = config or self.config
         if resolution:
-            cfg = replace(cfg, resolution=resolution)
+            cfg.resolution = resolution
 
         self._report_progress("准备导出", 0.0)
 

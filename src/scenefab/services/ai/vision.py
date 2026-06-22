@@ -25,9 +25,7 @@ class VisionService:
         self.enabled = config.get("enabled", False)
         self.api_key = config.get("api_key", "")
         self.base_url = config.get("base_url", "")
-        from scenefab.services.ai.model_catalog import DEFAULT_MODELS
-
-        self.model = config.get("model", DEFAULT_MODELS["qwen"])
+        self.model = config.get("model", "qwen-vl-plus")
 
         # HTTP 会话
         import requests

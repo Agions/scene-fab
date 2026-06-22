@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncIterator
-from dataclasses import replace
 from typing import Any, Self  # type: ignore[attr-defined]
 
 from .base_llm_provider import (
@@ -73,7 +72,6 @@ class LLMManager:
     def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
         self.providers: dict[ProviderType, BaseLLMProvider] = {}
-        self._configured_models: dict[ProviderType, str] = {}
         self._default_provider: ProviderType | None = None
         self._init_providers()
 
@@ -100,9 +98,6 @@ class LLMManager:
             self.providers[provider_type] = provider_cls(
                 api_key=api_key, base_url=base_url
             )
-            model = cfg.get("model", "")
-            if model:
-                self._configured_models[provider_type] = model
             logger.info(f"✅ LLM Provider [{cfg_key}] 已加载")
 
         # 设置默认提供商
@@ -142,8 +137,7 @@ class LLMManager:
             return await self._try_fallback(request, provider)
 
         try:
-            active_request = self._apply_configured_model(request, provider)
-            return await self.providers[provider].generate(active_request)
+            return await self.providers[provider].generate(request)
         except Exception as e:
             logger.warning(f"Provider {provider} 生成失败: {e}")
             return await self._try_fallback(request, provider)
@@ -157,20 +151,10 @@ class LLMManager:
         for p, provider in self.providers.items():
             if p != failed_provider:
                 try:
-                    active_request = self._apply_configured_model(request, p)
-                    return await provider.generate(active_request)
+                    return await provider.generate(request)
                 except Exception as e:
                     logger.warning(f"Provider {p} 也失败: {e}")
         raise ProviderError("所有 Provider 都失败")
-
-    def _apply_configured_model(
-        self, request: LLMRequest, provider: ProviderType
-    ) -> LLMRequest:
-        """Apply provider-level configured model when the request uses default."""
-        if request.model != "default":
-            return request
-        model = self._configured_models.get(provider)
-        return replace(request, model=model) if model else request
 
     def get_provider(self, provider_type: ProviderType) -> BaseLLMProvider:
         """获取指定类型的 Provider"""
@@ -210,14 +194,12 @@ class LLMManager:
 
         p = self.providers[provider]
         if not hasattr(p, "stream_generate"):
-            active_request = self._apply_configured_model(request, provider)
-            response = await p.generate(active_request)
+            response = await p.generate(request)
             yield response.content
             return
 
         try:
-            active_request = self._apply_configured_model(request, provider)
-            async for chunk in p.stream_generate(active_request):
+            async for chunk in p.stream_generate(request):
                 yield chunk
         except Exception as e:
             logger.warning(f"Provider {provider} 流式生成失败: {e}")
@@ -234,12 +216,11 @@ class LLMManager:
             if p != failed_provider:
                 try:
                     prov = self.providers[p]
-                    active_request = self._apply_configured_model(request, p)
                     if hasattr(prov, "stream_generate"):
-                        async for chunk in prov.stream_generate(active_request):
+                        async for chunk in prov.stream_generate(request):
                             yield chunk
                     else:
-                        resp = await prov.generate(active_request)
+                        resp = await prov.generate(request)
                         yield resp.content
                     return
                 except Exception as e:

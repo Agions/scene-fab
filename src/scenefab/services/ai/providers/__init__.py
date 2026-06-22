@@ -4,6 +4,7 @@ from .claude import ClaudeProvider
 from .deepseek import DeepSeekProvider
 from .doubao import DoubaoProvider
 from .gemini import GeminiProvider
+from .gemini35_flash import Gemini35FlashProvider
 from .glm5 import GLM5Provider
 from .hunyuan import HunyuanProvider
 from .kimi import KimiProvider
@@ -23,6 +24,7 @@ __all__ = [
     "DeepSeekProvider",
     "DoubaoProvider",
     "GeminiProvider",
+    "Gemini35FlashProvider",
     "GLM5Provider",
     "HunyuanProvider",
     "KimiProvider",

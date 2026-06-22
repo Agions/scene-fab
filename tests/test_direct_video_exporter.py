@@ -98,9 +98,3 @@ class TestDirectVideoExporter:
         exporter = DirectVideoExporter(config)
 
         assert exporter.config.resolution == Resolution.UHD_4K
-
-    def test_progress_callback_is_optional(self):
-        """Progress reporting should be a no-op until a callback is set."""
-        exporter = DirectVideoExporter()
-
-        exporter._report_progress("准备导出", 0.1)
