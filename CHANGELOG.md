@@ -19,6 +19,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **fix(ci):** `release-build.yml` 的 `publish-pypi` job 现在 depends on `create-release`,保证 4 平台 PyInstaller build + GitHub Release 页面全部成功后才推 PyPI（PR #85）
 
+## [2.2.0] - 2026-06-22
+
+> SceneFab v2.2.0 — 模型目录统一 + 架构精简 + 文档专业重设计
+
+### 🚀 Features
+
+- **模型目录单源真相** (`scenefab.services.ai.model_catalog`) — `ModelProfile` 冻结数据类 + `MODEL_CATALOG` 覆盖 10 个 Provider，`DEFAULT_MODELS` / `NARRATION_MODEL_STACK` / `settings_model_options()` 统一派生
+- **端到端冒烟测试** (`tests/test_smoke_pipeline.py`) — 35 个测试覆盖 VisionService → ScriptGenerator → SubtitleTranslator → DirectVideoExporter 全流水线
+- **VisionAnalysisResult dict 兼容** — 新增 `__getitem__` / `__contains__` / `get()` / `keys()` / `to_dict()` 方法，支持 `result["description"]` 风格访问
+
+### 🔧 Refactoring
+
+- **Provider 模型统一** — 所有 Provider（deepseek/qwen/claude/gemini/doubao/glm5/hunyuan/kimi/local）从 `model_catalog` 派生 `MODELS` 和 `DEFAULT_MODEL`，消除硬编码模型名
+- **LLMManager 配置模型生效** — 新增 `_apply_configured_model()`，`LLMRequest(model="default")` 正确应用 YAML 配置的模型
+- **导出层精简** — 删除 `video_exporter.py`（409 行），只保留 `DirectVideoExporter`
+- **视觉链精简** — 删除 `gemini35_flash.py`（359 行）和 `QwenVLProvider` 死代码，只保留 Qwen3.7 / GPT-5 / Gemini 3.1 Pro
+- **兼容层清理** — 删除 `ai_service_manager.py` / `service_manager.py` / `utils/config.py`（零消费者）
+- **services/__init__.py 重构** — 直接从 canonical source 导入，移除 deprecated shim
+
+### 🐛 Bug Fixes
+
+- **ConfigManager 新增 get/set** — 修复 `ProjectManager` 调用 `.get("editor.recent_files")` 的 latent bug
+- **VisionProvider 返回类型** — ABC 返回类型更新为 `dict[str, Any] | VisionAnalysisResult`，移除 `# type: ignore[override]`
+- **Settings UI 模型名** — 更新为 deepseek-v4-pro / gpt-5 / gemini-3.1-pro / qwen3.7-max / claude-sonnet-4-6
+- **Script Generator fallback** — `gpt-4` → `gpt-5`
+- **SubtitleTranslator 导入路径** — `.subtitle_extractor` → `.subtitle_translator`
+- **ErrorInfo.timestamp** — 改用 `time.time()` 替代 Qt 实例调用
+- **Application.initialize()** — 改用 `enumerate()` 替代 `list.index()`
+- **DirectVideoExporter._progress_callback** — 初始化为 `None`
+
+### 📚 Documentation
+
+- **README.md 重写** — 精简专业版（259→102 行），科技感深色主题
+- **docs/index.md 重写** — 精简 Hero + 6 卡片特性 + 3 列文档地图
+- **VitePress 主题更新** — 统一 cyan→violet 渐变配色方案
+- **architecture.md** — 添加 4 个 Mermaid 图（架构/交互/流水线/数据流）
+- **ai-models.md** — 更新模型对比表 + 角色推荐配置 + 组合矩阵
+- **config.md** — 快速参考表 + 双文件结构文档 + 常见场景
+- **features.md** — 产品特性矩阵（6 模块 × 状态标记）
+- **quick-start.md** — 精简为 3 步（安装/配置/运行）
+- **deprecations.md** — 添加 Gemini35FlashProvider 删除记录
+- **ai-configuration.md** — Qwen VL → Qwen3.7 全面更新
+- **导航栏修复** — 首页与其他导航项水平对齐
+
+### 🧪 Tests
+
+- **test_integration.py 重写** — 31 个测试全部修复（API 不匹配 → 正确使用 generate/content/ConfigManager）
+- **test_model_catalog.py 扩展** — 3→35 个测试（ModelProfile / Catalog / DefaultModels / NarrationStack / ProviderModels / SettingsOptions）
+- **test_vision_providers.py 更新** — QwenVLProvider → Qwen37FrameProvider
+- **总计 695 passed, 1 skipped**
+
+### 🗑️ Removed
+
+- `src/scenefab/services/ai/providers/gemini35_flash.py` — 冗余 Provider
+- `src/scenefab/services/export/video_exporter.py` — 旧导出器
+- `src/scenefab/services/ai_service_manager.py` — 兼容层
+- `src/scenefab/services/service_manager.py` — 兼容层
+- `src/scenefab/utils/config.py` — 零消费者的 JSON 配置系统
+- `tests/test_video_exporter.py` — 旧导出器测试
+- `docs/deprecations.md` — 内部跟踪文档
+- `docs/technical-audit-2026-06-17.md` — 内部审计文档
+- `docs/icons/` — 与 public/icons 重复
+
+### 📦 Resources
+
+- **新应用图标** — `resources/app_icon.svg`（cyan→violet 渐变 + SF 标识）
+- **特性图标更新** — `docs/public/icons/*.svg` 统一 #06b6d4 配色
+- **Qt 样式表** — dark_theme.qss / light_theme.qss 已更新为 cyan 主色调
+
+---
+>>>>>>> 91e4e12 (refactor: v2.2.0 — model catalog unification, architecture cleanup, docs redesign)
+
 ## [2.1.1] - 2026-06-16
 
 > SceneFab v2.1.1 — 解说生成状态机 + 架构基线清理
