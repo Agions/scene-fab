@@ -33,20 +33,6 @@ const SIDEBAR = [
     ],
   },
   {
-    text: '设计决策 (ADR)',
-    collapsed: true,
-    items: [
-      { text: 'ADR 总览',                  link: '/adr/' },
-      { text: '001 · PySide6 vs Electron', link: '/adr/001-pyside6-vs-electron' },
-      { text: '002 · 本地处理 vs 云渲染',   link: '/adr/002-local-processing-vs-cloud-rendering' },
-      { text: '003 · 事件驱动 + IoC',       link: '/adr/003-event-driven-ioc-architecture' },
-      { text: '004 · DAG 并行流水线',       link: '/adr/004-dag-parallel-pipeline' },
-      { text: '005 · F5-TTS vs 云端 TTS',   link: '/adr/005-f5-tts-vs-cloud-tts' },
-      { text: '006 · v2.1 架构升级',        link: '/adr/006-v21-architecture-upgrade' },
-      { text: '007 · 解说生成状态机',       link: '/adr/007-narration-state-machine' },
-    ],
-  },
-  {
     text: '帮助',
     collapsed: false,
     items: [
@@ -146,7 +132,7 @@ export default defineConfig({
       },
     },
 
-    // ── Navigation（与 sidebar 一一对应，5 个一级分类）────────
+    // ── Navigation（与 sidebar 一一对应，4 个一级分类）────────
     nav: [
       { text: '首页', link: '/' },
       {
@@ -177,12 +163,6 @@ export default defineConfig({
         ],
       },
       {
-        text: '设计决策',
-        items: [
-          { text: 'ADR 总览', link: '/adr/' },
-        ],
-      },
-      {
         text: '帮助',
         items: [
           { text: '疑难排查', link: '/guide/troubleshooting' },
@@ -191,7 +171,7 @@ export default defineConfig({
       },
     ],
 
-    // ── Sidebar（单一来源，五大分类全站统一）──────────────────
+    // ── Sidebar（单一来源，四大分类全站统一）──────────────────
     sidebar: SIDEBAR,
 
     // ── Table of Contents ──────────────────────────────────
