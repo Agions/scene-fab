@@ -88,9 +88,6 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# uv lockfile (local development only)
-uv.lock
-
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
