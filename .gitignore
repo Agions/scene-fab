@@ -241,7 +241,6 @@ Temporary Items
 
 # Log files
 *.log
-cineai_studio_errors.log
 # Project-specific files
 config.json
 settings.json
@@ -391,4 +390,3 @@ docs/.vitepress/cache/
 docs/.vitepress/.temp/
 docs/node_modules/
 docs/package-lock.json
-assets/

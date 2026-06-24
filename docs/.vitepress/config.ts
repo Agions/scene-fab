@@ -10,6 +10,8 @@ const SIDEBAR = [
       { text: '安装指南',   link: '/guide/installation' },
       { text: 'AI 配置',    link: '/guide/ai-configuration' },
       { text: '界面说明',   link: '/guide/interface' },
+      { text: 'CLI 参考',   link: '/guide/cli-reference' },
+      { text: 'Python API', link: '/guide/python-api' },
     ],
   },
   {
@@ -142,6 +144,8 @@ export default defineConfig({
           { text: '安装指南',   link: '/guide/installation' },
           { text: 'AI 配置',    link: '/guide/ai-configuration' },
           { text: '界面说明',   link: '/guide/interface' },
+          { text: 'CLI 参考',   link: '/guide/cli-reference' },
+          { text: 'Python API', link: '/guide/python-api' },
         ],
       },
       {
