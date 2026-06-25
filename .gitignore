@@ -253,6 +253,7 @@ settings.json
 # Application-specific directories
 temp/
 cache/
+!src/**/cache/
 output/
 exports/
 projects/*/temp/
