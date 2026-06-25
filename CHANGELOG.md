@@ -4,6 +4,47 @@
 
 ---
 
+## [2.2.0] - 2026-06-25
+
+> SceneFab v2.2.0 — 深度架构重构（PR #88）+ API 安全加固
+
+### 🚀 Features
+
+- **examples/ 目录** — 5f214d1 closes #90，新增示例项目
+- **架构深度重构** — 9b1bccf v2.2.0 主 PR, 删除 ~15000 行死代码, 收敛 5 个 LLM provider 基类, 统一 retry/JSON IO/项目 IO
+- **全站文档专业重设计** — README、架构概览、AI 模型、配置参考
+
+### 🐛 Bug Fixes
+
+- **fix(api): 修 P0 字段名不一致** — `pipeline.py:124` `req["source_video"]` → `req["video_url"]` (与 schema 对齐, 修 KeyError 死路); emotion 默认值 `"惆怅"` → `"healing"` (对齐 EmotionType 枚举)
+- **fix(api): 路径校验改用 PathValidator** — `export.py:80-94` 自造 `".." in parts` 校验改走 `PathValidator` + `DANGEROUS_PATH_PATTERNS` + 扩展名白名单 + 4 个默认 base_dir (cwd/outputs, ~/.scenefab/exports, ~/Downloads, ~/.cache/scenefab/exports); 可通过 `settings.allowed_base_dirs` 扩展
+- **fix(export): ExportManager dispatch 显式化** — DirectVideoExporter 缺统一 `export()` 方法, 调用链 `ExportManager.export → exporter.export` 抛 `AttributeError`; 改为显式 `_dispatch` 分发到 `JianyingExporter.export(draft, output_dir, ...)` 或 `DirectVideoExporter.export(project_data, config)`, 缺字段时抛明确 `ExportError` 而非 crash
+- **fix(test): test_project_manager 不硬编码版本** — `assert metadata.version == "2.1.2"` 改为 `get_version_string()` 动态断言, 跟随 pyproject 真实状态
+- **fix(ci): ruff lint** — import 排序 + 语法残留 + 未使用导入清理 (e0b5208 / bd2152a / ad739fe / 1bf19da / 2c9e055)
+
+### 🔧 Maintenance
+
+- **chore(release): version 2.1.2 → 2.2.0** — 跟随 PR #88 实际状态, pyproject.toml + utils/version.py
+- **chore(cleanup): 删 4 个空目录** — `cache_impl/` / `interfaces/` / 顶层 `orchestration/` / `services/viral/` (无 .py 残留, 仅 `__pycache__`)
+- **test(update): 补 update/checker.py 测试** — 0% → 100% 覆盖, 20 个测试 (parse_version / strip_tag / check_update 7 个 mock 场景 / format_update_message)
+- **test(export): 手写 P0 路径校验 10 case 回归测试** — 危险路径 400 / 白名单 202 / None 202 全部按预期
+
+### 🗑️ Removed (v2.2.0 重构期间)
+
+- `core/batch_processor.py` (526) / `core/config_v2.py` (448) / `core/event_store.py` (419) / `core/platform_adapter.py` (643) / `core/platform_extended.py` (622) / `core/ws_hub.py` (330)
+- `services/ai/adapters/` / `services/ai/infra/` / `services/ai/asr.py` / `tts.py` / `cache.py` / `manager.py` / `llm.py` / `errors.py` / `interfaces.py` / `model_registry.py` / `vision.py` / `sensevoice_provider.py` (637) / `whisper_asr_provider.py` (305) / `providers/gemini35_flash.py` (359) / `provider_models.py` (226)
+- `services/ai_service_manager.py` / `services/service_manager.py` / `services/export/video_exporter.py` (409)
+- `utils/config.py` / `pickle_io.py` / `performance.py` / `secure_config_loader.py` / `shortcut_manager.py`
+- 顶层 `task_manager.py` (519) / `version_manager.py` (573) / `version_models.py` / `registry_models.py` / `service_container.py` / `event_bus.py` / `cache_manager.py`
+
+### 测试
+
+- 611 → **631 passed** (新增 20 个 update/checker 测试)
+- 手写 10 case P0 路径校验回归测试全部通过
+- ruff 修复后 CI green
+
+---
+
 ## [2.1.2] - 2026-06-22
 
 > SceneFab v2.1.2 — 模型目录统一 · 架构精简 · 文档专业重设计
