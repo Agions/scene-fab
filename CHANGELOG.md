@@ -4,6 +4,51 @@
 
 ---
 
+## [2.3.0] - 2026-06-26
+
+> SceneFab v2.3.0 — 代码审计 + 2 P1 安全修复 + API/UI 测试覆盖补齐
+
+### 🐛 Bug Fixes
+
+- **fix(security): hardware.py subprocess 走 SecureExecutor 审计链** — `check_nvidia_smi` / `check_intel_cpu` 改走新 `get_probe_executor()` 单例 (白名单: nvidia-smi, wmic), 不再裸 `subprocess.run`. 移除 `import subprocess`. 异常类型改 `SecurityError` + `TimeoutError`
+- **fix(security): api/routers/pipeline.py 缺路径校验** — 复用 export router 模式 (`_DEFAULT_ALLOWED_BASE_DIRS` + `_get_path_validator` + `_validate_output_dir`), 早期拒绝空 `video_url`, `_process_narration` 校验 `output_dir` 失败时降级到 `cwd/outputs/jianying_drafts`
+- **fix(api): GET / 根路由未注册** — `@app.get("/")` 在 `app = create_app()` 之后定义, 装饰器把 root 注册到 `app` 局部变量, 实际不生效. 修复: 把 root 移入 `create_app()` 函数内
+- **fix(api): GET /api/v1/plugins/types 永远 404** — FastAPI 按路由声明顺序匹配, `/plugins/{plugin_id}` 在 `/plugins/types` 之前注册, 拦截 "types" 路径. 修复: 重排为 `/plugins` → `/plugins/types` → `/plugins/{plugin_id}` → `/plugins/{plugin_id}/enable`
+
+### 🔧 Maintenance
+
+- **refactor(llm): narrow HTTPClientMixin._call_api** — 改前 `except Exception` (宽 catch, 吞 RuntimeError/TypeError), 改后异常分两段 catch: `httpx.HTTPStatusError` → `_handle_http_error`, `httpx.HTTPError` → `ProviderError("网络错误")`, `json.JSONDecodeError/ValueError` → `ProviderError("响应解析")`. 真 bug 不再被吞
+- **chore(cleanup): jianying_exporter.py MaterialType 注释** — pyflakes 报 "unused", 实际是间接 re-export (不在 `__all__` 但与其他 adapter 类型对齐). 注释明确为 "package-private" + 指引测试用 `from jianying_adapter import` 直路径
+- **test(api): 补 api/ 0% 测试覆盖** — 18 个集成测试覆盖 5 个 router (health/pipeline/plugins/export/projects) + 全局异常处理 + 路由顺序
+- **test(ui): 补 ui/ 0% 测试覆盖** — 8 个 headless-safe smoke test 覆盖 SceneFabMainWindow 类结构 + 子模块 import + theme 模块
+
+### 🛡️ Security
+
+- **新 utils/security.py:get_probe_executor()** — 全局 read-only 探测执行器单例, 白名单: `nvidia-smi`, `wmic`. 仍受 SecureExecutor 审计链约束 (白名单 + 路径 + shell=False + env sanitization)
+
+### 诚实性记录
+
+- **pyflakes 4 个 false positive** 经主 agent 亲自 verify: 3 个是懒导入/TYPE_CHECKING 模式 (非 bug), 1 个是 docstring 字符串
+- **HTTPClientMixin 抽取 ROI 调研** 发现流式模式 (`async with self.http_client.stream`) 抽不出干净 helper (嵌套 context manager 冲突), 改为 narrow 化已有 `_call_api` 获得真 ROI
+- **headless UI 测试** 写"结构契约 + import smoke" 替代行为测试, 避免 PySide6 offscreen + 系统 GL 库缺失的 flaky
+
+### 测试
+
+- 748 → 755 passed (+7, +1 skipped typography optional)
+- 0 regression across 39,848 LOC
+- 25 commits ahead of remote, 全部 pushed
+
+### PR 链 (6 commits, all pushed)
+
+| SHA | 类型 | 摘要 |
+|---|---|---|
+| `7da45ec` | fix(security) | 2 P1 — hardware subprocess + pipeline router 路径校验 |
+| `2727e02` | refactor(llm) | narrow HTTPClientMixin._call_api 异常分两段 |
+| `b57cda4` | test(api) | 补 api/ 覆盖 + 修 2 真 bug (根路由 + 路由顺序) |
+| `4543ea3` | test(ui) | 补 ui/ smoke test |
+
+---
+
 ## [2.2.0] - 2026-06-25
 
 > SceneFab v2.2.0 — 深度架构重构（PR #88）+ API 安全加固
