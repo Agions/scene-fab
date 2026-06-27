@@ -32,6 +32,7 @@ const SIDEBAR = [
       { text: 'AI 模型',   link: '/ai-models' },
       { text: '配置参考',  link: '/config' },
       { text: '安全设计',  link: '/security' },
+      { text: '架构决策 (ADR)', link: '/adr/007-narration-state-machine' },
     ],
   },
   {
@@ -164,6 +165,7 @@ export default defineConfig({
           { text: 'AI 模型',   link: '/ai-models' },
           { text: '配置参考',  link: '/config' },
           { text: '安全设计',  link: '/security' },
+          { text: '架构决策 (ADR)', link: '/adr/007-narration-state-machine' },
         ],
       },
       {

@@ -323,7 +323,7 @@ scene-fab/
 │   ├── api/                   # HTTP API（FastAPI 路由）
 │   ├── ui/                    # 用户界面（PySide6 页面 · 主题）
 │   └── utils/                 # 工具函数（安全 · 版本 · 日志）
-├── tests/                     # 测试套件（640+ 测试）
+├── tests/                     # 测试套件（755+ 测试）
 ├── docs/                      # VitePress 文档站
 ├── config/                    # 配置文件
 ├── resources/                 # 资源文件（图标 · 样式）

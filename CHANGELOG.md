@@ -14,6 +14,7 @@
 - **fix(security): api/routers/pipeline.py 缺路径校验** — 复用 export router 模式 (`_DEFAULT_ALLOWED_BASE_DIRS` + `_get_path_validator` + `_validate_output_dir`), 早期拒绝空 `video_url`, `_process_narration` 校验 `output_dir` 失败时降级到 `cwd/outputs/jianying_drafts`
 - **fix(api): GET / 根路由未注册** — `@app.get("/")` 在 `app = create_app()` 之后定义, 装饰器把 root 注册到 `app` 局部变量, 实际不生效. 修复: 把 root 移入 `create_app()` 函数内
 - **fix(api): GET /api/v1/plugins/types 永远 404** — FastAPI 按路由声明顺序匹配, `/plugins/{plugin_id}` 在 `/plugins/types` 之前注册, 拦截 "types" 路径. 修复: 重排为 `/plugins` → `/plugins/types` → `/plugins/{plugin_id}` → `/plugins/{plugin_id}/enable`
+- **fix(ci): detect libEGL.so.1 to skip ui smoke in headless CI** (commit `3ea77e6`) — 之前 conftest 只在 PySide6 import 失败时 skip, 但 CI runner 装了 PySide6 + 无 libEGL 时 `importlib` 仍尝试加载 Qt → `libEGL.so.1` 缺失. 修复: 加 `ctypes.CDLL` 检测 libEGL, 缺则 skip ui smoke. 本地 PySide6 6.11 + offscreen 仍能跑全部 8 个测试
 
 ### 🔧 Maintenance
 
@@ -21,6 +22,8 @@
 - **chore(cleanup): jianying_exporter.py MaterialType 注释** — pyflakes 报 "unused", 实际是间接 re-export (不在 `__all__` 但与其他 adapter 类型对齐). 注释明确为 "package-private" + 指引测试用 `from jianying_adapter import` 直路径
 - **test(api): 补 api/ 0% 测试覆盖** — 18 个集成测试覆盖 5 个 router (health/pipeline/plugins/export/projects) + 全局异常处理 + 路由顺序
 - **test(ui): 补 ui/ 0% 测试覆盖** — 8 个 headless-safe smoke test 覆盖 SceneFabMainWindow 类结构 + 子模块 import + theme 模块
+- **style: ruff auto-fix 49 lint errors + skip ui smoke in headless CI** (commit `fff0168`) — R13 audit 引入 49 个 ruff 错 (17 F401 + 15 I001 + 2 F841 + 8 UP0xx + 1 B007) 未跑 `ruff --fix`. `--fix --unsafe-fixes` 全自动清零, 19 文件 +39/-52. **0 行为变化**
+- **chore(dead-code): drop 2 unused plugin example plugins (-655 LOC)** (commit `fcc8203`) — Dim 14 dead-file scan 报 40 候选, pytest 验证后仅 2 真死 (`plugins/examples/cinematic_subtitle` + `plugins/examples/deepseek_ai_generator`). 其余 38 个是 `_EXPORTS` lazy import / relative `__init__.py` import / `__main__.py` 隐式引用 / startup smoke test 引用 — 全保. **净效果**: 2 files / 655 LOC 真死删除, 0 行为变化
 
 ### 🛡️ Security
 
