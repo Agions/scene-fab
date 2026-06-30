@@ -31,9 +31,10 @@ resources/
 │   ├── app_icon_128.png      # launcher icon
 │   ├── app_icon_256.png      # high-density launcher icon
 │   └── app_icon_512.png      # source-size application icon
-└── styles/
-    ├── dark_theme.qss        # dark production workspace theme
-    └── light_theme.qss       # light production workspace theme
+```
+> Note: legacy `light_theme.qss` / `dark_theme.qss` were removed in v2.3.x — the
+> active theme system lives in `src/scenefab/ui/theme/ds_tokens.py` (QSS
+> assembled programmatically at runtime).
 ```
 
 ## Runtime Scope
