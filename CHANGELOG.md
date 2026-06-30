@@ -7,6 +7,49 @@
 ## [Unreleased]
 
 > UI Phase 1 + Phase 2A — 死代码清理 + 主窗口拆分 + application 注入 + HomePage ViewModel
+>
+> **Phase 2B + 2C (新增) — ProductionPage & AssetsPage ViewModel + MonologueMaker service 注册**
+
+### ✨ Added (Phase 2B + 2C)
+
+- **feat(ui): ProductionPage ViewModel + 5-step pipeline state machine** (Phase 2B)
+  - `ui/viewmodels/production_viewmodel.py`(新):`ProductionPageViewModel` 暴露 `step_definitions` / `step_status` / `pipeline_state` / `current_step` 4 个属性,5 个变化信号 (`step_status_changed` / `pipeline_state_changed` / `current_step_changed` / `pipeline_finished` / `pipeline_failed`)
+  - 5 步流水线状态机:`pending` → `active` → `done` (或 `error`)。`STEP_DEFINITIONS` 常量抽到 VM,ProductionPage 从 `vm.step_definitions` 拿,避免两边数据漂移
+  - `QThreadPool` + `QRunnable` + 内部 `QObject` signals 实现 step 推进跨线程(为 Phase 2B+1 接 `MonologueMaker.generate_*` 留口子)
+  - 状态切换 idle / running / done / failed,`start_pipeline(src, ctx)` / `reset_pipeline()` 公开方法
+  - `ProductionPage` 接 `viewmodel=` 参数,5 个 step row 加 `setObjectName("step_badge/title/status")` 锚点,`findChild` + signal 驱动实时刷新状态文本和颜色
+  - 6 个新测试 `tests/test_production_viewmodel.py`,覆盖:default state / step definitions 5 步 / start_pipeline 推进 / status label 中文化 / reset / 空 input no-op
+
+- **feat(ui): AssetsPage ViewModel + recent projects + asset summary** (Phase 2C)
+  - `ui/viewmodels/assets_viewmodel.py`(新):`AssetsPageViewModel` 暴露 `current_assets` (`AssetSummary`) / `recent_projects` (`list[RecentProjectInfo]`) 2 个属性,2 个变化信号
+  - `RecentProjectInfo` dataclass:从 `ProjectManager.get_recent_projects()` 返回的 `list[str]` 包装成 UI 友好的元数据 (path / name / last_opened / size_mb / exists)
+  - `AssetSummary` dataclass:media / script / audio / export 4 类计数 + `total` / `is_empty` 派生属性
+  - 订阅 PM 5 个 signals (`project_opened` / `project_closed` / `project_saved` / `project_deleted` / `recent_projects_updated`),无 application 时 fallback 到空 summary
+  - `open_recent(path)` / `import_media(files)` 公开方法,转发到 PM 并有 defensive 错误处理
+  - `AssetsPage` 接 `viewmodel=` 参数,资产列表占位 + 最近项目摘要从 VM 拿;刷新按钮接 `vm.refresh()`
+  - 8 个新测试 `tests/test_assets_viewmodel.py`,覆盖:default / 包装 / missing file fallback / total / signal / open_recent / import_media
+
+- **chore(app): register MonologueMaker in DIContainer** (Phase 2B 硬前置)
+  - `application.py` 在 `project_manager` 之后注册 `monologue_maker` (`MonologueMaker()`),`get_service(MonologueMaker)` 现在可用
+
+- **refactor(ui): ViewModel wiring via registry factories** (Phase 2B + 2C)
+  - `ui/main/registry.py` 新增 `_build_production` / `_build_assets` 工厂,`PAGE_BUILDERS["create"]` / `["assets"]` 改接 factory
+  - 复用 Phase 2A 的 `PageBuilder` 签名 `(Application | None) -> QWidget`
+
+### 🧪 Tests
+
+- 新增 14 个测试 (6 production + 8 assets),共 **773 passed / 1 skipped** (基线 759 → +14)
+- 关键路径测试覆盖:VM 在无 application 时的 fallback、PM signal 订阅、跨线程 step 推进、RecentProjectInfo 包装、AssetSummary 派生
+
+### ⚠️ 不兼容变更
+
+- (无新增;沿用 Phase 2A 的 `PageBuilder` 签名约定)
+
+### 🔮 后续 (P1, 暂未实现)
+
+- **Phase 2B+1**: `_StepRunner.run` 接真 `MonologueMaker.generate_*` (create_project / generate_script / generate_voice / generate_captions)
+- **Phase 2D+**: 拖拽导入素材 (目前 `import_requested` signal 仅 emit,需在 router 层接 file dialog)
+- **Phase 3**: 暗色主题切换 UI
 
 ### 🧹 Chore
 
