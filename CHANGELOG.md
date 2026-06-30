@@ -6,7 +6,7 @@
 
 ## [Unreleased]
 
-> UI Phase 1 — 死代码清理 + 主窗口拆分 + application 注入
+> UI Phase 1 + Phase 2A — 死代码清理 + 主窗口拆分 + application 注入 + HomePage ViewModel
 
 ### 🧹 Chore
 
@@ -20,10 +20,21 @@
   - 测试 `test_ui_main_window` / `test_ui_module_smoke` 改为验证 `router.cached_pages()` + `registry.PAGE_BUILDERS` 而非原 `_page_map` 预填假设
   - 755 passed / 1 skipped(基线 562 → +193 项目成长)
 
+- **feat(ui): HomePage ViewModel + service injection** (commit TBD) — Phase 2A,4 张状态卡接 `ProjectManager` 实时数据
+  - `ui/viewmodels/__init__.py`(新):`ViewModelBase` 抽象基类
+  - `ui/viewmodels/home_viewmodel.py`(新):`HomePageViewModel` 订阅 `project_opened` / `project_closed` / `project_saved` / `recent_projects_updated` 信号,暴露 5 个变化信号
+  - `ui/main/registry.py`:`PageBuilder` 签名从 `() -> QWidget` 改为 `(Application | None) -> QWidget`,新增 `_build_home` 工厂
+  - `PageRouter.__init__` 接 `application=`,转给 `PAGE_BUILDERS[page_id](app)`
+  - `HomePage` 接 `viewmodel=` 参数,4 张状态卡改读 `vm.media_count` / `scene_count` / `script_status` / `export_config`,最近资产改读 `vm.recent_projects`
+  - 无 project / 无 application 时,VM fallback 到"未导入 / 0 / 待生成 / 1080x1920" 默认文案(行为同 Phase 1)
+  - 新增 4 个测试 `tests/test_home_viewmodel.py`,覆盖:无 application fallback / 有 application 无 project / 有 VM 渲染 / 无 VM 静态默认
+  - **759 passed / 1 skipped**(755 → +4 ViewModel 测试)
+
 ### ⚠️ 不兼容变更
 
 - `SceneFabMainWindow` 必传 `application=` 参数(主入口 `main.py` 已同步)
 - 页面元数据(导航 / 标题 / 工厂)统一从 `scenefab.ui.main.registry` 导入
+- `PageBuilder` 签名变更:`(Application | None) -> QWidget`,第三方自定义 page builder 需要更新
 
 ---
 
