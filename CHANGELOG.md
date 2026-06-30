@@ -4,6 +4,29 @@
 
 ---
 
+## [Unreleased]
+
+> UI Phase 1 — 死代码清理 + 主窗口拆分 + application 注入
+
+### 🧹 Chore
+
+- **refactor(ui): drop dead theme + split main window + wire application** (commit `8e7c8f4`) — Phase 1 重构,净 **-1536 行**
+  - 删除 1462 行死代码:`tokens.py` / `theme_manager.py` / `base_styles.py` / `resources/styles/*.qss` / 空 `__pycache__` 幽灵目录
+  - `ui/main/registry.py`(新):`NAV_ITEMS` / `PAGE_TITLES` / `PAGE_BUILDERS` 单源真相,消除 `nav_components.NAV_ITEMS` 与 `main_window.PAGE_TITLES` 双源
+  - `ui/main/page_router.py`(新):页面懒加载 + 路由
+  - `ui/main/system_tray.py`(新):系统托盘生命周期
+  - `ui/main/controls.py`(新):`ToggleSwitch` 抽离
+  - `SceneFabMainWindow` 从 273 行(6 职责)缩为装配器,接 `application=` 注入(Phase 2 留口)
+  - 测试 `test_ui_main_window` / `test_ui_module_smoke` 改为验证 `router.cached_pages()` + `registry.PAGE_BUILDERS` 而非原 `_page_map` 预填假设
+  - 755 passed / 1 skipped(基线 562 → +193 项目成长)
+
+### ⚠️ 不兼容变更
+
+- `SceneFabMainWindow` 必传 `application=` 参数(主入口 `main.py` 已同步)
+- 页面元数据(导航 / 标题 / 工厂)统一从 `scenefab.ui.main.registry` 导入
+
+---
+
 ## [2.3.0] - 2026-06-26
 
 > SceneFab v2.3.0 — 代码审计 + 2 P1 安全修复 + API/UI 测试覆盖补齐
