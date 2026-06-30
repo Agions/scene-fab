@@ -9,6 +9,8 @@
 > UI Phase 1 + Phase 2A — 死代码清理 + 主窗口拆分 + application 注入 + HomePage ViewModel
 >
 > **Phase 2B + 2C (新增) — ProductionPage & AssetsPage ViewModel + MonologueMaker service 注册**
+>
+> **Phase 2B+1 + 2D+ + 3 + P1 refactor (新增) — Live runner + 导入 file dialog + 暗色主题 + 架构清理**
 
 ### ✨ Added (Phase 2B + 2C)
 
@@ -50,6 +52,49 @@
 - **Phase 2B+1**: `_StepRunner.run` 接真 `MonologueMaker.generate_*` (create_project / generate_script / generate_voice / generate_captions)
 - **Phase 2D+**: 拖拽导入素材 (目前 `import_requested` signal 仅 emit,需在 router 层接 file dialog)
 - **Phase 3**: 暗色主题切换 UI
+
+### ✨ Added (Phase 2B+1 / 2D+ / 3 / P1 refactor)
+
+- **feat(ui): wire 2B+1 live runner — env-gated MonologueMaker integration**
+  - `ProductionPageViewModel` 新增 `runner_mode` 属性 (`"noop"` / `"live"`) + `_setup_pipeline()` + `_live_runner()` factory
+  - `runner_mode` 由 `_has_runtime_keys()` 决定 — 检查 `SCENEFAB_TTS_KEY` / `SCENEFAB_LLM_KEY` 环境变量(任一非空即 live)
+  - live mode 下: `_setup_pipeline` 调 `maker.create_project(src, ctx)`,失败自动降级 noop 并打 warning
+  - 5 步 → runner 映射:0/1 = noop (`create_project` 内部处理), 2 = `generate_script`, 3 = `generate_voice + generate_captions`, 4 = `project.save()`
+  - 新增 `_reset_step_state()` 方法(只重置 step 状态,保留 `_runner_mode` / `_current_project`)
+  - 4 个新测试:runner_mode 默认 noop / env 触发 live / `_has_runtime_keys` 单元 / live 失败降级 noop
+
+- **feat(ui): wire 2D+ import button to file dialog (拖拽导入素材 placeholder)**
+  - `AssetsPage` `_on_import_requested` slot:点击"导入素材"按钮弹 `QFileDialog.getOpenFileNames` 多选
+  - 过滤器支持视频 (mp4/mov/mkv/avi/flv/wmv) + 音频 (mp3/wav/m4a/flac) + 所有文件 fallback
+  - 选中后调 `vm.import_media(paths)` 转发到 `ProjectManager.add_media_file`
+  - 留口:`_show_import_dialog(parent)` 是 public 公开方法,后续可由 router/main_window 层重写支持拖拽 (dragEnterEvent / dropEvent)
+  - 移除了 `import_requested` signal 的 emit — page 自治,信号无人接是 zombie(已无消费者)
+
+- **feat(ui): Phase 3 dark theme palette + set_theme_mode runtime switch**
+  - `ui/theme/ds_tokens.py` 新增 `DarkColors` class — 41 个 color token 全部镜像(深色背景 + 提亮主色 + 反转文字)
+  - `set_theme_mode(mode: str) -> str` 全局函数:重新绑定 `_C` 所有颜色属性到 `Colors` / `DarkColors` 对应 palette
+  - `get_theme_mode() -> str` 读 active 状态;支持 `"light"` / `"dark"`,未知 fallback light
+  - **重要限制**:切换 mode **不自动 restyle** 已渲染 widget — caller 需自己重设 stylesheet(架构简化,Phase 3+ 接 settings toggle 时再补 `restyle_app()`)
+  - 持久化由 Application / QSettings 层负责,函数只返回新 mode
+  - 7 个新测试 `tests/test_theme.py`:default mode / dark rebind / light reset / unknown fallback / palette key 一致性 / idempotent / dark ≠ light
+
+- **refactor(ui): drop zombie re-export of SceneFabMainWindow from __init__** (P1 架构清理)
+  - `scenefab.ui.__init__` 删除 `from .main.main_window import SceneFabMainWindow` + `__all__`
+  - 真消费者( `main.py` / tests)用 `from scenefab.ui.main.main_window import SceneFabMainWindow` 显式路径
+  - **价值**:解 `import scenefab.ui.viewmodels.X` → `scenefab.ui.__init__` → `SceneFabMainWindow` → `PySide6.QtWidgets` → libEGL 链
+  - 这是 06-30 早 + 06-30 晚两轮 libEGL 修复的**根因** —— 现在 viewmodel 测试不再触发 QtWidgets 加载
+  - 单测 `tests/test_theme.py` 顺利在 CI 跑(纯 Python,无 libEGL 依赖)
+
+### 🧪 Tests
+
+- 新增 11 个测试 (4 production 2B+1 + 7 theme),共 **784 passed / 1 skipped** (基线 773 → +11)
+- 关键覆盖:runner_mode 切换 (env-gated) / live 失败降级 noop / theme rebind / palette key 一致性 / unknown mode fallback
+
+### 🔮 后续 (P1, 暂未实现)
+
+- **Phase 3+**:settings page 加主题切换 UI + `restyle_app()` 函数遍历 QApplication.allWidgets() 重设 stylesheet
+- **Phase 2D+ 后**:drag-drop 文件拖拽 (`dragEnterEvent` / `dropEvent` override on `AssetsPage`)
+- **分层错位彻底解决**:viewmodel 直接 import `scenefab.services.X` / `scenefab.models.X`,不 import `scenefab.ui.*` 任何东西(目前用 `TYPE_CHECKING` 解决 runtime,但逻辑分层仍耦合 UI 类型)
 
 ### 🧹 Chore
 
