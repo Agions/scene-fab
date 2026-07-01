@@ -6,146 +6,121 @@
 
 ## [Unreleased]
 
-> UI Phase 1 + Phase 2A — 死代码清理 + 主窗口拆分 + application 注入 + HomePage ViewModel
->
-> **Phase 2B + 2C (新增) — ProductionPage & AssetsPage ViewModel + MonologueMaker service 注册**
->
-> **Phase 2B+1 + 2D+ + 3 + P1 refactor (新增) — Live runner + 导入 file dialog + 暗色主题 + 架构清理**
+### 🔮 后续 (P2 候选, 暂未实现)
 
-### ✨ Added (Phase 2B + 2C)
+- drag-drop 文件拖拽 (`dragEnterEvent` / `dropEvent` override on `AssetsPage`)
+- viewmodel 直接 import `scenefab.services.X` / `scenefab.models.X`,不 import `scenefab.ui.*` 任何东西(目前用 `TYPE_CHECKING` 解决 runtime,但逻辑分层仍耦合 UI 类型)
+
+---
+
+## [2.4.0] - 2026-07-01
+
+> SceneFab v2.4.0 — UI 架构全面升级: Phase 1 ~ 3+ 闭环 (ViewModel 化 + 暗色主题 + 运行时切换)
+
+5 个子阶段累计落地, 39 commits (5 月底 → 7 月初), 净增 UI 模块化分层 + 实时主题切换端到端。
+
+### 🏗️ Architecture (Phase 1 拆分)
+
+- **refactor(ui): drop dead theme + split main window + wire application** (commit `8e7c8f4`) — Phase 1 重构, 净 **-1536 行**
+  - 删除 1462 行死代码: `tokens.py` / `theme_manager.py` / `base_styles.py` / `resources/styles/*.qss` / 空 `__pycache__` 幽灵目录
+  - `ui/main/registry.py`(新): `NAV_ITEMS` / `PAGE_TITLES` / `PAGE_BUILDERS` 单源真相, 消除 `nav_components.NAV_ITEMS` 与 `main_window.PAGE_TITLES` 双源
+  - `ui/main/page_router.py`(新): 页面懒加载 + 路由
+  - `ui/main/system_tray.py`(新): 系统托盘生命周期
+  - `ui/main/controls.py`(新): `ToggleSwitch` 抽离
+  - `SceneFabMainWindow` 从 273 行(6 职责)缩为装配器, 接 `application=` 注入 (Phase 2 留口)
+  - 755 passed / 1 skipped (基线 562 → +193 项目成长)
+
+- **feat(ui): HomePage ViewModel + service injection** (commit `4098e0d`) — Phase 2A, 4 张状态卡接 `ProjectManager` 实时数据
+  - `ui/viewmodels/__init__.py`(新): `ViewModelBase` 抽象基类
+  - `ui/viewmodels/home_viewmodel.py`(新): `HomePageViewModel` 订阅 `project_opened` / `project_closed` / `project_saved` / `recent_projects_updated` 信号, 暴露 5 个变化信号
+  - `ui/main/registry.py`: `PageBuilder` 签名从 `() -> QWidget` 改为 `(Application | None) -> QWidget`, 新增 `_build_home` 工厂
+  - `PageRouter.__init__` 接 `application=`, 转给 `PAGE_BUILDERS[page_id](app)`
+  - `HomePage` 接 `viewmodel=` 参数, 4 张状态卡改读 `vm.media_count` / `scene_count` / `script_status` / `export_config`, 最近资产改读 `vm.recent_projects`
+  - 无 project / 无 application 时, VM fallback 到"未导入 / 0 / 待生成 / 1080x1920" 默认文案 (行为同 Phase 1)
+  - 4 个新测试 `tests/test_home_viewmodel.py`, 覆盖: 无 application fallback / 有 application 无 project / 有 VM 渲染 / 无 VM 静态默认
+
+### 🧠 ViewModel 架构 (Phase 2B + 2C)
 
 - **feat(ui): ProductionPage ViewModel + 5-step pipeline state machine** (Phase 2B)
-  - `ui/viewmodels/production_viewmodel.py`(新):`ProductionPageViewModel` 暴露 `step_definitions` / `step_status` / `pipeline_state` / `current_step` 4 个属性,5 个变化信号 (`step_status_changed` / `pipeline_state_changed` / `current_step_changed` / `pipeline_finished` / `pipeline_failed`)
-  - 5 步流水线状态机:`pending` → `active` → `done` (或 `error`)。`STEP_DEFINITIONS` 常量抽到 VM,ProductionPage 从 `vm.step_definitions` 拿,避免两边数据漂移
-  - `QThreadPool` + `QRunnable` + 内部 `QObject` signals 实现 step 推进跨线程(为 Phase 2B+1 接 `MonologueMaker.generate_*` 留口子)
-  - 状态切换 idle / running / done / failed,`start_pipeline(src, ctx)` / `reset_pipeline()` 公开方法
-  - `ProductionPage` 接 `viewmodel=` 参数,5 个 step row 加 `setObjectName("step_badge/title/status")` 锚点,`findChild` + signal 驱动实时刷新状态文本和颜色
-  - 6 个新测试 `tests/test_production_viewmodel.py`,覆盖:default state / step definitions 5 步 / start_pipeline 推进 / status label 中文化 / reset / 空 input no-op
+  - `ui/viewmodels/production_viewmodel.py`(新): `ProductionPageViewModel` 暴露 `step_definitions` / `step_status` / `pipeline_state` / `current_step` 4 个属性, 5 个变化信号
+  - 5 步流水线状态机: `pending` → `active` → `done` (或 `error`)。`STEP_DEFINITIONS` 常量抽到 VM, ProductionPage 从 `vm.step_definitions` 拿, 避免两边数据漂移
+  - `QThreadPool` + `QRunnable` + 内部 `QObject` signals 实现 step 推进跨线程
+  - 状态切换 idle / running / done / failed, `start_pipeline(src, ctx)` / `reset_pipeline()` 公开方法
+  - 6 个新测试 `tests/test_production_viewmodel.py`
 
 - **feat(ui): AssetsPage ViewModel + recent projects + asset summary** (Phase 2C)
-  - `ui/viewmodels/assets_viewmodel.py`(新):`AssetsPageViewModel` 暴露 `current_assets` (`AssetSummary`) / `recent_projects` (`list[RecentProjectInfo]`) 2 个属性,2 个变化信号
-  - `RecentProjectInfo` dataclass:从 `ProjectManager.get_recent_projects()` 返回的 `list[str]` 包装成 UI 友好的元数据 (path / name / last_opened / size_mb / exists)
-  - `AssetSummary` dataclass:media / script / audio / export 4 类计数 + `total` / `is_empty` 派生属性
-  - 订阅 PM 5 个 signals (`project_opened` / `project_closed` / `project_saved` / `project_deleted` / `recent_projects_updated`),无 application 时 fallback 到空 summary
-  - `open_recent(path)` / `import_media(files)` 公开方法,转发到 PM 并有 defensive 错误处理
-  - `AssetsPage` 接 `viewmodel=` 参数,资产列表占位 + 最近项目摘要从 VM 拿;刷新按钮接 `vm.refresh()`
-  - 8 个新测试 `tests/test_assets_viewmodel.py`,覆盖:default / 包装 / missing file fallback / total / signal / open_recent / import_media
+  - `ui/viewmodels/assets_viewmodel.py`(新): `AssetsPageViewModel` 暴露 `current_assets` (`AssetSummary`) / `recent_projects` (`list[RecentProjectInfo]`)
+  - `RecentProjectInfo` dataclass: 从 `ProjectManager.get_recent_projects()` 返回的 `list[str]` 包装成 UI 友好的元数据
+  - `AssetSummary` dataclass: media / script / audio / export 4 类计数 + `total` / `is_empty` 派生属性
+  - 订阅 PM 5 个 signals, 无 application 时 fallback 到空 summary
+  - 8 个新测试 `tests/test_assets_viewmodel.py`
 
 - **chore(app): register MonologueMaker in DIContainer** (Phase 2B 硬前置)
-  - `application.py` 在 `project_manager` 之后注册 `monologue_maker` (`MonologueMaker()`),`get_service(MonologueMaker)` 现在可用
+  - `application.py` 在 `project_manager` 之后注册 `monologue_maker` (`MonologueMaker()`)
+- **refactor(ui): ViewModel wiring via registry factories** — `ui/main/registry.py` 新增 `_build_production` / `_build_assets` 工厂
 
-- **refactor(ui): ViewModel wiring via registry factories** (Phase 2B + 2C)
-  - `ui/main/registry.py` 新增 `_build_production` / `_build_assets` 工厂,`PAGE_BUILDERS["create"]` / `["assets"]` 改接 factory
-  - 复用 Phase 2A 的 `PageBuilder` 签名 `(Application | None) -> QWidget`
-
-### 🧪 Tests
-
-- 新增 14 个测试 (6 production + 8 assets),共 **773 passed / 1 skipped** (基线 759 → +14)
-- 关键路径测试覆盖:VM 在无 application 时的 fallback、PM signal 订阅、跨线程 step 推进、RecentProjectInfo 包装、AssetSummary 派生
-
-### ⚠️ 不兼容变更
-
-- (无新增;沿用 Phase 2A 的 `PageBuilder` 签名约定)
-
-### 🔮 后续 (P1, 暂未实现)
-
-- **Phase 2B+1**: `_StepRunner.run` 接真 `MonologueMaker.generate_*` (create_project / generate_script / generate_voice / generate_captions)
-- **Phase 2D+**: 拖拽导入素材 (目前 `import_requested` signal 仅 emit,需在 router 层接 file dialog)
-- **Phase 3**: 暗色主题切换 UI
-
-### ✨ Added (Phase 2B+1 / 2D+ / 3 / P1 refactor)
+### ⚡ 运行时集成 (Phase 2B+1 + 2D+)
 
 - **feat(ui): wire 2B+1 live runner — env-gated MonologueMaker integration**
   - `ProductionPageViewModel` 新增 `runner_mode` 属性 (`"noop"` / `"live"`) + `_setup_pipeline()` + `_live_runner()` factory
-  - `runner_mode` 由 `_has_runtime_keys()` 决定 — 检查 `SCENEFAB_TTS_KEY` / `SCENEFAB_LLM_KEY` 环境变量(任一非空即 live)
-  - live mode 下: `_setup_pipeline` 调 `maker.create_project(src, ctx)`,失败自动降级 noop 并打 warning
-  - 5 步 → runner 映射:0/1 = noop (`create_project` 内部处理), 2 = `generate_script`, 3 = `generate_voice + generate_captions`, 4 = `project.save()`
-  - 新增 `_reset_step_state()` 方法(只重置 step 状态,保留 `_runner_mode` / `_current_project`)
-  - 4 个新测试:runner_mode 默认 noop / env 触发 live / `_has_runtime_keys` 单元 / live 失败降级 noop
+  - `runner_mode` 由 `_has_runtime_keys()` 决定 — 检查 `SCENEFAB_TTS_KEY` / `SCENEFAB_LLM_KEY` 环境变量
+  - live mode 下: `_setup_pipeline` 调 `maker.create_project(src, ctx)`, 失败自动降级 noop 并打 warning
+  - 4 个新测试: runner_mode 默认 noop / env 触发 live / `_has_runtime_keys` 单元 / live 失败降级 noop
 
 - **feat(ui): wire 2D+ import button to file dialog (拖拽导入素材 placeholder)**
-  - `AssetsPage` `_on_import_requested` slot:点击"导入素材"按钮弹 `QFileDialog.getOpenFileNames` 多选
+  - `AssetsPage` `_on_import_requested` slot: 点击"导入素材"按钮弹 `QFileDialog.getOpenFileNames` 多选
   - 过滤器支持视频 (mp4/mov/mkv/avi/flv/wmv) + 音频 (mp3/wav/m4a/flac) + 所有文件 fallback
   - 选中后调 `vm.import_media(paths)` 转发到 `ProjectManager.add_media_file`
-  - 留口:`_show_import_dialog(parent)` 是 public 公开方法,后续可由 router/main_window 层重写支持拖拽 (dragEnterEvent / dropEvent)
-  - 移除了 `import_requested` signal 的 emit — page 自治,信号无人接是 zombie(已无消费者)
+  - 移除了 `import_requested` signal 的 emit — page 自治, 信号无人接是 zombie
 
-- **feat(ui): Phase 3 dark theme palette + set_theme_mode runtime switch**
-  - `ui/theme/ds_tokens.py` 新增 `DarkColors` class — 41 个 color token 全部镜像(深色背景 + 提亮主色 + 反转文字)
-  - `set_theme_mode(mode: str) -> str` 全局函数:重新绑定 `_C` 所有颜色属性到 `Colors` / `DarkColors` 对应 palette
-  - `get_theme_mode() -> str` 读 active 状态;支持 `"light"` / `"dark"`,未知 fallback light
-  - **重要限制**:切换 mode **不自动 restyle** 已渲染 widget — caller 需自己重设 stylesheet(架构简化,Phase 3+ 接 settings toggle 时再补 `restyle_app()`)
-  - 持久化由 Application / QSettings 层负责,函数只返回新 mode
-  - 7 个新测试 `tests/test_theme.py`:default mode / dark rebind / light reset / unknown fallback / palette key 一致性 / idempotent / dark ≠ light
+### 🎨 暗色主题 (Phase 3)
 
-- **refactor(ui): drop zombie re-export of SceneFabMainWindow from __init__** (P1 架构清理)
+- **feat(ui): Phase 3 dark theme palette + set_theme_mode runtime switch** (commit `99fa6b7`)
+  - `ui/theme/ds_tokens.py` 新增 `DarkColors` class — 41 个 color token 全部镜像 (深色背景 + 提亮主色 + 反转文字)
+  - `set_theme_mode(mode: str) -> str` 全局函数: 重新绑定 `_C` 所有颜色属性到 `Colors` / `DarkColors` 对应 palette
+  - `get_theme_mode() -> str` 读 active 状态; 支持 `"light"` / `"dark"`, 未知 fallback light
+  - 7 个新测试 `tests/test_theme.py`
+
+### 🌗 运行时切换端到端闭环 (Phase 3+, 本次 05b885f + d544c37)
+
+- **feat(ui): wire Phase 3 runtime theme switcher + Settings UI** (commit `05b885f`)
+  - `ui/theme/runtime.py`(新): `restyle_app(app=None) -> int` 遍历 `QApplication.allWidgets()`, 对每个 widget 调 `style().unpolish(w) / polish(w) / w.update()`; headless/无 QApplication 路径返回 0
+  - `ThemeAwareMixin` 让 `QWidget` 派生类持 `_build_stylesheet: Callable[[], str]`, `apply_theme()` 重新求值并 `setStyleSheet(qss)` 返回新 QSS
+  - `ui/theme/__init__.py`(新): 包级 re-export `restyle_app` / `ThemeAwareMixin` / `set_theme_mode` / `get_theme_mode` / 全部 design token, 统一入口
+  - `SceneFabMainWindow(QMainWindow, ThemeAwareMixin)`: 初始化时 `setStyleSheet(build_global_stylesheet())`, 通过 `_wire_theme_switcher()` 懒连接 `SettingsPage.theme_changed` signal (用 `_theme_signal_wired` flag 去重, 因为 router 缓存页面会重复 visit)
+  - `_on_theme_switched(mode)`: 完整切换链 `set_theme_mode(mode)` → `self.apply_theme()` → 遍历 `router._page_map` 找所有 `ThemeAwareMixin` 页面 `apply_theme()` → `restyle_app()` 重 polish 非主题 widget (e.g. native dialog)
+  - `SettingsPage(QFrame, ThemeAwareMixin)`: 新增 `_appearance_group` (浅色/深色 combo), `currentIndexChanged` 触发 `theme_changed` signal 传 `"light"` / `"dark"`; 同时提供 `set_theme_mode_index(mode)` 在 startup 时从 QSettings 恢复用户偏好
+  - `docs/public/logo-horizontal.svg`(新): 暗色主题配套横版 logo (与正方形 logo 同色系, 横版布局适配 512x128)
+  - **mypy 清理**: 删除 3 个未触发的 `# type: ignore` 注释; `restyle_app` 加 `isinstance(app, QApplication)` 收窄 `QCoreApplication` 类型差
+  - **架构价值**: Phase 3 暗色主题从「token 切了但 UI 不刷新」升到「Settings → SettingsPage.combo → MainWindow → 所有页面 + 全局 widget 实时重 polish」端到端闭环
+
+- **fix(test): gate test_theme_runtime on libEGL availability (CI compat)** (commit `d544c37`)
+  - 修复 CI runner 无 libEGL 时 `no_qapp` fixture 触发 `ImportError` 链
+  - 修法: `pytest.skip(allow_module_level=True)` + `(ImportError, OSError)` 双抓 — pytest 官方"module unavailable" pattern
+  - 本地有 libEGL → 7/7 跑; CI runner 无 libEGL → 7/7 SKIPPED (exit 0)
+
+- **refactor(ui): drop zombie re-export of SceneFabMainWindow from `__init__`** (commit `eac6059`, P1 架构清理)
   - `scenefab.ui.__init__` 删除 `from .main.main_window import SceneFabMainWindow` + `__all__`
-  - 真消费者( `main.py` / tests)用 `from scenefab.ui.main.main_window import SceneFabMainWindow` 显式路径
-  - **价值**:解 `import scenefab.ui.viewmodels.X` → `scenefab.ui.__init__` → `SceneFabMainWindow` → `PySide6.QtWidgets` → libEGL 链
-  - 这是 06-30 早 + 06-30 晚两轮 libEGL 修复的**根因** —— 现在 viewmodel 测试不再触发 QtWidgets 加载
-  - 单测 `tests/test_theme.py` 顺利在 CI 跑(纯 Python,无 libEGL 依赖)
+  - **价值**: 解 `import scenefab.ui.viewmodels.X` → `scenefab.ui.__init__` → `SceneFabMainWindow` → `PySide6.QtWidgets` → libEGL 链
+  - **根本原因** — 06-30 早 + 06-30 晚两轮 libEGL 修复的根因
 
 ### 🧪 Tests
 
-- 新增 11 个测试 (4 production 2B+1 + 7 theme),共 **784 passed / 1 skipped** (基线 773 → +11)
-- 关键覆盖:runner_mode 切换 (env-gated) / live 失败降级 noop / theme rebind / palette key 一致性 / unknown mode fallback
-
-### 🔮 后续 (P1, 暂未实现)
-
-- **Phase 3+**:settings page 加主题切换 UI + `restyle_app()` 函数遍历 QApplication.allWidgets() 重设 stylesheet
-
-### ✅ Phase 3+ 闭环 (本次提交 05b885f)
-
-- **feat(ui): wire Phase 3 runtime theme switcher + Settings UI**
-  - `ui/theme/runtime.py`(新):`restyle_app(app=None) -> int` 遍历 `QApplication.allWidgets()`,对每个 widget 调 `style().unpolish(w) / polish(w) / w.update()`;headless/无 QApplication 路径返回 0
-  - `ThemeAwareMixin` 让 `QWidget` 派生类持 `_build_stylesheet: Callable[[], str]`,`apply_theme()` 重新求值并 `setStyleSheet(qss)` 返回新 QSS
-  - `ui/theme/__init__.py`(新):包级 re-export `restyle_app` / `ThemeAwareMixin` / `set_theme_mode` / `get_theme_mode` / 全部 design token,统一入口
-  - `SceneFabMainWindow(QMainWindow, ThemeAwareMixin)`: 初始化时 `setStyleSheet(build_global_stylesheet())`,通过 `_wire_theme_switcher()` 懒连接 `SettingsPage.theme_changed` signal (用 `_theme_signal_wired` flag 去重,因为 router 缓存页面会重复 visit)
-  - `_on_theme_switched(mode)`: 完整切换链 `set_theme_mode(mode)` → `self.apply_theme()` → 遍历 `router._page_map` 找所有 `ThemeAwareMixin` 页面 `apply_theme()` → `restyle_app()` 重 polish 非主题 widget (e.g. native dialog)
-  - `SettingsPage(QFrame, ThemeAwareMixin)`: 新增 `_appearance_group` (浅色/深色 combo),`currentIndexChanged` 触发 `theme_changed` signal 传 `"light"` / `"dark"`;同时提供 `set_theme_mode_index(mode)` 在 startup 时从 QSettings 恢复用户偏好
-  - `docs/public/logo-horizontal.svg`(新): 暗色主题配套横版 logo (与正方形 logo 同色系,横版布局适配 512x128)
-  - **mypy 清理**: 删除 3 个未触发的 `# type: ignore` 注释 (`ThemeAwareMixin.__init__` / `getattr` 返回 `Any` 等);`restyle_app` 加 `isinstance(app, QApplication)` 收窄 `QCoreApplication` 类型差
-  - **架构价值**: Phase 3 暗色主题从「token 切了但 UI 不刷新」升到「Settings → SettingsPage.combo → MainWindow → 所有页面 + 全局 widget 实时重 polish」端到端闭环
-
-### 🧪 Tests (本次新增 7)
-
-- 新增 7 个测试,共 **791 passed / 1 skipped** (基线 784 → +7)
-- `tests/test_theme_runtime.py`:
-  - `test_restyle_app_returns_zero_without_qapplication` / `test_restyle_app_returns_int` / `test_restyle_app_accepts_explicit_app_argument` — headless 路径 (mock QApplication.instance() → None)
-  - `test_theme_aware_mixin_apply_theme_runs_builder` / `test_theme_aware_mixin_picks_up_token_changes` — builder 重新求值 + token 切换可观测
-  - `test_theme_aware_mixin_does_not_require_qt` — mixin 与 Qt 解耦回归保护
-  - `test_theme_package_exports_runtimes` — `scenefab.ui.theme` 包 re-export 完整性
-- **修复 1 个真测试设计 bug**: `no_qapp` fixture 用 `monkeypatch.setattr(QApplication, "instance", ...)` 隔离跨测试 QApplication 单例污染 —— 此前 `test_home_viewmodel` 跑完后 `restyle_app` 静默遍历残留 widgets (140 个),headless 测试断言 `0 == 140` 一直假绿
-- **Phase 2D+ 后**:drag-drop 文件拖拽 (`dragEnterEvent` / `dropEvent` override on `AssetsPage`)
-- **分层错位彻底解决**:viewmodel 直接 import `scenefab.services.X` / `scenefab.models.X`,不 import `scenefab.ui.*` 任何东西(目前用 `TYPE_CHECKING` 解决 runtime,但逻辑分层仍耦合 UI 类型)
-
-### 🧹 Chore
-
-- **refactor(ui): drop dead theme + split main window + wire application** (commit `8e7c8f4`) — Phase 1 重构,净 **-1536 行**
-  - 删除 1462 行死代码:`tokens.py` / `theme_manager.py` / `base_styles.py` / `resources/styles/*.qss` / 空 `__pycache__` 幽灵目录
-  - `ui/main/registry.py`(新):`NAV_ITEMS` / `PAGE_TITLES` / `PAGE_BUILDERS` 单源真相,消除 `nav_components.NAV_ITEMS` 与 `main_window.PAGE_TITLES` 双源
-  - `ui/main/page_router.py`(新):页面懒加载 + 路由
-  - `ui/main/system_tray.py`(新):系统托盘生命周期
-  - `ui/main/controls.py`(新):`ToggleSwitch` 抽离
-  - `SceneFabMainWindow` 从 273 行(6 职责)缩为装配器,接 `application=` 注入(Phase 2 留口)
-  - 测试 `test_ui_main_window` / `test_ui_module_smoke` 改为验证 `router.cached_pages()` + `registry.PAGE_BUILDERS` 而非原 `_page_map` 预填假设
-  - 755 passed / 1 skipped(基线 562 → +193 项目成长)
-
-- **feat(ui): HomePage ViewModel + service injection** (commit TBD) — Phase 2A,4 张状态卡接 `ProjectManager` 实时数据
-  - `ui/viewmodels/__init__.py`(新):`ViewModelBase` 抽象基类
-  - `ui/viewmodels/home_viewmodel.py`(新):`HomePageViewModel` 订阅 `project_opened` / `project_closed` / `project_saved` / `recent_projects_updated` 信号,暴露 5 个变化信号
-  - `ui/main/registry.py`:`PageBuilder` 签名从 `() -> QWidget` 改为 `(Application | None) -> QWidget`,新增 `_build_home` 工厂
-  - `PageRouter.__init__` 接 `application=`,转给 `PAGE_BUILDERS[page_id](app)`
-  - `HomePage` 接 `viewmodel=` 参数,4 张状态卡改读 `vm.media_count` / `scene_count` / `script_status` / `export_config`,最近资产改读 `vm.recent_projects`
-  - 无 project / 无 application 时,VM fallback 到"未导入 / 0 / 待生成 / 1080x1920" 默认文案(行为同 Phase 1)
-  - 新增 4 个测试 `tests/test_home_viewmodel.py`,覆盖:无 application fallback / 有 application 无 project / 有 VM 渲染 / 无 VM 静态默认
-  - **759 passed / 1 skipped**(755 → +4 ViewModel 测试)
+- 新增 32 个测试, 共 **791 passed / 1 skipped** (基线 759 → +32)
+  - Phase 2A HomeVM: +4
+  - Phase 2B ProductionVM: +6
+  - Phase 2C AssetsVM: +8
+  - Phase 2B+1 Production runner: +4
+  - Phase 3 theme palette: +7
+  - Phase 3+ theme runtime: +7 (含 `no_qapp` fixture 修跨测试 QApplication 单例污染)
+- **修复 1 个真测试设计 bug**: `no_qapp` fixture 用 `monkeypatch.setattr(QApplication, "instance", ...)` 隔离跨测试 QApplication 单例污染 — 此前 `test_home_viewmodel` 跑完后 `restyle_app` 静默遍历残留 widgets (140 个), headless 测试断言 `0 == 140` 一直假绿
 
 ### ⚠️ 不兼容变更
 
 - `SceneFabMainWindow` 必传 `application=` 参数(主入口 `main.py` 已同步)
-- 页面元数据(导航 / 标题 / 工厂)统一从 `scenefab.ui.main.registry` 导入
-- `PageBuilder` 签名变更:`(Application | None) -> QWidget`,第三方自定义 page builder 需要更新
+- 页面元数据 (导航 / 标题 / 工厂) 统一从 `scenefab.ui.main.registry` 导入
+- `PageBuilder` 签名变更: `(Application | None) -> QWidget`, 第三方自定义 page builder 需要更新
+- `scenefab.ui.__init__` 不再 re-export `SceneFabMainWindow`, 显式路径 `from scenefab.ui.main.main_window import SceneFabMainWindow`
 
 ---
 

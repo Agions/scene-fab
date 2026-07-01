@@ -307,6 +307,10 @@ resources/styles/generated/
 .ruff_cache/
 .pylint.d/
 
+# Agent / AI tooling scratch (not part of project source)
+.hermes/
+.claude/
+
 # Build artifacts
 *.dylib
 *.dll
