@@ -93,6 +93,29 @@
 ### 🔮 后续 (P1, 暂未实现)
 
 - **Phase 3+**:settings page 加主题切换 UI + `restyle_app()` 函数遍历 QApplication.allWidgets() 重设 stylesheet
+
+### ✅ Phase 3+ 闭环 (本次提交 05b885f)
+
+- **feat(ui): wire Phase 3 runtime theme switcher + Settings UI**
+  - `ui/theme/runtime.py`(新):`restyle_app(app=None) -> int` 遍历 `QApplication.allWidgets()`,对每个 widget 调 `style().unpolish(w) / polish(w) / w.update()`;headless/无 QApplication 路径返回 0
+  - `ThemeAwareMixin` 让 `QWidget` 派生类持 `_build_stylesheet: Callable[[], str]`,`apply_theme()` 重新求值并 `setStyleSheet(qss)` 返回新 QSS
+  - `ui/theme/__init__.py`(新):包级 re-export `restyle_app` / `ThemeAwareMixin` / `set_theme_mode` / `get_theme_mode` / 全部 design token,统一入口
+  - `SceneFabMainWindow(QMainWindow, ThemeAwareMixin)`: 初始化时 `setStyleSheet(build_global_stylesheet())`,通过 `_wire_theme_switcher()` 懒连接 `SettingsPage.theme_changed` signal (用 `_theme_signal_wired` flag 去重,因为 router 缓存页面会重复 visit)
+  - `_on_theme_switched(mode)`: 完整切换链 `set_theme_mode(mode)` → `self.apply_theme()` → 遍历 `router._page_map` 找所有 `ThemeAwareMixin` 页面 `apply_theme()` → `restyle_app()` 重 polish 非主题 widget (e.g. native dialog)
+  - `SettingsPage(QFrame, ThemeAwareMixin)`: 新增 `_appearance_group` (浅色/深色 combo),`currentIndexChanged` 触发 `theme_changed` signal 传 `"light"` / `"dark"`;同时提供 `set_theme_mode_index(mode)` 在 startup 时从 QSettings 恢复用户偏好
+  - `docs/public/logo-horizontal.svg`(新): 暗色主题配套横版 logo (与正方形 logo 同色系,横版布局适配 512x128)
+  - **mypy 清理**: 删除 3 个未触发的 `# type: ignore` 注释 (`ThemeAwareMixin.__init__` / `getattr` 返回 `Any` 等);`restyle_app` 加 `isinstance(app, QApplication)` 收窄 `QCoreApplication` 类型差
+  - **架构价值**: Phase 3 暗色主题从「token 切了但 UI 不刷新」升到「Settings → SettingsPage.combo → MainWindow → 所有页面 + 全局 widget 实时重 polish」端到端闭环
+
+### 🧪 Tests (本次新增 7)
+
+- 新增 7 个测试,共 **791 passed / 1 skipped** (基线 784 → +7)
+- `tests/test_theme_runtime.py`:
+  - `test_restyle_app_returns_zero_without_qapplication` / `test_restyle_app_returns_int` / `test_restyle_app_accepts_explicit_app_argument` — headless 路径 (mock QApplication.instance() → None)
+  - `test_theme_aware_mixin_apply_theme_runs_builder` / `test_theme_aware_mixin_picks_up_token_changes` — builder 重新求值 + token 切换可观测
+  - `test_theme_aware_mixin_does_not_require_qt` — mixin 与 Qt 解耦回归保护
+  - `test_theme_package_exports_runtimes` — `scenefab.ui.theme` 包 re-export 完整性
+- **修复 1 个真测试设计 bug**: `no_qapp` fixture 用 `monkeypatch.setattr(QApplication, "instance", ...)` 隔离跨测试 QApplication 单例污染 —— 此前 `test_home_viewmodel` 跑完后 `restyle_app` 静默遍历残留 widgets (140 个),headless 测试断言 `0 == 140` 一直假绿
 - **Phase 2D+ 后**:drag-drop 文件拖拽 (`dragEnterEvent` / `dropEvent` override on `AssetsPage`)
 - **分层错位彻底解决**:viewmodel 直接 import `scenefab.services.X` / `scenefab.models.X`,不 import `scenefab.ui.*` 任何东西(目前用 `TYPE_CHECKING` 解决 runtime,但逻辑分层仍耦合 UI 类型)
 
