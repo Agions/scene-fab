@@ -311,6 +311,11 @@ resources/styles/generated/
 .hermes/
 .claude/
 
+# Runtime-generated output directories (transient build / export artifacts)
+outputs/
+dist/
+build/
+
 # Build artifacts
 *.dylib
 *.dll
