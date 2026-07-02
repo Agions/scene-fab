@@ -21,17 +21,6 @@ const SIDEBAR = [
       { text: '第一人称生产规范', link: '/guide/first-person-narration-production' },
       { text: 'AI 工作流详解',    link: '/guide/ai-video-guide' },
       { text: '导出发布',         link: '/guide/exporting' },
-      { text: '功能边界',         link: '/features' },
-    ],
-  },
-  {
-    text: '参考',
-    collapsed: false,
-    items: [
-      { text: '架构概览',  link: '/architecture' },
-      { text: 'AI 模型',   link: '/ai-models' },
-      { text: '配置参考',  link: '/config' },
-      { text: '安全设计',  link: '/security' },
     ],
   },
   {
@@ -39,7 +28,6 @@ const SIDEBAR = [
     collapsed: false,
     items: [
       { text: '疑难排查', link: '/guide/troubleshooting' },
-      { text: '常见问题', link: '/faq' },
     ],
   },
 ]
@@ -154,23 +142,12 @@ export default defineConfig({
           { text: '第一人称生产规范', link: '/guide/first-person-narration-production' },
           { text: 'AI 工作流详解',    link: '/guide/ai-video-guide' },
           { text: '导出发布',         link: '/guide/exporting' },
-          { text: '功能边界',         link: '/features' },
-        ],
-      },
-      {
-        text: '参考',
-        items: [
-          { text: '架构概览',  link: '/architecture' },
-          { text: 'AI 模型',   link: '/ai-models' },
-          { text: '配置参考',  link: '/config' },
-          { text: '安全设计',  link: '/security' },
         ],
       },
       {
         text: '帮助',
         items: [
           { text: '疑难排查', link: '/guide/troubleshooting' },
-          { text: '常见问题', link: '/faq' },
         ],
       },
     ],
