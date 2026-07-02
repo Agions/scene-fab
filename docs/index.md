@@ -12,8 +12,8 @@ hero:
       text: 快速开始
       link: /guide/quick-start
     - theme: alt
-      text: 架构概览
-      link: /architecture
+      text: 快速开始
+      link: /guide/quick-start
 
 features:
   - icon: 文
@@ -56,7 +56,7 @@ const roleCards = [
     label: '架构审阅',
     title: '系统架构',
     text: '理解状态机、视频服务、AI 服务、导出服务和资源层职责。',
-    link: '/architecture.html'
+    link: '/guide/quick-start.html'
   }
 ]
 </script>
