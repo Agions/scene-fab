@@ -34,6 +34,7 @@
     "COUNTER",
     "CREATE",
     "CRITICAL",
+    "CUDA",
     "DEACTIVATE",
     "DEBUG",
     "DELETE",
@@ -192,6 +193,7 @@
     "libx",
     "libxext",
     "libxkbcommon",
+    "libxrender",
     "log",
     "logs",
     "monologue",
@@ -217,7 +219,8 @@
     "v2.2",
     "v3.0",
     "venv",
-    "wav"
+    "wav",
+    "winget"
   ],
   "ignorePaths": [
     "**/node_modules/**",

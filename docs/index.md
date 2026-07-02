@@ -12,28 +12,31 @@ hero:
       text: 快速开始
       link: /guide/quick-start
     - theme: alt
-      text: 快速开始
-      link: /guide/quick-start
+      text: 查看功能
+      link: /guide/first-person-narration-production
+    - theme: alt
+      text: GitHub ⭐
+      link: https://github.com/Agions/scene-fab
 
 features:
-  - icon: 文
-    title: 第一人称脚本
-    details: 以"我"的视角组织动机、冲突和转折，用 Hook → 主体 → 钩子结构模板避免只复述画面。
-  - icon: 标
-    title: 内容标签体系
-    details: 题材、爽点、人物关系、集数上下文和下集钩子全部结构化记录，支撑批量一致性。
-  - icon: 声
-    title: 配音字幕一体化
-    details: 以配音时长和字幕安全区倒推脚本文字量，Edge-TTS / F5-TTS 双引擎支持。
-  - icon: 屏
-    title: 竖屏交付
-    details: 默认 1080×1920 画布，预置抖音、TikTok、Shorts 和小红书竖屏规格。
-  - icon: 质
-    title: 质量门禁
-    details: Hook、桥段、字数、字幕同步和发布参数均有可执行的验收点。
-  - icon: 架
-    title: 工程化流程
-    details: DAG 并行引擎、事件驱动架构、审计日志和模型目录单源真相。
+  - icon: /icons/multi-video.svg
+    title: AI 智能语义拆条
+    details: 基于 Qwen2.5-VL 理解视频语义，按情节/场景自动切分，无需手动打点。
+  - icon: /icons/monologue.svg
+    title: 多风格解说生成
+    details: DeepSeek-V4 生成情感丰富解说稿，7 种预设风格一键切换。
+  - icon: /icons/emotion.svg
+    title: 情感峰值选段
+    details: 视觉+音频双维度情感评分，优先选取叙事高潮片段。
+  - icon: /icons/module.svg
+    title: 智能配音合成
+    details: Edge-TTS / F5-TTS 文字转语音，50ms 精度字幕对齐。
+  - icon: /icons/style.svg
+    title: 7 种情感风格
+    details: 治愈 · 悬疑 · 励志 · 怀旧 · 浪漫 · 幽默 · 纪录片 + 角色自定义。
+  - icon: /icons/export.svg
+    title: 多格式导出
+    details: H.264/H.265 MP4 直出，或原生剪映草稿 JSON，无缝继续精剪。
 ---
 
 <script setup>
@@ -44,19 +47,19 @@ const roleCards = [
     label: '新用户',
     title: '安装与配置',
     text: '完成运行环境、API Key、基础命令和第一次启动检查。',
-    link: '/guide/quick-start.html'
+    link: '/guide/quick-start'
   },
   {
     label: '内容团队',
     title: '生产规范',
     text: '从素材来源到脚本、配音、字幕、导出和复盘的完整流程。',
-    link: '/guide/first-person-narration-production.html'
+    link: '/guide/first-person-narration-production'
   },
   {
     label: '架构审阅',
     title: '系统架构',
     text: '理解状态机、视频服务、AI 服务、导出服务和资源层职责。',
-    link: '/guide/quick-start.html'
+    link: '/guide/interface'
   }
 ]
 </script>
