@@ -71,5 +71,4 @@ output/
 
 ## 相关文档
 
-- [功能矩阵](/features) — 视频导出功能详情
 - [第一人称生产规范](/guide/first-person-narration-production) — 导出门禁标准
