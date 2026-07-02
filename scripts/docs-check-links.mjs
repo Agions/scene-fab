@@ -1,23 +1,7 @@
 #!/usr/bin/env node
-/**
- * scene-fab docs 死链检查器
- *
- * 扫描 docs/ 下所有 .md 文件，提取内部链接，验证目标存在。
- * 支持：
- *  - 相对链接 [text](./foo.md)、[text](../guide/bar.md)
- *  - 绝对链接 [text](/guide/quick-start)、[text](/guide/)
- *  - 锚点跳过（VitePress 自动生成）
- *
- * 排除：
- *  - 外部 http(s):// 链接
- *  - mailto:/tel: 链接
- *  - # 单独锚点
- *  - dist/、node_modules/、.vitepress/dist/ 目录
- *
- * 退出码：
- *  - 0：无死链
- *  - 1：发现死链
- */
+// Dead/internal-link validator for docs/.
+// Scans all .md files under docs/, extracts internal links, verifies targets exist.
+// Excludes external http(s) links, mailto:, tel:, anchors, dist/, node_modules/, .vitepress/
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
