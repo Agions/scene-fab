@@ -43,9 +43,9 @@ export default defineConfig({
   lastUpdated: true,
 
   head: [
-    // Favicon
+    // Favicon (新品牌: SVG 主, PNG 备)
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
-    ['link', { rel: 'alternate icon', type: 'image/png', href: '/logo.png' }],
+    ['link', { rel: 'alternate icon', type: 'image/png', href: '/favicon.png' }],
 
     // SEO
     ['meta', { name: 'keywords',      content: '短剧解说,第一人称解说,影视解说,AI脚本,自动配音,AI字幕,竖屏导出,SceneFab' }],
@@ -88,7 +88,11 @@ export default defineConfig({
 
   themeConfig: {
     // ── Logo & Site Title ──────────────────────────────────
-    logo:         '/logo.png',
+    // 升级到新品牌资产 (v2.4.0 重设计):
+    //   - /logo.svg        → 新 logo-mark.svg (256², dark bg + cyan/violet gradient)
+    //   - /logo-horizontal.svg → 新横版 logo (README/docs 头部)
+    //   - /favicon.svg     → 浏览器标签 (32²)
+    logo:         '/logo.svg',
     siteTitle:    'SceneFab',
     appearance:   'dark',
 
