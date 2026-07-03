@@ -29,7 +29,7 @@ max_concurrency = 8
 
 # Don't follow redirects to mailto:/tel:/javascript:
 exclude_link_local = false
-exclude_loop = true
+exclude_loopback = true
 
 # Output format
 format = "markdown"
