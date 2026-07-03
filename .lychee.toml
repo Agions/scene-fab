@@ -2,18 +2,32 @@
 # Used by .github/workflows/docs-external-links.yml
 #
 # Why these settings:
-#   - accept 4xx: tolerate anti-bot responses (deepseek, cloudflare-fronted sites)
+#   - remap: convert root-relative /guide/* links to internal.invalid placeholders
+#     so lychee doesn't try to resolve them as filesystem paths (which would
+#     require --root-dir + an actual docs build). Internal links are checked
+#     separately by docs-links.yml.
+#   - exclude internal.invalid: skip the remapped placeholders (no real check)
 #   - exclude self: avoid checking our own GitHub repo
+#   - accept 4xx: tolerate anti-bot responses (DeepSeek, Cloudflare-walled sites)
 #   - retries: handle transient network failures / rate limits
-#   - 30s timeout: lychee default is 20s; bumped for slow CDNs
+#   - 30s timeout: bumped from lychee default 20s for slow CDNs
 
 # Acceptable HTTP status codes (in addition to 2xx/3xx)
 # 4xx = "exists but anti-bot" (DeepSeek platform, Cloudflare-walled sites)
 accept = ["200..299", "300..399", "400..499"]
 
-# Don't check these (self-references and inline anchors)
+# Remap root-relative links to placeholder host so they parse as valid URLs
+# without being GET'd. lychee format: "<pattern> <replacement>" as a string list.
+# Pattern ^/ matches any link starting with /, remapped to https://internal.invalid/
+# (excluded below — no real network call).
+remap = [
+  "^/ https://internal.invalid/",
+]
+
+# Don't check these
 exclude = [
   "github.com/Agions/scene-fab",  # self
+  "internal.invalid",             # remapped placeholders for internal links
   "mailto:",
   "^#",                           # pure anchor links
 ]
