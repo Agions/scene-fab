@@ -2,34 +2,26 @@
 # Used by .github/workflows/docs-external-links.yml
 #
 # Why these settings:
-#   - remap: convert root-relative /guide/* links to internal.invalid placeholders
-#     so lychee doesn't try to resolve them as filesystem paths (which would
-#     require --root-dir + an actual docs build). Internal links are checked
-#     separately by docs-links.yml.
-#   - exclude internal.invalid: skip the remapped placeholders (no real check)
+#   - scheme = ["https"]: only check https links, skipping root-relative (/guide/...)
+#     and mailto: links automatically. Internal links are checked separately by
+#     docs-links.yml. This avoids the "Cannot convert path to URI: provide a
+#     root dir" error that occurs when lychee tries to resolve /guide/* as
+#     filesystem paths.
 #   - exclude self: avoid checking our own GitHub repo
 #   - accept 4xx: tolerate anti-bot responses (DeepSeek, Cloudflare-walled sites)
 #   - retries: handle transient network failures / rate limits
 #   - 30s timeout: bumped from lychee default 20s for slow CDNs
 
+# Only test https URLs (filters out root-relative and mailto: links)
+scheme = ["https"]
+
 # Acceptable HTTP status codes (in addition to 2xx/3xx)
 # 4xx = "exists but anti-bot" (DeepSeek platform, Cloudflare-walled sites)
 accept = ["200..299", "300..399", "400..499"]
 
-# Remap root-relative links to placeholder host so they parse as valid URLs
-# without being GET'd. lychee format: "<pattern> <replacement>" as a string list.
-# Pattern ^/ matches any link starting with /, remapped to https://internal.invalid/
-# (excluded below — no real network call).
-remap = [
-  "^/ https://internal.invalid/",
-]
-
 # Don't check these
 exclude = [
   "github.com/Agions/scene-fab",  # self
-  "internal.invalid",             # remapped placeholders for internal links
-  "mailto:",
-  "^#",                           # pure anchor links
 ]
 
 # Retry up to 3 times on transient failures
