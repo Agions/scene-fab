@@ -1,0 +1,36 @@
+# lychee config for scene-fab docs external link checker
+# Used by .github/workflows/docs-external-links.yml
+#
+# Why these settings:
+#   - accept 4xx: tolerate anti-bot responses (deepseek, cloudflare-fronted sites)
+#   - exclude self: avoid checking our own GitHub repo
+#   - retries: handle transient network failures / rate limits
+#   - 30s timeout: lychee default is 20s; bumped for slow CDNs
+
+# Acceptable HTTP status codes (in addition to 2xx/3xx)
+# 4xx = "exists but anti-bot" (DeepSeek platform, Cloudflare-walled sites)
+accept = ["200..299", "300..399", "400..499"]
+
+# Don't check these (self-references and inline anchors)
+exclude = [
+  "github.com/Agions/scene-fab",  # self
+  "mailto:",
+  "^#",                           # pure anchor links
+]
+
+# Retry up to 3 times on transient failures
+max_retries = 3
+
+# Per-request timeout in seconds
+timeout = 30
+
+# Concurrent requests (lychee default is 32; lower for CI politeness)
+max_concurrency = 8
+
+# Don't follow redirects to mailto:/tel:/javascript:
+exclude_link_local = false
+exclude_loop = true
+
+# Output format
+format = "markdown"
+output = ".lychee/out.md"
