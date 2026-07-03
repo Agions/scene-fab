@@ -6,6 +6,24 @@
 
 ## [Unreleased]
 
+### 🛠️ CI / Docs
+
+- **ci(docs): 用 lychee 替换孤儿外部链接检查脚本** (commit `d4cfeac` ~ `f56405d`, 7 commits) — docs/ 第 5 层 CI
+  - 新增 `.lychee.toml` (accept 4xx 容忍反爬, exclude 自指, 3 次重试, 30s 超时)
+  - 新增 `.github/workflows/docs-external-links.yml` (周更周日 07:00 UTC + push/PR/dispatch, `lycheeverse/lychee-action@v2.8.0`, GitHub cache 复用)
+  - 新增 `.lycheeignore` 兜底(实际未被使用,见下)
+  - 删 `scripts/docs-check-external-links.mjs` (孤儿脚本, 仅 HEAD 5xx/405 无法处理 deepseek 等反爬)
+  - `docs/package.json`: `docs:check-external-links` 改用 lychee 命令(本地可用)
+  - **5 次失败尝试 → 1 次成功的真实轨迹**:
+    1. `exclude_loop` → `exclude_loopback` 字段名修正 (v0.23+ 重命名)
+    2. `.lycheeignore` 不生效(根相对链接在 build URL 阶段崩, 早于 ignore 过滤)
+    3. `--base-url` / `--root-dir` 仍会 GET GitHub Pages(职责重复)
+    4. `--scheme https` 对无 scheme 链接不生效
+    5. `--remap '^/ ...'` 失败(v0.24 只接受字面前缀, 不接受正则)
+  - **最终方案**: workflow 加 sed 预处理 step, `](/guide/...)` → `](https://internal.invalid/guide/...)`, 配合 `.lychee.toml` exclude 占位 host
+  - **CI 验证**: run #28633088278 ✅ Total 40 / Successful 7 / Errors 0
+  - **新增 4 层 docs CI** (本次扩展): format / lint / spellcheck / links(内部) / **links(外部)** — 见 `references/scene-fab-docs-ci-4layer-2026-07-02.md`
+
 ### 🔮 后续 (P2 候选, 暂未实现)
 
 - drag-drop 文件拖拽 (`dragEnterEvent` / `dropEvent` override on `AssetsPage`)
