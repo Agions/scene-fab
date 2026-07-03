@@ -6,6 +6,55 @@
 
 ## [Unreleased]
 
+### 🎨 Brand & Docs (v2.4.0 品牌重塑 + 文档升级, 6 commits)
+
+**触发**: "作为资深架构师，帮我完全重写 scene-fab 项目的 docs 下的在线文档、README.md、logo 和资源图片，设计必须好看专业，使用，大气、美观" (2026-07-03)
+
+- **feat(brand): redesign logo system + render pipeline** (commit `fdd7e73`) — 22 files +788/-153
+  - 3 SVG 重设计: `assets/logo-mark.svg` (256²) + `assets/logo-horizontal.svg` (512×128) + `docs/public/favicon.svg` (32²)
+  - 保留核心识别符 (Play 三角 + dark bg + cyan/violet), 升级精致度 (双环轨道 + AI 弧线 + 4 tick)
+  - `resources/app_icon.svg` 重写为**无文字版** (符合 `resources/README.md` 自家 design 原则)
+  - `resources/icons/app_icon_{32,64,128,256,512,1024}.png` (6 尺寸 PNG 全部重新生成)
+  - `scripts/render-assets.py` (NEW): 单脚本端到端 SVG → PNG → ICO → OG image → 跨目录同步 + 验证非空白
+  - `docs/public/og-image.png` (NEW, 1280×640): **修复 og:image 404 bug** — `config.ts` 一直引用但文件从未存在
+- **feat(icons): upgrade 24×24 feature icons with duotone palette** (commit `52a0256`) — 6 files +152/-46
+  - 6 个 docs 站功能图标从单色 cyan → cyan + violet 双色调 (multi-video / monologue / emotion / module / style / export)
+  - stroke 从 2.0 → 1.75, round caps, AI 模块用 violet 强调
+- **docs(readme): full restructure with hero, mermaid arch, roadmap** (commit `b120e56`) — 1 file +212/-109
+  - README.md 271 → 373 行: Hero + 痛点表 + 2×3 能力矩阵 + Mermaid 架构图 + 路线图 3 阶段 + Conventional Commits 表
+  - shields.io `for-the-badge` 徽章 (主人偏好, 不是自托管 SVG)
+- **feat(docs): redesign homepage with role cards, workflow timeline, platform grid** (commit `b3c435c`) — 3 files +533/-35
+  - `docs/index.md` 95 → 192 行: 5 个新 section (角色入口 + 6 步工作流 + 8 平台 + 6 技术栈 + CTA)
+  - `docs/.vitepress/theme/style.css` 873 → 1247 行: +374 行 (sf-role-card / sf-workflow / sf-platform-grid / sf-tech-grid / sf-cta / Hero gradient mesh / fade-in 动画)
+  - `docs/cspell.json` 新增 'Pydantic' / 'uvicorn' (技术栈合法词)
+- **feat(brand): wire new logos into VitePress + document brand system** (commit `7c495ee`) — 2 files +39/-6
+  - `docs/.vitepress/config.ts` logo 字段升级: `/logo.png` (旧 64×64) → `/logo.svg` (新 256² mark)
+  - alternate icon `/logo.png` → `/favicon.png` (新生成)
+  - `resources/README.md` 新增 "Brand Identity" section: 5 资产清单 + 色系 + 6 icon + pipeline
+- **feat(brand): add light theme logo variants + auto-switching nav** (commit `b08bdea`) — 10 files +381/-3
+  - `assets/logo-mark-light.svg` + `logo-horizontal-light.svg` (NEW): 浅色主题版本 (白底 + 深 cyan #0891b2 + 深 violet #7c3aed)
+  - 4 尺寸 light PNG (128/256/512/1024)
+  - `config.ts` logo 字段升级 `{ dark, light, alt }` 平铺格式 (不是 `src` 嵌套!) — VitePress `ThemeableImage` 第 3 种
+  - 踩坑修正: 首次写 `{ src: { light, dark } }` 触发 `TypeError: path.startsWith is not a function` build 失败, 修正为 `{ light, dark, alt }` 平铺后通过
+
+**修复的隐藏 bug**:
+- 🐛 `docs/public/og-image.png` 一直**不存在** (`config.ts` og:image 引用但从未创建), 现已新建 1280×640 社交卡片
+- 🐛 `resources/app_icon.svg` 违反自家 `resources/README.md` "text-free" 原则 (有 SceneFab 文字), 现已无文字版
+- 🐛 cspell 字典漏 `Pydantic` 和 `uvicorn` (技术栈合法词), 现已加入
+
+**校验全过**:
+- `npm run docs:build` ✓ 7.68s (vitepress v1.6.4)
+- `npm run docs:lint` ✓ 0 errors (markdownlint-cli2 v0.23.0)
+- `npm run docs:spellcheck` ✓ 0 errors
+- `python3 scripts/render-assets.py` ✓ 13 PNG + 1 ICO + 1 OG 全过
+
+**GitHub repo 校准**:
+- description: scene-fab - AI 影视解说创作工具 | 智能拆条 · AI 解说生成 · 一键配音合成 ✓ (已对齐)
+- topics: +'brand-redesign' +'vitepress' (新增双主题 + 文档站)
+- 详见 `references/scene-fab-brand-redesign-2026-07-03.md` (待沉淀)
+
+**参考经验**: frame-fab 2026-07-02 (13 步全栈重写, 65 files) + project-brand-redesign skill 沉淀 + scene-fab 2026-06-02 三 PR saga (避免 squash 漏文件 + shields.io 偏好)
+
 ### 🛠️ CI / Docs
 
 - **ci(docs): 用 lychee 替换孤儿外部链接检查脚本** (commit `d4cfeac` ~ `f56405d`, 7 commits) — docs/ 第 5 层 CI
