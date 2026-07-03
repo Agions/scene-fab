@@ -1,19 +1,18 @@
 # lychee config for scene-fab docs external link checker
 # Used by .github/workflows/docs-external-links.yml
 #
+# The workflow pre-processes markdown via sed to rewrite root-relative
+# links (](/guide/...) -> ](https://internal.invalid/guide/...)) so lychee
+# can parse them as valid URLs without trying to resolve them as filesystem
+# paths. The placeholder host is excluded below so no real HTTP request is
+# made. Internal links are also checked by docs-links.yml.
+#
 # Why these settings:
-#   - scheme = ["https"]: only check https links, skipping root-relative (/guide/...)
-#     and mailto: links automatically. Internal links are checked separately by
-#     docs-links.yml. This avoids the "Cannot convert path to URI: provide a
-#     root dir" error that occurs when lychee tries to resolve /guide/* as
-#     filesystem paths.
+#   - exclude internal.invalid: skip sed-rewritten placeholders
 #   - exclude self: avoid checking our own GitHub repo
 #   - accept 4xx: tolerate anti-bot responses (DeepSeek, Cloudflare-walled sites)
 #   - retries: handle transient network failures / rate limits
 #   - 30s timeout: bumped from lychee default 20s for slow CDNs
-
-# Only test https URLs (filters out root-relative and mailto: links)
-scheme = ["https"]
 
 # Acceptable HTTP status codes (in addition to 2xx/3xx)
 # 4xx = "exists but anti-bot" (DeepSeek platform, Cloudflare-walled sites)
@@ -22,6 +21,9 @@ accept = ["200..299", "300..399", "400..499"]
 # Don't check these
 exclude = [
   "github.com/Agions/scene-fab",  # self
+  "internal.invalid",             # workflow sed-rewritten placeholders
+  "mailto:",
+  "^#",                           # pure anchor links
 ]
 
 # Retry up to 3 times on transient failures
