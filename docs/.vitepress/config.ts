@@ -92,7 +92,16 @@ export default defineConfig({
     //   - /logo.svg        → 新 logo-mark.svg (256², dark bg + cyan/violet gradient)
     //   - /logo-horizontal.svg → 新横版 logo (README/docs 头部)
     //   - /favicon.svg     → 浏览器标签 (32²)
-    logo:         '/logo.svg',
+    //
+    // VitePress logo 字段类型 ThemeableImage,支持:
+    //   string | { src, alt } | { light, dark, alt }
+    // 用第三种 { light, dark } 平铺结构 (不是 { src: { light, dark } }!),
+    // 让 logo 随主题自动切换 (用户切到 light 模式不会出现黑底白字问题)。
+    logo: {
+      dark:  '/logo.svg',
+      light: '/logo-light.svg',
+      alt:   'SceneFab',
+    },
     siteTitle:    'SceneFab',
     appearance:   'dark',
 

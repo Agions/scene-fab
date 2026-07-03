@@ -43,7 +43,7 @@ def render_svg_to_png(svg_path: Path, png_path: Path, size: int) -> None:
 
 
 def render_master_logo() -> None:
-    """assets/logo-mark.svg → 4 尺寸 PNG (主品牌)"""
+    """assets/logo-mark.svg → 4 尺寸 PNG (主品牌, dark 版)"""
     src = ASSETS_SVG / "logo-mark.svg"
     if not src.exists():
         raise FileNotFoundError(f"missing source: {src}")
@@ -51,6 +51,13 @@ def render_master_logo() -> None:
     for size in [128, 256, 512, 1024]:
         render_svg_to_png(src, ASSETS_SVG / f"logo-{size}.png", size)
         print(f"  [ok] assets/logo-{size}.png")
+
+    # light 主题变体 (v2.4.0)
+    src_light = ASSETS_SVG / "logo-mark-light.svg"
+    if src_light.exists():
+        for size in [128, 256, 512, 1024]:
+            render_svg_to_png(src_light, ASSETS_SVG / f"logo-light-{size}.png", size)
+        print(f"  [ok] assets/logo-light-{128,256,512,1024}.png")
 
 
 def render_app_icon() -> None:
@@ -154,15 +161,25 @@ def sync_to_docs_public() -> None:
     """跨目录同步: assets/ → docs/public/ (VitePress 服务)"""
     DOCS_PUBLIC.mkdir(parents=True, exist_ok=True)
 
-    # 同步 logo-mark.svg
+    # 同步 logo-mark.svg → logo.svg (dark 主题默认)
     if (ASSETS_SVG / "logo-mark.svg").exists():
         shutil.copy(ASSETS_SVG / "logo-mark.svg", DOCS_PUBLIC / "logo.svg")
         print(f"  [sync] docs/public/logo.svg ← assets/logo-mark.svg")
+
+    # 同步 logo-mark-light.svg → logo-light.svg (light 主题变体)
+    if (ASSETS_SVG / "logo-mark-light.svg").exists():
+        shutil.copy(ASSETS_SVG / "logo-mark-light.svg", DOCS_PUBLIC / "logo-light.svg")
+        print(f"  [sync] docs/public/logo-light.svg ← assets/logo-mark-light.svg")
 
     # 同步 logo-horizontal.svg
     if (ASSETS_SVG / "logo-horizontal.svg").exists():
         shutil.copy(ASSETS_SVG / "logo-horizontal.svg", DOCS_PUBLIC / "logo-horizontal.svg")
         print(f"  [sync] docs/public/logo-horizontal.svg ← assets/logo-horizontal.svg")
+
+    # 同步 logo-horizontal-light.svg
+    if (ASSETS_SVG / "logo-horizontal-light.svg").exists():
+        shutil.copy(ASSETS_SVG / "logo-horizontal-light.svg", DOCS_PUBLIC / "logo-horizontal-light.svg")
+        print(f"  [sync] docs/public/logo-horizontal-light.svg ← assets/logo-horizontal-light.svg")
 
 
 def verify_png_files() -> int:
