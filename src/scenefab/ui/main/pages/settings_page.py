@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Application settings page."""
 
-from PySide6.QtCore import Qt, Signal
+from typing import Any
+
+from PySide6.QtCore import QSettings, Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -24,6 +27,22 @@ from .page_widgets import (
     scroll_area,
     section_title,
 )
+
+# 界面语言标签 ↔ ProjectSettingsManager 语言代码
+_LANGUAGE_LABEL_TO_CODE = {"简体中文": "zh-CN", "English": "en-US"}
+_LANGUAGE_CODE_TO_LABEL = {v: k for k, v in _LANGUAGE_LABEL_TO_CODE.items()}
+
+# 编码选项标签 ↔ ProjectSettingsManager 编码器值
+_CODEC_LABEL_TO_VALUE = {
+    "MP4 / H.264": "h264",
+    "MP4 / H.265": "h265",
+    "MOV / ProRes": "prores",
+}
+_CODEC_VALUE_TO_LABEL = {v: k for k, v in _CODEC_LABEL_TO_VALUE.items()}
+
+# QSettings 键（用于 SettingsManager 未覆盖的设置项）
+_QSETTINGS_ORG = "SceneFab"
+_QSETTINGS_APP = "Application"
 
 
 class ToggleSwitch(QFrame):
@@ -71,13 +90,18 @@ class ToggleSwitch(QFrame):
 class SettingsPage(QFrame):
     """Professional settings surface."""
 
-    def __init__(self, parent=None):
+    def __init__(self, settings_manager: Any = None, parent=None):
         super().__init__(parent)
         self.setObjectName("settings_page")
+        self._settings_manager = settings_manager
         self._tray_toggle: ToggleSwitch | None = None
+        self._controls: dict[str, QWidget] = {}
+        self._path_edits: dict[str, QLineEdit] = {}
+        self._status_label: QLabel | None = None
         self._setup_style()
         self._setup_ui()
         self._connect_tray_signal()
+        self.load_settings()
 
     def _setup_style(self):
         self.setStyleSheet(page_background_style("settings_page"))
@@ -93,6 +117,7 @@ class SettingsPage(QFrame):
         layout.addWidget(self._build_header())
         for title, rows in SETTINGS_GROUPS:
             layout.addWidget(self._settings_group(title, rows))
+        layout.addWidget(self._build_footer())
         layout.addStretch()
 
         scroll.setWidget(container)
@@ -107,10 +132,265 @@ class SettingsPage(QFrame):
         if window is not None and hasattr(window, "set_minimize_to_tray"):
             window.set_minimize_to_tray(checked)
 
+    # ══════════════════════════════════════════════════════════════
+    # 设置持久化
+    # ══════════════════════════════════════════════════════════════
+
+    def save_settings(self) -> bool:
+        """读取所有控件值并写入 SettingsManager / QSettings。"""
+        qsettings = QSettings(_QSETTINGS_ORG, _QSETTINGS_APP)
+        manager = self._settings_manager
+
+        # 工作区路径（SettingsManager 未定义，使用 QSettings 持久化）
+        for key, qkey in (
+            ("project_dir", "workspace/project_dir"),
+            ("export_dir", "workspace/export_dir"),
+        ):
+            edit = self._path_edits.get(key)
+            if edit is not None:
+                qsettings.setValue(qkey, edit.text().strip())
+
+        # API Key（通过 SettingsManager 的安全密钥存储）
+        self._save_api_key()
+
+        if manager is not None:
+            # 语言
+            language_label = self._combo_text("language")
+            if language_label:
+                manager.set_setting(
+                    "ui.language",
+                    _LANGUAGE_LABEL_TO_CODE.get(language_label, language_label),
+                )
+
+            # 默认模型
+            model = self._combo_text("default_model")
+            if model:
+                manager.set_setting("ai.default_model", model)
+
+            # 帧率（"30 fps" → 30）
+            fps_text = self._combo_text("fps")
+            fps_value = self._parse_fps(fps_text)
+            if fps_value is not None:
+                manager.set_setting("video.fps", fps_value)
+
+            # 自动保存 / 最小化到托盘
+            auto_save = self._controls.get("auto_save")
+            if isinstance(auto_save, ToggleSwitch):
+                manager.set_setting("auto_save.enabled", auto_save.isChecked())
+            if self._tray_toggle is not None:
+                manager.set_setting(
+                    "ui.minimize_to_tray", self._tray_toggle.isChecked()
+                )
+
+            # 画布与编码：SettingsManager 校验未通过时退回 QSettings
+            self._save_validated_combo(
+                manager, qsettings, "canvas", "video.resolution", "export/canvas"
+            )
+            self._save_validated_combo(
+                manager,
+                qsettings,
+                "codec",
+                "video.codec",
+                "export/codec",
+                _CODEC_LABEL_TO_VALUE,
+            )
+
+        self._show_status("已保存")
+        return True
+
+    def load_settings(self):
+        """从 SettingsManager / QSettings 读取值并填充控件。"""
+        qsettings = QSettings(_QSETTINGS_ORG, _QSETTINGS_APP)
+        manager = self._settings_manager
+
+        # 工作区路径
+        for key, qkey in (
+            ("project_dir", "workspace/project_dir"),
+            ("export_dir", "workspace/export_dir"),
+        ):
+            edit = self._path_edits.get(key)
+            value = qsettings.value(qkey, "", type=str)
+            if edit is not None and value:
+                edit.setText(value)
+
+        # API Key
+        self._load_api_key()
+
+        if manager is None:
+            return
+
+        # 语言
+        language_code = manager.get_setting("ui.language")
+        language_label = _LANGUAGE_CODE_TO_LABEL.get(language_code, language_code)
+        self._set_combo_text("language", language_label)
+
+        # 默认模型
+        self._set_combo_text("default_model", manager.get_setting("ai.default_model"))
+
+        # 帧率（30 → "30 fps"）
+        fps_value = manager.get_setting("video.fps")
+        if fps_value is not None:
+            self._set_combo_text("fps", f"{fps_value} fps")
+
+        # 画布与编码：优先使用 QSettings 回退值（保留竖屏等自定义项）
+        self._load_validated_combo(
+            manager, qsettings, "canvas", "video.resolution", "export/canvas"
+        )
+        self._load_validated_combo(
+            manager,
+            qsettings,
+            "codec",
+            "video.codec",
+            "export/codec",
+            _CODEC_VALUE_TO_LABEL,
+        )
+
+        # 自动保存 / 最小化到托盘
+        auto_save = self._controls.get("auto_save")
+        if isinstance(auto_save, ToggleSwitch):
+            auto_save.setChecked(bool(manager.get_setting("auto_save.enabled", True)))
+        if self._tray_toggle is not None:
+            checked = bool(manager.get_setting("ui.minimize_to_tray", False))
+            self._tray_toggle.setChecked(checked)
+            self._on_tray_toggled(checked)
+
+    # ── 持久化辅助方法 ────────────────────────────────────────────
+
+    def _combo_text(self, key: str) -> str:
+        widget = self._controls.get(key)
+        if isinstance(widget, QComboBox):
+            return widget.currentText()
+        return ""
+
+    def _set_combo_text(self, key: str, value: Any):
+        widget = self._controls.get(key)
+        if isinstance(widget, QComboBox) and value in self._combo_items(widget):
+            widget.setCurrentText(str(value))
+
+    @staticmethod
+    def _combo_items(combo: QComboBox) -> list[str]:
+        return [combo.itemText(i) for i in range(combo.count())]
+
+    @staticmethod
+    def _parse_fps(text: str) -> int | None:
+        try:
+            return int(text.split()[0])
+        except (ValueError, IndexError, AttributeError):
+            return None
+
+    def _save_validated_combo(
+        self,
+        manager: Any,
+        qsettings: QSettings,
+        key: str,
+        manager_key: str,
+        fallback_qkey: str,
+        label_map: dict[str, str] | None = None,
+    ):
+        label = self._combo_text(key)
+        if not label:
+            return
+        stored = (label_map or {}).get(label, label)
+        if manager.set_setting(manager_key, stored):
+            qsettings.remove(fallback_qkey)
+        else:
+            qsettings.setValue(fallback_qkey, label)
+
+    def _load_validated_combo(
+        self,
+        manager: Any,
+        qsettings: QSettings,
+        key: str,
+        manager_key: str,
+        fallback_qkey: str,
+        value_map: dict[str, str] | None = None,
+    ):
+        fallback = qsettings.value(fallback_qkey, "", type=str)
+        if fallback:
+            self._set_combo_text(key, fallback)
+            return
+        stored = manager.get_setting(manager_key)
+        if stored is None:
+            return
+        label = (value_map or {}).get(str(stored), str(stored))
+        self._set_combo_text(key, label)
+
+    def _save_api_key(self):
+        api_input = self._controls.get("api_key")
+        if not isinstance(api_input, QLineEdit):
+            return
+        api_key = api_input.text().strip()
+        if not api_key:
+            return
+        key_manager = self._secure_key_manager()
+        if key_manager is None:
+            return
+        try:
+            key_manager.store_api_key(self._api_provider(), api_key)
+        except Exception:
+            pass
+
+    def _load_api_key(self):
+        api_input = self._controls.get("api_key")
+        if not isinstance(api_input, QLineEdit):
+            return
+        key_manager = self._secure_key_manager()
+        if key_manager is None:
+            return
+        try:
+            key_data = key_manager.get_api_key(self._api_provider())
+        except Exception:
+            key_data = None
+        if key_data and key_data.get("api_key"):
+            api_input.setText(str(key_data["api_key"]))
+
+    def _secure_key_manager(self) -> Any:
+        manager = self._settings_manager
+        if manager is not None and hasattr(manager, "secure_key_manager"):
+            return manager.secure_key_manager
+        try:
+            from scenefab.secure_key_manager import get_secure_key_manager
+
+            return get_secure_key_manager()
+        except Exception:
+            return None
+
+    @staticmethod
+    def _api_provider() -> str:
+        try:
+            from scenefab.settings import config_manager
+
+            return config_manager.config.default_llm
+        except Exception:
+            return "deepseek"
+
+    def _show_status(self, message: str):
+        if self._status_label is not None:
+            self._status_label.setText(message)
+
     def _build_header(self) -> QFrame:
         return header_panel(
             "settings_header", "系统设置", "配置默认工作区、AI 服务和导出参数"
         )
+
+    def _build_footer(self) -> QFrame:
+        footer = panel("settings_footer")
+        layout = QHBoxLayout(footer)
+        layout.setContentsMargins(20, 14, 20, 14)
+
+        self._status_label = QLabel("")
+        self._status_label.setFont(ui_font(FontSizes.xs))
+        self._status_label.setStyleSheet(f"color: {_C.SUCCESS};")
+        layout.addWidget(self._status_label, 1)
+
+        save_button = QPushButton("保存设置")
+        save_button.setObjectName("settings_save_button")
+        save_button.setFixedHeight(36)
+        save_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        save_button.setStyleSheet(action_button_style(primary=True))
+        save_button.clicked.connect(self.save_settings)
+        layout.addWidget(save_button)
+        return footer
 
     def _settings_group(self, title: str, rows: tuple[SettingRowView, ...]) -> QFrame:
         group = self._group(title)
@@ -123,15 +403,24 @@ class SettingsPage(QFrame):
 
     def _control_for_row(self, row: SettingRowView) -> QWidget:
         if row.control == "path":
-            return self._path_input(row.value)
+            wrapper, edit, button = self._path_input(row.value)
+            self._path_edits[row.key] = edit
+            button.clicked.connect(lambda checked=False, e=edit: self._choose_directory(e))
+            self._controls[row.key] = wrapper
+            return wrapper
         if row.control == "combo":
-            return self._combo(row.options)
+            combo = self._combo(row.options)
+            self._controls[row.key] = combo
+            return combo
         if row.control == "password":
-            return self._password_input(row.placeholder)
+            password = self._password_input(row.placeholder)
+            self._controls[row.key] = password
+            return password
         if row.control == "toggle":
             toggle = ToggleSwitch(row.checked)
             if row.key == "minimize_to_tray":
                 self._tray_toggle = toggle
+            self._controls[row.key] = toggle
             return toggle
         raise ValueError(f"Unsupported settings control: {row.control}")
 
@@ -187,7 +476,7 @@ class SettingsPage(QFrame):
         api_input.setStyleSheet(self._input_style())
         return api_input
 
-    def _path_input(self, value: str) -> QWidget:
+    def _path_input(self, value: str) -> tuple[QFrame, QLineEdit, QPushButton]:
         wrapper = QFrame()
         layout = QHBoxLayout(wrapper)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -203,7 +492,13 @@ class SettingsPage(QFrame):
         button.setCursor(Qt.CursorShape.PointingHandCursor)
         button.setStyleSheet(action_button_style(padding=12))
         layout.addWidget(button)
-        return wrapper
+        return wrapper, edit, button
+
+    def _choose_directory(self, edit: QLineEdit):
+        """打开目录选择对话框并回填路径输入框"""
+        directory = QFileDialog.getExistingDirectory(self, "选择目录", edit.text())
+        if directory:
+            edit.setText(directory)
 
     def _input_style(self) -> str:
         return f"""

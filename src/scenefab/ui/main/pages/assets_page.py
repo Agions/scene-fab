@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Project assets page."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
     QVBoxLayout,
+    QWidget,
 )
 
 from ...theme.ds_tokens import _C, FontSizes, FontWeights, Radii, ui_font
@@ -22,14 +27,18 @@ from .page_widgets import (
     section_title,
 )
 
+if TYPE_CHECKING:
+    from scenefab.project_manager import ProjectManager
+
 
 class AssetsPage(QFrame):
     """Project and media assets workspace."""
 
     import_requested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, project_manager: ProjectManager | None = None):
         super().__init__(parent)
+        self._project_manager = project_manager
         self.setObjectName("assets_page")
         self._setup_style()
         self._setup_ui()
@@ -72,21 +81,64 @@ class AssetsPage(QFrame):
         header = QHBoxLayout()
         header.addWidget(section_title("资产列表"))
         header.addStretch()
-        header.addWidget(action_button("刷新"))
+        refresh_btn = action_button("刷新")
+        refresh_btn.clicked.connect(self.refresh_projects)
+        header.addWidget(refresh_btn)
         layout.addLayout(header)
 
         columns = self._row(*ASSET_TABLE_COLUMNS, header=True)
         layout.addWidget(columns)
 
-        layout.addWidget(
-            empty_state(
-                "暂无资产。导入视频素材后，系统会在这里显示拆分场景、脚本、配音和导出记录。",
-                180,
-                padding=24,
-            ),
-            1,
+        # Container for dynamically added project rows
+        self._rows_container = QWidget()
+        self._rows_layout = QVBoxLayout(self._rows_container)
+        self._rows_layout.setContentsMargins(0, 0, 0, 0)
+        self._rows_layout.setSpacing(6)
+        layout.addWidget(self._rows_container, 1)
+
+        # Empty state shown when no projects exist
+        self._empty_state = empty_state(
+            "暂无资产。导入视频素材后，系统会在这里显示拆分场景、脚本、配音和导出记录。",
+            180,
+            padding=24,
         )
+        layout.addWidget(self._empty_state, 1)
+
+        # Initial load
+        self.refresh_projects()
         return frame
+
+    def refresh_projects(self) -> None:
+        """Query the ProjectManager and repopulate the project list."""
+        # Clear existing rows
+        while self._rows_layout.count():
+            item = self._rows_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        projects = []
+        if self._project_manager is not None:
+            projects = self._project_manager.scan_projects()
+
+        if not projects:
+            self._empty_state.setVisible(True)
+            self._rows_container.setVisible(False)
+            return
+
+        self._empty_state.setVisible(False)
+        self._rows_container.setVisible(True)
+
+        for project in projects:
+            meta = project.metadata
+            type_name = (
+                meta.project_type.display_name
+                if hasattr(meta.project_type, "display_name")
+                else str(meta.project_type)
+            )
+            date_str = (meta.created_at or "")[:10] or "—"
+            row = self._row(type_name, meta.name or "未命名项目", date_str)
+            self._rows_layout.addWidget(row)
 
     def _build_source_panel(self) -> QFrame:
         frame = panel("source_panel")

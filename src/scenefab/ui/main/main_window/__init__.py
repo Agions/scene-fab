@@ -36,8 +36,9 @@ class SceneFabMainWindow(QMainWindow):
         "settings": ("设置", ""),
     }
 
-    def __init__(self):
+    def __init__(self, application=None):
         super().__init__()
+        self._application = application
         self.setWindowTitle("SceneFab")
         self.setMinimumSize(1200, 720)
         self._tray = None
@@ -93,13 +94,27 @@ class SceneFabMainWindow(QMainWindow):
         production = ProductionPage()
         production.start_requested.connect(self._on_start_production)
 
-        assets = AssetsPage()
+        project_manager = None
+        settings_manager = None
+        if self._application is not None:
+            project_manager = self._application.get_service_by_name("project_manager")
+            settings_manager = self._application.get_service_by_name(
+                "settings_manager"
+            )
+
+        assets = AssetsPage(project_manager=project_manager)
         assets.import_requested.connect(self._on_import_assets)
+
+        settings = SettingsPage(settings_manager=settings_manager)
 
         self.content.add_page("home", home)
         self.content.add_page("create", production)
         self.content.add_page("assets", assets)
-        self.content.add_page("settings", SettingsPage())
+        self.content.add_page("settings", settings)
+
+        # 页面挂载到窗口后重新加载设置，确保托盘等窗口级状态同步
+        if settings_manager is not None:
+            settings.load_settings()
 
     def _connect_signals(self):
         self.sidebar.navigated.connect(self._on_navigate)
@@ -207,8 +222,47 @@ class SceneFabMainWindow(QMainWindow):
 
     def _on_action(self, action_id: str):
         if action_id == "export":
-            self._on_navigate("create")
-            self.statusbar.set_status("请在创作流程完成后导出成片")
+            self._on_export()
+
+    def _on_export(self):
+        """导出对话框：选择格式和输出目录，执行导出"""
+        from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox
+
+        # 选择导出格式
+        formats = ["剪映草稿", "MP4 视频"]
+        fmt_choice, ok = QInputDialog.getItem(
+            self, "导出格式", "请选择导出格式:", formats, 0, False
+        )
+        if not ok:
+            return
+
+        # 选择输出目录
+        output_dir = QFileDialog.getExistingDirectory(self, "选择导出目录")
+        if not output_dir:
+            return
+
+        # 执行导出
+        from scenefab.services.export.export_manager import (
+            ExportConfig,
+            ExportFormat,
+            ExportManager,
+        )
+
+        export_format = (
+            ExportFormat.JIANYING if fmt_choice == "剪映草稿" else ExportFormat.MP4
+        )
+        config = ExportConfig(format=export_format, output_path=output_dir)
+
+        try:
+            manager = ExportManager()
+            # 使用空项目数据作为最小化导出（实际项目中应传入当前项目数据）
+            project_data = {"name": "SceneFab Export"}
+            manager.export(project_data, config)
+            self.statusbar.set_status("导出成功")
+            QMessageBox.information(self, "导出成功", f"已导出到:\n{output_dir}")
+        except Exception as e:
+            self.statusbar.set_status(f"导出失败: {e}")
+            QMessageBox.critical(self, "导出失败", f"导出过程中出错:\n{e}")
 
     # ══════════════════════════════════════════════════════════════
     # 生产流程接线

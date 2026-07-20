@@ -109,7 +109,7 @@ def main():
         # 创建主窗口并注入 application 实例
         from scenefab.ui.main.main_window import SceneFabMainWindow
 
-        window = SceneFabMainWindow()
+        window = SceneFabMainWindow(application=application)
         window.show()
         window.raise_()
         window.activateWindow()

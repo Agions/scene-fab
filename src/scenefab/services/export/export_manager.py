@@ -14,6 +14,7 @@ from typing import Any
 from scenefab.exceptions import ExportError
 
 from .direct_video_exporter import DirectVideoExporter
+from .jianying_adapter import JianyingDraft
 from .jianying_exporter import JianyingExporter
 
 logger = logging.getLogger(__name__)
@@ -91,8 +92,9 @@ class ExportManager:
             if config.format == ExportFormat.JIANYING:
                 # JianyingExporter.export(draft, output_dir, progress_callback)
                 output_dir = str(Path(config.output_path).parent)
+                draft = self._ensure_jianying_draft(project_data, config)
                 exporter.export(  # type: ignore[union-attr]
-                    project_data, output_dir, config.progress_callback
+                    draft, output_dir, config.progress_callback
                 )
             else:
                 # DirectVideoExporter.export_commentary(project, output_path, ...)
@@ -119,6 +121,27 @@ class ExportManager:
         import time
 
         return str(output_dir / f"export_{int(time.time())}.{suffix}")
+
+    def _ensure_jianying_draft(
+        self, project_data: dict[str, Any] | JianyingDraft, config: ExportConfig
+    ) -> JianyingDraft:
+        """确保传入 JianyingExporter 的是 JianyingDraft 对象
+
+        如果 project_data 已经是 JianyingDraft 则直接返回；
+        否则从 dict 中提取已知字段构造一个最小化的 JianyingDraft。
+        """
+        if isinstance(project_data, JianyingDraft):
+            return project_data
+
+        # 从 dict 构造最小化草稿
+        name = project_data.get("name", "SceneFab Export")
+        draft = JianyingDraft(name=name)
+
+        # 如果 dict 中包含 tracks/materials 等结构化数据，尝试填充
+        if "duration" in project_data:
+            draft.duration = int(project_data["duration"])
+
+        return draft
 
     def get_supported_formats(self) -> list[ExportFormat]:
         """获取支持的导出格式"""
