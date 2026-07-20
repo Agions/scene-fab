@@ -1,58 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 512 160"
+     viewBox="0 0 520 160"
      role="img"
      aria-label="SceneFab - AI 影视解说视频创作工具">
   <defs>
     <linearGradient id="bgH" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0F0C29"/>
-      <stop offset="100%" stop-color="#1B1742"/>
+      <stop offset="0%" stop-color="#0a0e1a"/>
+      <stop offset="100%" stop-color="#0f1629"/>
     </linearGradient>
     <linearGradient id="accentH" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6B35"/>
-      <stop offset="100%" stop-color="#FF3D6E"/>
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
+    <linearGradient id="playH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glowH" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
 
   <!-- Logo mark (left, 128x128 centered in 160 height) -->
   <g transform="translate(16 16)">
     <rect width="128" height="128" rx="28" fill="url(#bgH)"/>
+    <rect x="4" y="4" width="120" height="120" rx="24" stroke="url(#accentH)" stroke-width="1" opacity="0.2"/>
 
-    <!-- Outer ring -->
-    <circle cx="64" cy="61" r="44" fill="none" stroke="url(#accentH)" stroke-width="1.8" opacity="0.35"/>
-
-    <!-- Film ticks -->
-    <g stroke="url(#accentH)" stroke-width="1.5" stroke-linecap="round" opacity="0.5">
-      <line x1="64" y1="14" x2="64" y2="20"/>
-      <line x1="64" y1="102" x2="64" y2="108"/>
-      <line x1="17" y1="61" x2="23" y2="61"/>
-      <line x1="105" y1="61" x2="111" y2="61"/>
+    <!-- Viewfinder corners -->
+    <g transform="translate(64, 58)">
+      <path d="M-22 -22 L-22 -15 M-22 -22 L-15 -22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M22 -22 L22 -15 M22 -22 L15 -22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M-22 22 L-22 15 M-22 22 L-15 22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M22 22 L22 15 M22 22 L15 22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
     </g>
 
-    <!-- Inner ring -->
-    <circle cx="64" cy="61" r="30" fill="none" stroke="url(#accentH)" stroke-width="1.5" opacity="0.55"/>
+    <!-- Play button -->
+    <g filter="url(#glowH)">
+      <path d="M54 42 L54 74 L80 58 Z" fill="url(#playH)" opacity="0.9"/>
+    </g>
 
-    <!-- Center disc -->
-    <circle cx="64" cy="61" r="20" fill="#0F0C29" opacity="0.95"/>
-
-    <!-- Play triangle -->
-    <path d="M 57 50 L 73 61 L 57 72 Z" fill="url(#accentH)"/>
+    <!-- AI sparkle -->
+    <g transform="translate(100, 36)">
+      <path d="M0 -6 L2 -2 L6 0 L2 2 L0 6 L-2 2 L-6 0 L-2 -2 Z" fill="#22d3ee" opacity="0.85"/>
+    </g>
+    <g transform="translate(108, 48) scale(0.5)">
+      <path d="M0 -6 L2 -2 L6 0 L2 2 L0 6 L-2 2 L-6 0 L-2 -2 Z" fill="#a78bfa" opacity="0.6"/>
+    </g>
   </g>
 
   <!-- Wordmark (right) -->
   <g transform="translate(168 0)">
     <text x="0" y="68"
-          font-family="Inter, 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif"
+          font-family="Inter, 'Helvetica Neue', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif"
           font-size="48"
           font-weight="800"
           fill="#FFFFFF"
-          letter-spacing="-2">Scene<tspan fill="url(#accentH)">Fab</tspan></text>
+          letter-spacing="-1">Scene<tspan fill="url(#accentH)">Fab</tspan></text>
     <text x="2" y="100"
-          font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace"
-          font-size="14"
+          font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace"
+          font-size="13"
           font-weight="600"
           fill="url(#accentH)"
-          letter-spacing="3.2"
+          letter-spacing="3"
           opacity="0.85">AI 影视解说视频创作工具</text>
   </g>
 </svg>
