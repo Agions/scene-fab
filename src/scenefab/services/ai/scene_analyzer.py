@@ -39,7 +39,7 @@ class SceneAnalyzer:
 
     def __init__(self, config: AnalysisConfig | None = None) -> None:
         self.config = config or AnalysisConfig()
-        self._pyscenect_available = self._check_pyscenect()
+        self._pyscenedetect_available = self._check_pyscenedetect()
         self._executor = get_ffmpeg_executor()
         self._importance_weights = {
             "duration": 0.20,
@@ -50,7 +50,7 @@ class SceneAnalyzer:
         }
         self._scorer = SceneScorer()
 
-    def _check_pyscenect(self) -> bool:
+    def _check_pyscenedetect(self) -> bool:
         """检查 PySceneDetect 是否可用"""
         import importlib.util
 
@@ -76,8 +76,8 @@ class SceneAnalyzer:
         duration = FFmpegTool.get_duration(str(video_path))
 
         # 检测场景变化 - 优先使用 PySceneDetect
-        if self.config.use_pyscenect and self._pyscenect_available:
-            scene_times = self._detect_scenes_pyscenect(str(video_path))
+        if self.config.use_pyscenedetect and self._pyscenedetect_available:
+            scene_times = self._detect_scenes_pyscenedetect(str(video_path))
         else:
             scene_times = self._detect_scene_changes(str(video_path))
 
@@ -94,7 +94,7 @@ class SceneAnalyzer:
 
         return scenes
 
-    def _detect_scenes_pyscenect(self, video_path: str) -> list[float]:
+    def _detect_scenes_pyscenedetect(self, video_path: str) -> list[float]:
         """使用 PySceneDetect 检测场景变化"""
         try:
             from scenedetect import (  # type: ignore[import-untyped]
@@ -154,7 +154,7 @@ class SceneAnalyzer:
 
         except ImportError as e:
             logger.warning(f"PySceneDetect 导入失败: {e}")
-            self._pyscenect_available = False
+            self._pyscenedetect_available = False
             return self._detect_scene_changes(video_path)
         except Exception as e:
             logger.error(f"PySceneDetect 场景检测失败: {e}")

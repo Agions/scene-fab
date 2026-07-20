@@ -10,6 +10,7 @@ import logging
 import os
 import platform
 import threading
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -147,8 +148,14 @@ class SecureKeyManager:
             # 设置文件权限（仅用户可读）
             os.chmod(key_file, 0o600)
             self.logger.info("Generated new file-based encryption key")
-        except Exception as e:
+        except OSError as e:
+            # 关键: 若密钥无法持久化，绝不能返回这个未落盘的 key。
+            # 否则下次调用会重新生成一个不同的 key，导致用当前 key
+            # 加密的数据永久无法解密。此处快速失败（fail fast）。
             self.logger.error(f"Failed to save key file: {e}")
+            raise RuntimeError(
+                f"Failed to persist master key file at {key_file}"
+            ) from e
 
         return key
 
@@ -161,7 +168,7 @@ class SecureKeyManager:
                 "api_key": api_key,
                 "provider": provider,
                 "metadata": metadata or {},
-                "created_at": str(Path().cwd().stat().st_mtime),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "app_version": "2.0.0",
             }
 
@@ -290,10 +297,20 @@ class SecureKeyManager:
             return False
 
     def list_stored_keys(self) -> list[str]:
-        """列出所有存储的密钥提供商"""
+        """列出所有存储的密钥提供商
+
+        限制: 本方法仅扫描基于文件（加密文件）的存储，无法枚举存放在
+        系统密钥库（keyring）中的密钥。原因是各 keyring 后端
+        （macOS Keychain / Windows Credential Locker / SecretService 等）
+        通常只提供按 (service, username) 的点查询，而不提供枚举某一
+        service 下全部条目的 API。因此，通过系统密钥库存储的密钥不会
+        出现在返回列表中（除非同名加密文件也存在）。依赖完整列表的
+        调用方（如 rotate_master_key / validate_key_integrity）需知悉
+        此限制；若持有已知 provider 集合，可逐个用 get_api_key() 探测。
+        """
         providers = set()
 
-        # 检查加密文件
+        # 检查加密文件（当前唯一可枚举的存储）
         try:
             secure_dir = Path.home() / f".{self.app_name.lower()}" / "keys"
             if secure_dir.exists():
@@ -301,6 +318,8 @@ class SecureKeyManager:
                     providers.add(key_file.stem)
         except Exception as e:
             self.logger.error(f"Failed to list encrypted keys: {e}")
+
+        # 注意: 系统密钥库中的密钥无法在此枚举（见 docstring 说明）。
 
         return list(providers)
 
