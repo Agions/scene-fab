@@ -105,6 +105,8 @@ def main():
 
         window = SceneFabMainWindow()
         window.show()
+        window.raise_()
+        window.activateWindow()
 
         # 启动后 3 秒异步检测更新（非阻塞）
         from PySide6.QtCore import QTimer
