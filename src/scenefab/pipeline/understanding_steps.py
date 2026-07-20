@@ -96,7 +96,10 @@ def understand_step(ctx: NarrationContext) -> StepResult:
     # 2. 桥段检测 (仅短剧模式启用)
     if ctx.short_drama_style is not None:
         try:
-            from scenefab.pipeline.short_drama import ShortDramaNarrator, ShortDramaPreset
+            from scenefab.pipeline.short_drama import (
+                ShortDramaNarrator,
+                ShortDramaPreset,
+            )
 
             # 根据 ctx.short_drama_style 选择 preset
             preset = ShortDramaPreset.suspense()  # 默认悬疑

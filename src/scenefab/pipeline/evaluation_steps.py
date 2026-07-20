@@ -24,7 +24,6 @@ from typing import TYPE_CHECKING
 
 from .narration_context import (
     NarrationContext,
-    ProductionStyle,
 )
 from .narration_state_machine import NarrationState, StepResult
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE, split_sentences
