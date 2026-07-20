@@ -27,6 +27,7 @@ from .narration_context import (
     ProductionStyle,
 )
 from .narration_state_machine import NarrationState, StepResult
+from .text_utils import PRODUCTION_TO_SCRIPT_STYLE, split_sentences
 
 if TYPE_CHECKING:
     pass
@@ -193,18 +194,7 @@ def hook_rewrite_step(ctx: NarrationContext) -> StepResult:
 
 def _extract_hook(draft: str, max_chars: int = 60) -> str:
     """提取 draft 前 2 句作为 Hook (≤ 60 字)"""
-    import re
-
-    # 按 。！？ 切分前 2 句
-    sentences = re.split(r"([。！？])", draft, maxsplit=4)
-    # re.split 保留分隔符, 重组
-    parts: list[str] = []
-    for i in range(0, len(sentences) - 1, 2):
-        parts.append(sentences[i] + sentences[i + 1])
-    if len(sentences) % 2 == 1 and sentences[-1]:
-        parts.append(sentences[-1])
-
-    hook = "".join(parts[:2])  # 前 2 句
+    hook = "".join(split_sentences(draft)[:2])  # 前 2 句
     if len(hook) > max_chars:
         hook = hook[:max_chars]
     return hook.strip()
@@ -223,23 +213,13 @@ def _generate_hook_candidates_via_llm(
     from scenefab.services.ai.script_generator import ScriptGenerator
     from scenefab.services.ai.script_models import ScriptConfig, ScriptStyle, VoiceTone
 
-    style_to_script = {
-        ProductionStyle.SUSPENSE: ScriptStyle.MONOLOGUE,
-        ProductionStyle.ROMANCE: ScriptStyle.MONOLOGUE,
-        ProductionStyle.REVENGE: ScriptStyle.COMMENTARY,
-        ProductionStyle.UNDERDOG: ScriptStyle.COMMENTARY,
-        ProductionStyle.COMEDY: ScriptStyle.VIRAL,
-        ProductionStyle.LITERARY: ScriptStyle.NARRATION,
-        ProductionStyle.NEUTRAL: ScriptStyle.COMMENTARY,
-    }
-
     generator = ScriptGenerator()
     candidates: list[tuple[str, str]] = []
 
     # 单次调用让 LLM 一次生成 5 候选 (省 token)
     prompt = _build_hook_rewrite_prompt(ctx, original_hook)
     config = ScriptConfig(
-        style=style_to_script.get(ctx.style, ScriptStyle.COMMENTARY),
+        style=ScriptStyle(PRODUCTION_TO_SCRIPT_STYLE.get(ctx.style, "commentary")),
         tone=VoiceTone.EXCITED,
         target_duration=5.0,  # Hook 只要 5s
         words_per_second=ctx.platform_spec.char_per_second,
@@ -344,18 +324,11 @@ def _select_best_hook(
 
 def _replace_hook_in_draft(original_draft: str, new_hook: str) -> str:
     """把 new_hook 替换 original_draft 的前 2 句"""
-    import re
-
     # 找到前 2 句的结束位置
-    sentences = re.split(r"([。！？])", original_draft, maxsplit=4)
-    parts: list[str] = []
-    for i in range(0, len(sentences) - 1, 2):
-        parts.append(sentences[i] + sentences[i + 1])
-    if len(sentences) % 2 == 1 and sentences[-1]:
-        parts.append(sentences[-1])
+    sentences = split_sentences(original_draft)
 
     # 前 2 句之后的剩余内容
-    consumed_chars = sum(len(p) for p in parts[:2])
+    consumed_chars = sum(len(p) for p in sentences[:2])
     rest = original_draft[consumed_chars:]
 
     # 拼接: new_hook + rest

@@ -58,13 +58,13 @@ class EvalResult:
     dimension_scores: list[DimensionScore] = field(default_factory=list)
     issues: list[str] = field(default_factory=list)  # 全部问题汇总
     suggestion: str = ""  # 改写总建议 (注入下一轮 DRAFT 的 prompt)
-    accept: bool = False  # ≥ 7.5 True
+    accept: bool = False  # 总分达到接受阈值时为 True
     reason: str = ""  # 决策原因
 
     def __post_init__(self) -> None:
         if not self.reason:
             self.reason = (
-                f"总分 {self.total_score:.1f} {'≥' if self.accept else '<'} 7.5"
+                f"总分 {self.total_score:.1f} → {'ACCEPT' if self.accept else 'REJECT'}"
             )
 
 
@@ -99,6 +99,14 @@ class NarrationEvaluator:
         else:
             # REJECT → 回到 DRAFT, 注入 result.suggestion
     """
+
+    def __init__(self, accept_threshold: float = 7.5) -> None:
+        """
+        Args:
+            accept_threshold: 总分接受阈值 (默认 7.5, 与
+                NarrationConfig.eval_accept_threshold 默认值一致)
+        """
+        self.accept_threshold = accept_threshold
 
     def evaluate(self, ctx: NarrationContext) -> EvalResult:
         """5 维加权评估当前 ctx.current_draft
@@ -145,7 +153,7 @@ class NarrationEvaluator:
             all_suggestions.extend(d.suggestions)
 
         # 4. 决策
-        threshold = 7.5
+        threshold = self.accept_threshold
         accept = total >= threshold
 
         # 5. 组装总建议
@@ -322,12 +330,7 @@ class NarrationEvaluator:
 
         # 2. 与 history 的角色不重复
         if ctx.history:
-            # 收集历史中提过的角色
-            hist_chars: set[str] = set()
-            for h in ctx.history:
-                hist_chars.update(h.characters_mentioned)
             # 当前 draft 提到了历史角色, 不扣分 (应该提)
-            # 但如果 draft 提到但 history 没说且 story_graph 也没, 可能是新角色
             for char in char_names:
                 if char not in draft:
                     issues.append(f"主要角色 '{char}' 未在文案中提及")

@@ -32,6 +32,7 @@ from .narration_context import (
     ProductionStyle,
 )
 from .narration_state_machine import NarrationState, StepResult
+from .text_utils import PRODUCTION_TO_SCRIPT_STYLE
 
 if TYPE_CHECKING:
     from scenefab.services.ai.script_generator.script_generator import ScriptGenerator
@@ -47,15 +48,8 @@ logger = logging.getLogger(__name__)
 
 # v2.2 ProductionStyle → v2.1 ScriptStyle + VoiceTone
 # 复用 scenefab.services.ai.script_models 已有枚举
-_NARRATION_TO_SCRIPT_STYLE: dict[ProductionStyle, str] = {
-    ProductionStyle.SUSPENSE: "monologue",  # 悬疑 = 第一人称独白
-    ProductionStyle.ROMANCE: "monologue",  # 甜宠 = 独白
-    ProductionStyle.REVENGE: "commentary",  # 复仇 = 客观解说
-    ProductionStyle.UNDERDOG: "commentary",  # 逆袭 = 客观解说
-    ProductionStyle.COMEDY: "viral",  # 吐槽 = 爆款
-    ProductionStyle.LITERARY: "narration",  # 文艺 = 旁白
-    ProductionStyle.NEUTRAL: "commentary",  # 中性 = 解说
-}
+# 权威定义在 text_utils.PRODUCTION_TO_SCRIPT_STYLE
+_NARRATION_TO_SCRIPT_STYLE = PRODUCTION_TO_SCRIPT_STYLE
 
 _NARRATION_TO_TONE: dict[ProductionStyle, str] = {
     ProductionStyle.SUSPENSE: "mysterious",

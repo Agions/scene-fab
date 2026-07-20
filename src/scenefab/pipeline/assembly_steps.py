@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING
 
 from .narration_context import NarrationContext
 from .narration_state_machine import NarrationState, StepResult
+from .text_utils import split_sentences
 
 if TYPE_CHECKING:
     pass
@@ -417,15 +418,8 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
 
 def _write_srt_fallback(draft: str, output_path: Path) -> None:
     """SRT 字幕降级生成 (无需外部依赖)"""
-    import re
-
     # 按句号切分
-    sentences = re.split(r"([。！？])", draft)
-    parts: list[str] = []
-    for i in range(0, len(sentences) - 1, 2):
-        parts.append(sentences[i] + sentences[i + 1])
-    if len(sentences) % 2 == 1 and sentences[-1]:
-        parts.append(sentences[-1])
+    parts = split_sentences(draft)
 
     # 按字数估算时长 (4 字/秒)
     chars_per_sec = 4.0
