@@ -5,12 +5,10 @@ DeepSeek 提供商
 支持 DeepSeek R1, V4 Flash/Pro 系列模型
 """
 
-import json
+import time
 from collections.abc import AsyncIterator
 
-import httpx
-
-from ..base_llm_provider import LLMRequest, LLMResponse, ProviderError
+from ..base_llm_provider import LLMRequest, LLMResponse
 from ..model_catalog import DEFAULT_MODELS, provider_models
 from .openai_compat import OpenAICompatProvider
 
@@ -46,15 +44,20 @@ class DeepSeekProvider(OpenAICompatProvider):
         messages = self._build_messages(request)
         body = self._build_request_body(request, model, messages)
 
-        data = await self._call_api(
-            "POST", f"{self.base_url}/chat/completions", json=body
-        )
-        result = self._parse_response(data, model)
-        if is_reasoning:
-            raw = result.raw_response or {}
-            raw["is_reasoning_model"] = True
-            result.raw_response = raw
-        return result
+        start_time = time.monotonic()
+        try:
+            data = await self._call_api_with_retry(
+                "POST", f"{self.base_url}/chat/completions", json=body
+            )
+            latency_ms = (time.monotonic() - start_time) * 1000
+            result = self._parse_response(data, model, latency_ms)
+            if is_reasoning:
+                raw = result.raw_response or {}
+                raw["is_reasoning_model"] = True
+                result.raw_response = raw
+            return result
+        except Exception as e:
+            raise self._provider_error("生成", e)
 
     async def stream_generate(
         self,
@@ -80,27 +83,14 @@ class DeepSeekProvider(OpenAICompatProvider):
                 timeout=120.0,
             ) as response:
                 response.raise_for_status()
-                async for line in response.aiter_lines():
-                    line = line.strip()
-                    if not line or line.startswith(":"):
-                        continue
-                    if line.startswith("data: "):
-                        line = line[6:]
-                    if line == "[DONE]":
-                        yield {"done": True, "content": ""}
-                        return
-                    try:
-                        data = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
+                async for data in self._iter_json_stream_payloads(response, sse=True):
                     delta = data.get("choices", [{}])[0].get("delta", {})
                     content = delta.get("content", "")
                     if content:
                         yield {"done": False, "content": content}
-        except httpx.HTTPStatusError as e:
-            raise self._handle_http_error(e)
+                yield {"done": True, "content": ""}
         except Exception as e:
-            raise ProviderError(f"流式生成失败: {str(e)}")
+            raise self._stream_provider_error(e)
 
     async def count_tokens(self, text: str) -> int:
         """计算 token 数量（估算）"""

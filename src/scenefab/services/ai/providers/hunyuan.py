@@ -7,8 +7,6 @@
 使用公共混入类减少重复代码
 """
 
-import json
-
 import httpx
 
 from ..base_llm_provider import (
@@ -116,17 +114,11 @@ class HunyuanProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
                 },
             ) as response:
                 response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if line:
-                        try:
-                            data = json.loads(line)
-                        except json.JSONDecodeError:
-                            continue
-                        if "Choices" in data:
-                            delta = data["Choices"][0].get("Delta", {})
-                            if "Content" in delta:
-                                yield delta["Content"]
-        except httpx.HTTPStatusError as e:
-            raise self._handle_http_error(e)
+                async for data in self._iter_json_stream_payloads(response, sse=False):
+                    choices = data.get("Choices", [])
+                    if choices:
+                        delta = choices[0].get("Delta", {})
+                        if "Content" in delta:
+                            yield delta["Content"]
         except Exception as e:
-            raise ProviderError(f"流式生成失败: {str(e)}")
+            raise self._stream_provider_error(e)

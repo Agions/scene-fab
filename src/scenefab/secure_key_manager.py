@@ -20,6 +20,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 try:
     import keyring
 except ImportError:
+
     class _UnavailableKeyring:
         """Small keyring-compatible fallback used when keyring is not installed."""
 
@@ -326,7 +327,9 @@ class SecureKeyManager:
             # 重新存储所有密钥（使用新的主密钥）
             for provider, key_data in stored_keys.items():
                 self.store_api_key(
-                    provider, key_data["api_key"], key_data.get("metadata")  # type: ignore[arg-type]
+                    provider,
+                    key_data["api_key"],
+                    key_data.get("metadata"),  # type: ignore[arg-type]
                 )
 
             self.logger.info("Master key rotated successfully")

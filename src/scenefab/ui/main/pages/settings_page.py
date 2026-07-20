@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from ...theme.ds_tokens import _C, FontSizes, Radii
+from .page_view_models import SETTINGS_GROUPS, SettingRowView
 from .page_widgets import (
     action_button_style,
     header_panel,
@@ -91,10 +92,8 @@ class SettingsPage(QFrame):
         layout = container.layout()
 
         layout.addWidget(self._build_header())
-        layout.addWidget(self._workspace_group())
-        layout.addWidget(self._ai_group())
-        layout.addWidget(self._export_group())
-        layout.addWidget(self._behavior_group())
+        for title, rows in SETTINGS_GROUPS:
+            layout.addWidget(self._settings_group(title, rows))
         layout.addStretch()
 
         scroll.setWidget(container)
@@ -110,66 +109,32 @@ class SettingsPage(QFrame):
             window.set_minimize_to_tray(checked)
 
     def _build_header(self) -> QFrame:
-        return header_panel("settings_header", "系统设置", "配置默认工作区、AI 服务和导出参数")
-
-    def _workspace_group(self) -> QFrame:
-        group = self._group("工作区")
-        layout = group.layout()
-        layout.addWidget(
-            self._row("项目目录", self._path_input("~/SceneFab/projects"), "默认项目保存位置")
+        return header_panel(
+            "settings_header", "系统设置", "配置默认工作区、AI 服务和导出参数"
         )
-        layout.addWidget(
-            self._row("输出目录", self._path_input("~/SceneFab/exports"), "成片和草稿导出位置")
-        )
-        layout.addWidget(self._row("界面语言", self._combo(["简体中文", "English"])))
-        return group
 
-    def _ai_group(self) -> QFrame:
-        group = self._group("AI 服务")
+    def _settings_group(self, title: str, rows: tuple[SettingRowView, ...]) -> QFrame:
+        group = self._group(title)
         layout = group.layout()
-        api_input = QLineEdit()
-        api_input.setEchoMode(QLineEdit.EchoMode.Password)
-        api_input.setPlaceholderText("输入 API Key")
-        api_input.setFixedWidth(280)
-        api_input.setStyleSheet(self._input_style())
-        layout.addWidget(self._row("API Key", api_input, "用于脚本生成和画面理解"))
-        layout.addWidget(
-            self._row(
-                "默认模型",
-                self._combo(["deepseek-v4-pro", "gpt-5", "gemini-3.1-pro", "qwen3.7-max", "claude-sonnet-4-6"]),
-                "影响脚本质量和响应速度",
+        for row in rows:
+            layout.addWidget(
+                self._row(row.label, self._control_for_row(row), row.description)
             )
-        )
         return group
 
-    def _export_group(self) -> QFrame:
-        group = self._group("导出默认值")
-        layout = group.layout()
-        layout.addWidget(
-            self._row(
-                "画布",
-                self._combo(["1080x1920", "720x1280", "1920x1080"]),
-                "短视频默认使用竖屏 9:16",
-            )
-        )
-        layout.addWidget(self._row("帧率", self._combo(["30 fps", "60 fps", "24 fps"])))
-        layout.addWidget(
-            self._row(
-                "编码",
-                self._combo(["MP4 / H.264", "MP4 / H.265", "MOV / ProRes"]),
-            )
-        )
-        return group
-
-    def _behavior_group(self) -> QFrame:
-        group = self._group("应用行为")
-        layout = group.layout()
-        layout.addWidget(self._row("自动保存", ToggleSwitch(True), "每 5 分钟保存项目状态"))
-        self._tray_toggle = ToggleSwitch(False)
-        layout.addWidget(
-            self._row("关闭到系统托盘", self._tray_toggle, "关闭窗口时保持后台运行")
-        )
-        return group
+    def _control_for_row(self, row: SettingRowView) -> QWidget:
+        if row.control == "path":
+            return self._path_input(row.value)
+        if row.control == "combo":
+            return self._combo(row.options)
+        if row.control == "password":
+            return self._password_input(row.placeholder)
+        if row.control == "toggle":
+            toggle = ToggleSwitch(row.checked)
+            if row.key == "minimize_to_tray":
+                self._tray_toggle = toggle
+            return toggle
+        raise ValueError(f"Unsupported settings control: {row.control}")
 
     def _group(self, title: str) -> QFrame:
         group = panel(f"settings_{title}")
@@ -208,12 +173,20 @@ class SettingsPage(QFrame):
         layout.addWidget(widget)
         return row
 
-    def _combo(self, items: list[str]) -> QComboBox:
+    def _combo(self, items: tuple[str, ...]) -> QComboBox:
         combo = QComboBox()
         combo.addItems(items)
         combo.setFixedWidth(180)
         combo.setStyleSheet(self._input_style())
         return combo
+
+    def _password_input(self, placeholder: str) -> QLineEdit:
+        api_input = QLineEdit()
+        api_input.setEchoMode(QLineEdit.EchoMode.Password)
+        api_input.setPlaceholderText(placeholder)
+        api_input.setFixedWidth(280)
+        api_input.setStyleSheet(self._input_style())
+        return api_input
 
     def _path_input(self, value: str) -> QWidget:
         wrapper = QFrame()

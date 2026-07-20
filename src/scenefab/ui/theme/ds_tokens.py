@@ -16,34 +16,34 @@ class Colors:
     """语义化色彩"""
 
     # ── 背景层 ──────────────────────────────────────────────────
-    BG_BASE = "#f6f8fb"
+    BG_BASE = "#eef3f8"
     BG_SURFACE = "#ffffff"
-    BG_ELEVATED = "#f1f5f9"
-    BG_OVERLAY = "#e2e8f0"
+    BG_ELEVATED = "#f8fafc"
+    BG_OVERLAY = "#e7edf5"
     BG_INPUT = "#ffffff"
 
     # ── 边框层 ──────────────────────────────────────────────────
-    BORDER_SUBTLE = "#dbe3ee"
-    BORDER_DEFAULT = "#cbd5e1"
-    BORDER_STRONG = "#0891b2"
-    BORDER_FOCUS = "#0891b2"
+    BORDER_SUBTLE = "#e1e8f0"
+    BORDER_DEFAULT = "#cad6e3"
+    BORDER_STRONG = "#0f8da8"
+    BORDER_FOCUS = "#0f8da8"
 
     # ── 主色：叙事青 ───────────────────────────────────────────
-    PRIMARY_LIGHTEST = "#e0f7fb"
-    PRIMARY_LIGHTER = "#a5f3fc"
-    PRIMARY_LIGHT = "#67e8f9"
-    PRIMARY_NORMAL = "#22d3ee"
-    PRIMARY = "#0891b2"
-    PRIMARY_DARK = "#0e7490"
+    PRIMARY_LIGHTEST = "#e5f8fb"
+    PRIMARY_LIGHTER = "#b7edf5"
+    PRIMARY_LIGHT = "#72d7e6"
+    PRIMARY_NORMAL = "#20b9d0"
+    PRIMARY = "#0f8da8"
+    PRIMARY_DARK = "#0b7288"
     PRIMARY_DARKER = "#155e75"
     PRIMARY_DARKEST = "#164e63"
 
     # ── 辅助色：重点标记 ───────────────────────────────────────
-    ACCENT_LIGHT = "#ffe4e6"
-    ACCENT_NORMAL = "#fb7185"
-    ACCENT = "#f43f5e"
-    ACCENT_DARK = "#be123c"
-    ACCENT_SUBTLE = "#ffe4e6"
+    ACCENT_LIGHT = "#fff1e8"
+    ACCENT_NORMAL = "#fb996b"
+    ACCENT = "#ea6f3d"
+    ACCENT_DARK = "#c45122"
+    ACCENT_SUBTLE = "#fff1e8"
 
     # ── 功能色 ─────────────────────────────────────────────────
     SUCCESS = "#22c55e"
@@ -55,20 +55,20 @@ class Colors:
     INFO = "#22d3ee"
 
     # ── 文字层 ─────────────────────────────────────────────────
-    TEXT_PRIMARY = "#182235"
+    TEXT_PRIMARY = "#172033"
     TEXT_SECONDARY = "#334155"
-    TEXT_MUTED = "#64748b"
-    TEXT_DISABLED = "#94a3b8"
+    TEXT_MUTED = "#66778f"
+    TEXT_DISABLED = "#9aabc0"
     TEXT_INVERSE = "#ffffff"
 
     # ── 侧边栏渐变 ─────────────────────────────────────────────
-    SIDEBAR_TOP = "#ffffff"
-    SIDEBAR_MID = "#f8fafc"
-    SIDEBAR_BOTTOM = "#f1f5f9"
-    SIDEBAR_GLOW = "#0891b2"
+    SIDEBAR_TOP = "#fbfdff"
+    SIDEBAR_MID = "#f4f8fc"
+    SIDEBAR_BOTTOM = "#edf4fa"
+    SIDEBAR_GLOW = "#0f8da8"
 
     # ── 状态色（透明度修饰，RRGGBBAA格式）─────────────────────
-    PRIMARY_10 = "#0891b21A"
+    PRIMARY_10 = "#0f8da81A"
     SUCCESS_10 = "#22c55e1A"
     ERROR_10 = "#e11d481A"
 
@@ -139,11 +139,11 @@ class Radii:
 class Shadows:
     NONE = "none"
 
-    SM = "0 1px 2px rgba(0,0,0,0.4)"
-    BASE = "0 4px 6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3)"
-    MD = "0 10px 15px rgba(0,0,0,0.45), 0 4px 6px rgba(0,0,0,0.35)"
-    LG = "0 20px 25px rgba(0,0,0,0.5), 0 8px 10px rgba(0,0,0,0.4)"
-    XL = "0 25px 50px rgba(0,0,0,0.6)"
+    SM = "0 1px 2px rgba(23,32,51,0.06)"
+    BASE = "0 8px 20px rgba(23,32,51,0.08)"
+    MD = "0 14px 30px rgba(23,32,51,0.10)"
+    LG = "0 22px 45px rgba(23,32,51,0.12)"
+    XL = "0 30px 60px rgba(23,32,51,0.14)"
 
     GLOW_PURPLE = (
         "0 0 0 1px rgba(34,211,238,0.28), "
@@ -178,7 +178,6 @@ class Easings:
 # ═══════════════════════════════════════════════════════════════════
 # 组件级 QSS 片段（可直接拼接）
 # ═══════════════════════════════════════════════════════════════════
-
 
 
 # ── 颜色常量本地引用 (mypy f-string bug workaround) ──────
@@ -227,7 +226,10 @@ class _C:
     TEXT_SECONDARY = Colors.TEXT_SECONDARY
     WARNING = Colors.WARNING
     WARNING_LIGHT = Colors.WARNING_LIGHT
+
+
 C = _C()
+
 
 class QSSComponents:
     """可复用的 QSS 片段"""
@@ -236,7 +238,7 @@ class QSSComponents:
     def card(bg: str = None, border: str = None, radius: str = None) -> str:  # type: ignore[assignment]
         bg = bg or _C.BG_SURFACE
         border = border or _C.BORDER_SUBTLE
-        radius = radius or Radii.lg  # type: ignore[assignment]
+        radius = radius or Radii.base  # type: ignore[assignment]
         return f"""
             background: {bg};
             border: 1px solid {border};
@@ -247,16 +249,16 @@ class QSSComponents:
     def btn_primary() -> str:
         return f"""
             QPushButton {{
-                background: {_C.PRIMARY_DARK};
-                color: {_C.TEXT_PRIMARY};
+                background: {_C.PRIMARY};
+                color: {_C.TEXT_INVERSE};
                 border: none;
                 border-radius: {Radii.base};
                 font-size: {FontSizes.base}px;
-                font-weight: {FontWeights.Medium};
+                font-weight: {FontWeights.SemiBold};
                 padding: 8px 16px;
             }}
             QPushButton:hover {{
-                background: {_C.PRIMARY};
+                background: {_C.PRIMARY_DARK};
             }}
             QPushButton:pressed {{
                 background: {_C.PRIMARY_DARKER};
@@ -315,10 +317,10 @@ class QSSComponents:
                 border-radius: {Radii.base};
                 padding: 8px 12px;
                 font-size: {FontSizes.base}px;
-                selection-background-color: {_C.PRIMARY_DARK};
+                selection-background-color: {_C.PRIMARY};
             }}
             QLineEdit:focus, QTextEdit:focus {{
-                border-color: {_C.PRIMARY_DARK};
+                border-color: {_C.PRIMARY};
                 background: {_C.BG_SURFACE};
             }}
             QLineEdit::placeholder, QTextEdit::placeholder {{
@@ -341,7 +343,7 @@ class QSSComponents:
                 border-color: {_C.BORDER_STRONG};
             }}
             QComboBox:focus {{
-                border-color: {_C.PRIMARY_DARK};
+                border-color: {_C.PRIMARY};
             }}
             QComboBox::dropDown {{
                 border: none;

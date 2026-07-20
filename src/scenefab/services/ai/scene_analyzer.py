@@ -421,7 +421,9 @@ class SceneAnalyzer:
                 not hasattr(scene, "narration_importance")
                 or scene.narration_importance <= 0
             ):
-                scene.narration_importance = self._scorer.calculate_narration_importance(scene)  # type: ignore[attr-defined]
+                scene.narration_importance = (
+                    self._scorer.calculate_narration_importance(scene)
+                )  # type: ignore[attr-defined]
         return scenes
 
     def extract_key_moments(
@@ -475,10 +477,14 @@ class SceneAnalyzer:
             details = []
             if scene.avg_brightness > 0:
                 b = scene.avg_brightness
-                details.append(f"亮度{'暗' if b < 0.3 else '亮' if b > 0.7 else '适中'}")
+                details.append(
+                    f"亮度{'暗' if b < 0.3 else '亮' if b > 0.7 else '适中'}"
+                )
             if scene.motion_level > 0:
                 m = scene.motion_level
-                details.append(f"运动{'静态' if m < 0.2 else '剧烈' if m > 0.7 else '适中'}")
+                details.append(
+                    f"运动{'静态' if m < 0.2 else '剧烈' if m > 0.7 else '适中'}"
+                )
             if scene.audio_level > 0:
                 details.append(f"音频{'有' if scene.audio_level > 0.3 else '弱'}")
             if details:
@@ -511,9 +517,13 @@ class SceneAnalyzer:
             SceneType.UNKNOWN: "未知",
         }
 
-        parts = [f"视频共 {len(scenes)} 个场景，选取最重要的 {len(sorted_scenes)} 个：\n"]
+        parts = [
+            f"视频共 {len(scenes)} 个场景，选取最重要的 {len(sorted_scenes)} 个：\n"
+        ]
         for scene in sorted_scenes:
             start_str = f"{int(scene.start // 60):02d}:{int(scene.start % 60):02d}"
             type_name = type_names.get(scene.type, "未知")
-            parts.append(f"- [{start_str}] {type_name} (评分:{scene.suitability_score:.0f})")
+            parts.append(
+                f"- [{start_str}] {type_name} (评分:{scene.suitability_score:.0f})"
+            )
         return "\n".join(parts)

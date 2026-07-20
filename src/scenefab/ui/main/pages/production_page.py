@@ -12,6 +12,11 @@ from PySide6.QtWidgets import (
 )
 
 from ...theme.ds_tokens import _C, FontSizes, Radii
+from .page_view_models import (
+    EXPORT_QUALITY_CHECKS,
+    PRODUCTION_STEPS,
+    SCRIPT_BRIEF_RULES,
+)
 from .page_widgets import (
     action_button,
     header_panel,
@@ -79,15 +84,8 @@ class ProductionPage(QFrame):
         layout.setSpacing(12)
         layout.addWidget(section_title("流程队列"))
 
-        steps = [
-            ("01", "素材导入", "选择影视片段并记录来源"),
-            ("02", "场景拆分", "识别人物、冲突和关键转折"),
-            ("03", "脚本生成", "使用第一人称视角组织叙事"),
-            ("04", "配音字幕", "完成音频、字幕与节奏校准"),
-            ("05", "导出发布", "按竖屏平台参数生成成片"),
-        ]
-        for number, name, desc in steps:
-            layout.addWidget(self._step_row(number, name, desc))
+        for step in PRODUCTION_STEPS:
+            layout.addWidget(self._step_row(step.number, step.name, step.detail))
         layout.addStretch()
         return frame
 
@@ -98,13 +96,8 @@ class ProductionPage(QFrame):
         layout.setSpacing(12)
         layout.addWidget(section_title("脚本约束"))
 
-        for label, value in [
-            ("视角", "第一人称"),
-            ("开头", "3 秒内给出冲突"),
-            ("信息节奏", "6-10 秒推进一次"),
-            ("结尾", "反转、悬念或后果"),
-        ]:
-            layout.addWidget(key_value_row(label, value))
+        for rule in SCRIPT_BRIEF_RULES:
+            layout.addWidget(key_value_row(rule.label, rule.value))
         layout.addStretch()
         return frame
 
@@ -115,13 +108,7 @@ class ProductionPage(QFrame):
         layout.setSpacing(12)
         layout.addWidget(section_title("导出门禁"))
 
-        checks = [
-            "字幕不超过两行",
-            "字幕与配音偏差小于 50ms",
-            "首屏出现人物、冲突或结果预告",
-            "成片默认 1080x1920",
-        ]
-        for item in checks:
+        for item in EXPORT_QUALITY_CHECKS:
             layout.addWidget(self._check_item(item))
         layout.addStretch()
         return frame

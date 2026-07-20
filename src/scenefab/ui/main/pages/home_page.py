@@ -12,6 +12,12 @@ from PySide6.QtWidgets import (
 )
 
 from ...theme.ds_tokens import _C, FontSizes, Radii
+from .page_defaults import default_delivery_summary
+from .page_view_models import (
+    DELIVERY_PARAMETERS,
+    HOME_STATUS_CARDS,
+    HOME_WORKFLOW_STEPS,
+)
 from .page_widgets import (
     action_button,
     empty_state,
@@ -76,7 +82,7 @@ class HomePage(QFrame):
         return header_panel(
             "workspace_header",
             "第一人称短剧解说工作台",
-            "竖屏 1080x1920 · 30 fps · H.264 · 8000k",
+            default_delivery_summary(),
             create_btn,
             assets_btn,
         )
@@ -88,14 +94,10 @@ class HomePage(QFrame):
         layout.setHorizontalSpacing(14)
         layout.setVerticalSpacing(14)
 
-        items = [
-            ("素材", "未导入", "0"),
-            ("场景", "未拆分", "0"),
-            ("脚本", "待生成", "--"),
-            ("导出", "待配置", "1080x1920"),
-        ]
-        for index, (title, status, value) in enumerate(items):
-            layout.addWidget(self._status_card(title, status, value), 0, index)
+        for index, item in enumerate(HOME_STATUS_CARDS):
+            layout.addWidget(
+                self._status_card(item.title, item.status, item.value), 0, index
+            )
         return frame
 
     def _build_workflow_panel(self) -> QFrame:
@@ -105,15 +107,8 @@ class HomePage(QFrame):
         layout.setSpacing(12)
 
         layout.addWidget(section_title("生产流程"))
-        rows = [
-            ("01", "素材采集", "未开始"),
-            ("02", "场景拆分", "未开始"),
-            ("03", "第一人称脚本", "未开始"),
-            ("04", "配音与字幕", "未开始"),
-            ("05", "竖屏导出", "未开始"),
-        ]
-        for step, name, status in rows:
-            layout.addWidget(self._workflow_row(step, name, status))
+        for step in HOME_WORKFLOW_STEPS:
+            layout.addWidget(self._workflow_row(step.number, step.name, step.detail))
         layout.addStretch()
         return frame
 
@@ -124,13 +119,8 @@ class HomePage(QFrame):
         layout.setSpacing(12)
 
         layout.addWidget(section_title("交付参数"))
-        for label, value in [
-            ("画布", "1080x1920"),
-            ("视频码率", "8000k"),
-            ("音频码率", "192k"),
-            ("平台", "Shorts / TikTok / Reels"),
-        ]:
-            layout.addWidget(key_value_row(label, value))
+        for item in DELIVERY_PARAMETERS:
+            layout.addWidget(key_value_row(item.label, item.value))
         layout.addStretch()
         return frame
 

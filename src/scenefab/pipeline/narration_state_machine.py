@@ -231,9 +231,7 @@ class NarrationStateMachine:
         self._current_state = to_state
 
         if self.config.enable_event_publish:
-            _publish_stage_event(
-                self._trace_id, from_state, to_state, reason, message
-            )
+            _publish_stage_event(self._trace_id, from_state, to_state, reason, message)
 
         logger.info(
             f"[{self._trace_id[:8]}] {from_state.value} → {to_state.value} "
@@ -244,9 +242,7 @@ class NarrationStateMachine:
     # 单步执行
     # ============================================================
 
-    def _execute_step(
-        self, state: NarrationState, ctx: NarrationContext
-    ) -> StepResult:
+    def _execute_step(self, state: NarrationState, ctx: NarrationContext) -> StepResult:
         """执行单步, 捕获异常, 应用超时"""
         if state not in self._steps:
             return StepResult(
@@ -304,7 +300,9 @@ class NarrationStateMachine:
         # —— 状态流转表 (硬编码, v2.2 范围内足够, Phase 3 可改为声明式 YAML) ——
         # state -> [(next_state, reason, condition_fn)]
         # condition_fn: (ctx, step_result) -> bool
-        FLOW: dict[NarrationState, list[tuple[NarrationState, TransitionReason, Any]]] = {
+        FLOW: dict[
+            NarrationState, list[tuple[NarrationState, TransitionReason, Any]]
+        ] = {
             NarrationState.INGEST: [
                 (NarrationState.UNDERSTAND, TransitionReason.SUCCESS, None),
             ],
@@ -426,9 +424,7 @@ class NarrationStateMachine:
                         break
                     if (
                         candidate_state == NarrationState.ERROR
-                        and ctx.is_max_attempts_reached(
-                            self.config.max_draft_attempts
-                        )
+                        and ctx.is_max_attempts_reached(self.config.max_draft_attempts)
                     ):
                         next_state = candidate_state
                         reason = candidate_reason

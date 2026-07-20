@@ -5,7 +5,6 @@
 提供项目设置的统一管理和配置功能
 """
 
-import json
 import logging
 import os
 from dataclasses import asdict
@@ -14,11 +13,13 @@ from pathlib import Path
 from typing import Any
 
 from scenefab.signals_bridge import QObject, Signal
+from scenefab.utils.project_io import ensure_directories
 
 from .secure_key_manager import get_secure_key_manager
 from .settings import ConfigManager
 from .settings_data import get_all_settings_definitions
 from .settings_types import ProjectSettingsProfile, SettingDefinition, SettingType
+from .utils.json_io import read_json, write_json
 from .utils.version import get_version_string
 
 
@@ -79,9 +80,8 @@ class ProjectSettingsManager(QObject):
 
             # 从文件加载设置
             if os.path.exists(self.settings_file):
-                with open(self.settings_file, encoding="utf-8") as f:
-                    loaded_settings = json.load(f)
-                    self._update_settings(loaded_settings)
+                loaded_settings = read_json(self.settings_file)
+                self._update_settings(loaded_settings)
 
             self.logger.info("Project settings loaded successfully")
 
@@ -92,11 +92,10 @@ class ProjectSettingsManager(QObject):
         """加载配置文件"""
         try:
             if os.path.exists(self.profiles_file):
-                with open(self.profiles_file, encoding="utf-8") as f:
-                    profiles_data = json.load(f)
-                    for name, profile_data in profiles_data.items():
-                        profile = ProjectSettingsProfile(**profile_data)
-                        self.profiles[name] = profile
+                profiles_data = read_json(self.profiles_file)
+                for name, profile_data in profiles_data.items():
+                    profile = ProjectSettingsProfile(**profile_data)
+                    self.profiles[name] = profile
 
             # 创建默认配置文件
             self._create_default_profiles()
@@ -281,9 +280,8 @@ class ProjectSettingsManager(QObject):
     def _save_json_file(self, file_path: str, data: Any) -> None:
         """安全保存 JSON 文件"""
         try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
+            ensure_directories(os.path.dirname(file_path))
+            write_json(file_path, data)
         except Exception as e:
             self.logger.error(f"Failed to save {os.path.basename(file_path)}: {e}")
 
@@ -394,12 +392,10 @@ class ProjectSettingsManager(QObject):
     def _save_profiles(self) -> None:
         """保存配置文件"""
         try:
-            os.makedirs(os.path.dirname(self.profiles_file), exist_ok=True)
             profiles_data = {
                 name: asdict(profile) for name, profile in self.profiles.items()
             }
-            with open(self.profiles_file, "w", encoding="utf-8") as f:
-                json.dump(profiles_data, f, indent=2, ensure_ascii=False)
+            self._save_json_file(self.profiles_file, profiles_data)
         except Exception as e:
             self.logger.error(f"Failed to save profiles: {e}")
 
@@ -420,8 +416,7 @@ class ProjectSettingsManager(QObject):
                 "profile_name": profile_name,
             }
 
-            with open(export_path, "w", encoding="utf-8") as f:
-                json.dump(export_data, f, indent=2, ensure_ascii=False)
+            write_json(export_path, export_data)
 
             self.logger.info(f"Exported settings to {export_path}")
             return True
@@ -433,8 +428,7 @@ class ProjectSettingsManager(QObject):
     def import_settings(self, import_path: str, merge: bool = True) -> bool:
         """导入设置"""
         try:
-            with open(import_path, encoding="utf-8") as f:
-                import_data = json.load(f)
+            import_data = read_json(import_path)
 
             imported_settings = import_data.get("settings", {})
 

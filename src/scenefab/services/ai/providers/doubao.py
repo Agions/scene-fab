@@ -5,10 +5,7 @@
 支持豆包模型系列
 """
 
-
-import httpx
-
-from ..base_llm_provider import LLMRequest, ProviderError
+from ..base_llm_provider import LLMRequest
 from ..model_catalog import DEFAULT_MODELS, provider_models
 from .openai_compat import OpenAICompatProvider
 
@@ -41,7 +38,5 @@ class DoubaoProvider(OpenAICompatProvider):
                 response.raise_for_status()
                 async for chunk in self._parse_sse_stream(response):
                     yield chunk
-        except httpx.HTTPStatusError as e:
-            raise self._handle_http_error(e)
         except Exception as e:
-            raise ProviderError(f"流式生成失败: {str(e)}")
+            raise self._stream_provider_error(e)

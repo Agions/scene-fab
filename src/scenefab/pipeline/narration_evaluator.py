@@ -20,6 +20,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 
+from .first_person_workflow import FIRST_PERSON_QUALITY_GATES
 from .narration_context import (
     BridgeType,
     NarrationContext,
@@ -74,11 +75,11 @@ class EvalResult:
 
 # 总和必须 = 1.0
 DIMENSION_WEIGHTS: dict[str, float] = {
-    "hook": 0.25,           # 前 2 句留人 — Hook 强度
-    "bridge": 0.20,         # 短剧 7 桥段覆盖
-    "consistency": 0.20,    # 与 StoryGraph 一致性
-    "platform": 0.20,       # 字数/语速/平台适配
-    "style": 0.15,          # Few-shot 风格匹配
+    "hook": 0.25,  # 前 2 句留人 — Hook 强度
+    "bridge": 0.20,  # 短剧 7 桥段覆盖
+    "consistency": 0.20,  # 与 StoryGraph 一致性
+    "platform": 0.20,  # 字数/语速/平台适配
+    "style": 0.15,  # Few-shot 风格匹配
 }
 
 
@@ -172,6 +173,9 @@ class NarrationEvaluator:
         if score < 6.0:
             issues.append("Hook 缺少冲突/悬念/结果前置关键词")
             suggestions.append("前 2 句加入'没想到'/'真相是'/'最后一刻'等钩子词")
+        score = self._apply_first_person_hook_gate(
+            score, draft, ctx, issues, suggestions
+        )
 
         return DimensionScore(
             name="hook",
@@ -230,26 +234,36 @@ class NarrationEvaluator:
         # 桥段 → 关键词映射
         bridge_keywords: dict[BridgeType, list[str]] = {
             BridgeType.IDENTITY_REVEAL: [
-                "身份", "真实", "原来", "太子", "总裁", "boss", "真凶"
+                "身份",
+                "真实",
+                "原来",
+                "太子",
+                "总裁",
+                "boss",
+                "真凶",
             ],
             BridgeType.SLAP_FACE: [
-                "打脸", "碾压", "跪", "认错", "求饶", "道歉", "后悔"
+                "打脸",
+                "碾压",
+                "跪",
+                "认错",
+                "求饶",
+                "道歉",
+                "后悔",
             ],
-            BridgeType.RESCUE: [
-                "救", "从天而降", "及时赶到", "英雄救美", "出手"
-            ],
-            BridgeType.BETRAYAL: [
-                "背叛", "出卖", "背后捅刀", "陷害", "污蔑"
-            ],
+            BridgeType.RESCUE: ["救", "从天而降", "及时赶到", "英雄救美", "出手"],
+            BridgeType.BETRAYAL: ["背叛", "出卖", "背后捅刀", "陷害", "污蔑"],
             BridgeType.HEART_FLUTTER: [
-                "告白", "亲吻", "拥抱", "心动", "脸红", "壁咚", "公主抱"
+                "告白",
+                "亲吻",
+                "拥抱",
+                "心动",
+                "脸红",
+                "壁咚",
+                "公主抱",
             ],
-            BridgeType.CONFRONTATION: [
-                "对峙", "质问", "怒斥", "指责", "对质"
-            ],
-            BridgeType.PLOT_TWIST: [
-                "反转", "真相", "竟然", "万万没想到", "大跌眼镜"
-            ],
+            BridgeType.CONFRONTATION: ["对峙", "质问", "怒斥", "指责", "对质"],
+            BridgeType.PLOT_TWIST: ["反转", "真相", "竟然", "万万没想到", "大跌眼镜"],
         }
 
         triggered = 0
@@ -262,8 +276,7 @@ class NarrationEvaluator:
                 # 给出改写建议
                 if kws:
                     suggestions.append(
-                        f"建议在 {bridge.bridge_type.value} 处加入: "
-                        f"{'/'.join(kws[:3])}"
+                        f"建议在 {bridge.bridge_type.value} 处加入: {'/'.join(kws[:3])}"
                     )
 
         # 触发率 → 0-10 分
@@ -283,9 +296,7 @@ class NarrationEvaluator:
     # 维度 3: 前后一致性 (20%)
     # ============================================================
 
-    def _eval_consistency(
-        self, draft: str, ctx: NarrationContext
-    ) -> DimensionScore:
+    def _eval_consistency(self, draft: str, ctx: NarrationContext) -> DimensionScore:
         """前后一致性: 角色名/剧情点是否与 story_graph + history 对齐
 
         评分: 一致项 / 总项 * 10 (缺数据时默认 8 分)
@@ -418,9 +429,7 @@ class NarrationEvaluator:
             issues.append(
                 f"Hook 过短 ({len(first_line)} 字, 建议 ≥ {spec.min_hook_chars} 字)"
             )
-            suggestions.append(
-                f"开场前 {spec.min_hook_chars} 字内应包含强钩子"
-            )
+            suggestions.append(f"开场前 {spec.min_hook_chars} 字内应包含强钩子")
 
         return DimensionScore(
             name="platform",
@@ -445,6 +454,9 @@ class NarrationEvaluator:
         if not ctx.few_shots:
             # 无 few_shots → 默认 8 分
             score = self._apply_next_hook_gate(8.0, draft, ctx, issues, suggestions)
+            score = self._apply_first_person_viewpoint_gate(
+                score, draft, ctx, issues, suggestions
+            )
             return DimensionScore(
                 name="style",
                 score=score,
@@ -478,10 +490,11 @@ class NarrationEvaluator:
             issues.append(
                 f"风格匹配度低 ({score:.1f}/10, 命中 {hits}/{len(style_words)} 关键词)"
             )
-            suggestions.append(
-                f"建议融入风格关键词: {'/'.join(list(style_words)[:5])}"
-            )
+            suggestions.append(f"建议融入风格关键词: {'/'.join(list(style_words)[:5])}")
         score = self._apply_next_hook_gate(score, draft, ctx, issues, suggestions)
+        score = self._apply_first_person_viewpoint_gate(
+            score, draft, ctx, issues, suggestions
+        )
 
         return DimensionScore(
             name="style",
@@ -506,6 +519,45 @@ class NarrationEvaluator:
             or bool(ctx.next_hook_hint)
         )
 
+    def _apply_first_person_hook_gate(
+        self,
+        score: float,
+        draft: str,
+        ctx: NarrationContext,
+        issues: list[str],
+        suggestions: list[str],
+    ) -> float:
+        if not self._is_short_drama_production(ctx):
+            return score
+
+        opening = draft.split("\n", 1)[0][:30]
+        first_person_terms = ("我", "我的", "我被", "我要", "我想", "我怕")
+        trigger_terms = (
+            "想要",
+            "必须",
+            "失去",
+            "危机",
+            "危险",
+            "真相",
+            "结果",
+            "结局",
+            "代价",
+            "反转",
+            "复仇",
+            "逆袭",
+            "活下去",
+            "救",
+        )
+        has_viewpoint = any(term in opening for term in first_person_terms)
+        has_trigger = any(term in opening for term in trigger_terms)
+
+        if has_viewpoint and has_trigger:
+            return score
+
+        issues.append(f"第一人称 Hook 未满足: {FIRST_PERSON_QUALITY_GATES[0]}")
+        suggestions.append("3 秒内用我视角交代我是谁、我要什么、我会失去什么")
+        return min(score, 6.5)
+
     def _apply_content_tag_gate(
         self,
         score: float,
@@ -522,7 +574,9 @@ class NarrationEvaluator:
             return min(score, 6.5)
         if not self._contains_context_terms(draft, ctx.content_tags):
             issues.append("文案未体现短剧题材/爽点标签")
-            suggestions.append(f"建议显式承接爽点标签: {'/'.join(ctx.content_tags[:3])}")
+            suggestions.append(
+                f"建议显式承接爽点标签: {'/'.join(ctx.content_tags[:3])}"
+            )
             return max(0.0, score - 1.5)
         return score
 
@@ -567,6 +621,25 @@ class NarrationEvaluator:
             suggestions.append("在最后 1-2 句植入下一集悬念")
             return max(0.0, score - 1.5)
         return score
+
+    def _apply_first_person_viewpoint_gate(
+        self,
+        score: float,
+        draft: str,
+        ctx: NarrationContext,
+        issues: list[str],
+        suggestions: list[str],
+    ) -> float:
+        if not self._is_short_drama_production(ctx):
+            return score
+
+        first_person_hits = len(re.findall(r"我(?:的|被|要|想|怕|会|才|也)?", draft))
+        if first_person_hits >= 2:
+            return score
+
+        issues.append(f"第一人称视角不稳定: {FIRST_PERSON_QUALITY_GATES[2]}")
+        suggestions.append("改成稳定我视角, 明确我是谁、我想要什么、我怕失去什么")
+        return min(score, 6.5)
 
     def _contains_context_terms(self, text: str, values: list[str]) -> bool:
         terms: set[str] = set()

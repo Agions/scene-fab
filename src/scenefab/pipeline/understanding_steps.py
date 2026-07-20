@@ -24,6 +24,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
+from .first_person_workflow import FIRST_PERSON_SCRIPT_RULES
 from .narration_context import (
     Bridge,
     BridgeType,
@@ -114,9 +115,7 @@ def understand_step(ctx: NarrationContext) -> StepResult:
 
             narrator = ShortDramaNarrator(preset=preset)
             ctx.bridges = _detect_bridges(narrator, ctx.scenes)
-            logger.info(
-                f"[{ctx.trace_id[:8]}] 桥段检测: {len(ctx.bridges)} 个桥段"
-            )
+            logger.info(f"[{ctx.trace_id[:8]}] 桥段检测: {len(ctx.bridges)} 个桥段")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[{ctx.trace_id[:8]}] 桥段检测失败, 跳过: {e}")
             ctx.bridges = []
@@ -126,10 +125,7 @@ def understand_step(ctx: NarrationContext) -> StepResult:
         success=True,
         state=NarrationState.UNDERSTAND,
         duration_ms=duration_ms,
-        message=(
-            f"understand: {len(ctx.scenes)} 场景, "
-            f"{len(ctx.bridges)} 桥段"
-        ),
+        message=(f"understand: {len(ctx.scenes)} 场景, {len(ctx.bridges)} 桥段"),
         data={
             "scenes": len(ctx.scenes),
             "bridges": len(ctx.bridges),
@@ -198,18 +194,14 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
             },
         )
     except Exception as e:  # noqa: BLE001
-        logger.warning(
-            f"[{ctx.trace_id[:8]}] LongVideoUnderstanding 失败, 降级: {e}"
-        )
+        logger.warning(f"[{ctx.trace_id[:8]}] LongVideoUnderstanding 失败, 降级: {e}")
         ctx.story_graph = _build_minimal_story_graph(ctx)
         duration_ms = (time.time() - start) * 1000
         return StepResult(
             success=True,
             state=NarrationState.STORYGRAPH,
             duration_ms=duration_ms,
-            message=(
-                f"storygraph: 长视频 ({video_duration:.0f}s) 但理解失败, 降级"
-            ),
+            message=(f"storygraph: 长视频 ({video_duration:.0f}s) 但理解失败, 降级"),
             data={"duration_sec": video_duration, "fallback": True},
         )
 
@@ -258,9 +250,7 @@ def draft_step(ctx: NarrationContext) -> StepResult:
             for seg in script.segments
         ]
     except Exception as e:  # noqa: BLE001
-        logger.warning(
-            f"[{ctx.trace_id[:8]}] ScriptGenerator 失败, 降级模板: {e}"
-        )
+        logger.warning(f"[{ctx.trace_id[:8]}] ScriptGenerator 失败, 降级模板: {e}")
         ctx.current_draft = _stub_draft(ctx, topic)
         ctx.current_segments = _stub_segments(ctx, ctx.current_draft)
 
@@ -318,6 +308,11 @@ def _build_narration_prompt(
     # —— ② 数据上下文 → topic 主体 ——
     topic_parts: list[str] = []
 
+    workflow_rules = "；".join(
+        f"{rule.label}: {rule.value}" for rule in FIRST_PERSON_SCRIPT_RULES
+    )
+    topic_parts.append(f"【第一人称解说规则】{workflow_rules}")
+
     # 短剧生产字段: 题材、爽点、关系和集数上下文
     if ctx.content_tags:
         topic_parts.append(f"【短剧标签】{', '.join(ctx.content_tags[:8])}")
@@ -342,8 +337,7 @@ def _build_narration_prompt(
     # 角色 (最多 3 个)
     if ctx.story_graph and ctx.story_graph.characters:
         char_descs = [
-            f"{c.name}: {c.description[:30]}"
-            for c in ctx.story_graph.characters[:3]
+            f"{c.name}: {c.description[:30]}" for c in ctx.story_graph.characters[:3]
         ]
         topic_parts.append("【角色】" + "; ".join(char_descs))
 
@@ -366,12 +360,12 @@ def _build_narration_prompt(
         for h in ctx.history[-3:]:  # 最近 3 段
             prev_chars.update(h.characters_mentioned)
         if prev_chars:
-            topic_parts.append(
-                f"【前情已提角色】{', '.join(list(prev_chars)[:5])}"
-            )
+            topic_parts.append(f"【前情已提角色】{', '.join(list(prev_chars)[:5])}")
 
     # —— ④ 工具上下文 → keywords ——
     keywords: list[str] = []
+    for word in ["第一人称", "钩子", "反转"]:
+        keywords.append(word)
     for tag in ctx.content_tags[:5]:
         if tag and tag not in keywords:
             keywords.append(tag)
@@ -385,7 +379,9 @@ def _build_narration_prompt(
                     keywords.append(word)
 
     # 组装 topic
-    topic = "\n".join(topic_parts) if topic_parts else "通用影视解说"
+    if len(topic_parts) == 1:
+        topic_parts.append("【主题】通用影视解说")
+    topic = "\n".join(topic_parts)
 
     # 组装 ScriptConfig
     config = ScriptConfig(
@@ -491,9 +487,7 @@ def _build_minimal_story_graph(ctx: NarrationContext):
     title = ctx.source_video.stem
     synopsis_parts = [f"基于 {len(ctx.scenes)} 个场景的解说"]
     if ctx.bridges:
-        synopsis_parts.append(
-            f"含 {len(ctx.bridges)} 个桥段"
-        )
+        synopsis_parts.append(f"含 {len(ctx.bridges)} 个桥段")
     synopsis = "; ".join(synopsis_parts)
 
     characters: list[Character] = []
@@ -532,7 +526,9 @@ def _stub_draft(ctx: NarrationContext, topic: str) -> str:
     }
     emoji = style_emoji.get(ctx.style, "🎬")
 
-    target_chars = int(ctx.platform_spec.char_per_second * ctx.platform_spec.target_duration_sec)
+    target_chars = int(
+        ctx.platform_spec.char_per_second * ctx.platform_spec.target_duration_sec
+    )
 
     draft = f"""{emoji} 【Stub v2.2 Phase 2】{ctx.style.value} 风格, {ctx.platform.value} 平台。
 

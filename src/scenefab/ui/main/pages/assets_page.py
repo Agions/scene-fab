@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from ...theme.ds_tokens import _C, FontSizes, Radii
+from .page_view_models import ASSET_SOURCE_ITEMS, ASSET_TABLE_COLUMNS
 from .page_widgets import (
     action_button,
     empty_state,
@@ -75,7 +76,7 @@ class AssetsPage(QFrame):
         header.addWidget(action_button("刷新"))
         layout.addLayout(header)
 
-        columns = self._row("类型", "名称", "状态", header=True)
+        columns = self._row(*ASSET_TABLE_COLUMNS, header=True)
         layout.addWidget(columns)
 
         layout.addWidget(
@@ -94,12 +95,8 @@ class AssetsPage(QFrame):
         layout.setContentsMargins(20, 16, 20, 16)
         layout.setSpacing(16)
 
-        for title, desc in [
-            ("素材目录", "未设置"),
-            ("输出目录", "~/SceneFab/exports"),
-            ("资源规范", "显式打包 resources/"),
-        ]:
-            layout.addWidget(self._source_item(title, desc))
+        for item in ASSET_SOURCE_ITEMS:
+            layout.addWidget(self._source_item(item.label, item.value))
         layout.addStretch()
         return frame
 

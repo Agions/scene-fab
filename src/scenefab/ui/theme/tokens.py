@@ -12,9 +12,9 @@ from .ds_tokens import Colors, FontSizes, Radii, Shadows
 # ── Dark / Light palette dicts (used by ThemeManager) ─────────────
 
 DARK_TOKENS = {
-    "primary": "#0891b2",
-    "primary-hover": "#06b6d4",
-    "primary-pressed": "#0e7490",
+    "primary": Colors.PRIMARY,
+    "primary-hover": Colors.PRIMARY_NORMAL,
+    "primary-pressed": Colors.PRIMARY_DARK,
     "primary-subtle": Colors.PRIMARY_DARKEST,
     "bg-base": "#0b1120",
     "bg-surface": "#111827",

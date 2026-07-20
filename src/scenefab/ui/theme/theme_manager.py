@@ -206,29 +206,32 @@ class ThemeManager(QObject):
         """获取默认样式表"""
         return """/* 默认样式 */
         QMainWindow {
-            background-color: #f6f8fb;
-            color: #182235;
+            background-color: #eef3f8;
+            color: #172033;
         }
         QPushButton {
             background-color: #ffffff;
-            color: #182235;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
+            color: #334155;
+            border: 1px solid #cad6e3;
+            border-radius: 8px;
             padding: 8px 16px;
         }
         QPushButton:hover {
-            background-color: #f1f5f9;
-            border-color: #0891b2;
+            background-color: #e5f8fb;
+            border-color: #0f8da8;
         }
         QLineEdit, QTextEdit {
             background-color: #ffffff;
-            color: #182235;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
+            color: #172033;
+            border: 1px solid #cad6e3;
+            border-radius: 8px;
             padding: 8px;
         }
+        QLineEdit:focus, QTextEdit:focus {
+            border-color: #0f8da8;
+        }
         QLabel {
-            color: #182235;
+            color: #172033;
         }
         """
 

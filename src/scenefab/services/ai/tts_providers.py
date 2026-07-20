@@ -190,7 +190,9 @@ class EdgeTTSProvider(TTSProvider):
             for data in audio_chunks:
                 f.write(data)
 
-    def _run_async_safely(self, coro_factory: Callable[[], Coroutine[Any, Any, None]]) -> None:
+    def _run_async_safely(
+        self, coro_factory: Callable[[], Coroutine[Any, Any, None]]
+    ) -> None:
         """在已有/无 event loop 下安全运行异步协程.
 
         EdgeTTS 必须运行在自己的 loop 中; 若调用方已持有 loop,
@@ -254,7 +256,12 @@ class EdgeTTSProvider(TTSProvider):
 
         duration = self._get_audio_duration(output_path)
         return self._build_voice_result(
-            text, output_path, config, voice, duration, sentence_timestamps,
+            text,
+            output_path,
+            config,
+            voice,
+            duration,
+            sentence_timestamps,
         )
 
     def _build_streaming_params(self, config: VoiceConfig) -> tuple[str, str, str]:
@@ -274,7 +281,11 @@ class EdgeTTSProvider(TTSProvider):
         return voice, rate_str, pitch_str
 
     def _build_communicate(
-        self, text: str, voice: str, rate_str: str, pitch_str: str,
+        self,
+        text: str,
+        voice: str,
+        rate_str: str,
+        pitch_str: str,
     ) -> Any:
         """构造 edge-tts Communicate 对象（集中惰性导入）"""
         import edge_tts  # type: ignore[import-untyped]

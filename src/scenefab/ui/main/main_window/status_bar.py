@@ -21,7 +21,7 @@ class StatusBar(QFrame):
     def _setup_style(self):
         self.setStyleSheet(f"""
             #statusbar {{
-                background: {_C.BG_SURFACE};
+                background: {_C.BG_ELEVATED};
                 border-top: 1px solid {_C.BORDER_SUBTLE};
             }}
         """)

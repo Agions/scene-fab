@@ -100,8 +100,8 @@ def check_nvidia_smi() -> bool:
         )
         if result.returncode == 0:
             return ffmpeg_supports_encoder("h264_nvenc")
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        logger.debug("NVIDIA hardware detection skipped: %s", exc)
     return False
 
 
@@ -127,8 +127,8 @@ def check_intel_cpu() -> bool:
             # Linux/macOS 下检测 /proc/cpuinfo
             with open("/proc/cpuinfo") as f:
                 return "genuineintel" in f.read().lower()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Intel CPU detection skipped: %s", exc)
     return False
 
 

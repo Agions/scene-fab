@@ -91,10 +91,14 @@ class SceneFabMainWindow(QMainWindow):
         home.navigate.connect(self._on_navigate)
 
         production = ProductionPage()
-        production.start_requested.connect(lambda: self.statusbar.set_status("创作流程已就绪"))
+        production.start_requested.connect(
+            lambda: self.statusbar.set_status("创作流程已就绪")
+        )
 
         assets = AssetsPage()
-        assets.import_requested.connect(lambda: self.statusbar.set_status("请选择需要导入的素材"))
+        assets.import_requested.connect(
+            lambda: self.statusbar.set_status("请选择需要导入的素材")
+        )
 
         self.content.add_page("home", home)
         self.content.add_page("create", production)
@@ -218,21 +222,21 @@ class SceneFabMainWindow(QMainWindow):
             }}
             QToolButton#topbar_action_btn {{
                 background: {_C.BG_SURFACE};
-                border: 1px solid {_C.BORDER_SUBTLE};
-                border-radius: {Radii.sm};
-                color: {_C.TEXT_MUTED};
+                border: 1px solid {_C.BORDER_DEFAULT};
+                border-radius: {Radii.base};
+                color: {_C.TEXT_SECONDARY};
                 font-size: {FontSizes.xs}px;
                 font-weight: 600;
             }}
             QToolButton#topbar_action_btn:hover {{
-                background: {_C.BG_ELEVATED};
-                color: {_C.TEXT_SECONDARY};
-                border-color: {_C.BORDER_DEFAULT};
+                background: {_C.PRIMARY_LIGHTEST};
+                color: {_C.PRIMARY_DARKER};
+                border-color: {_C.PRIMARY};
             }}
             QToolTip {{
-                background: {_C.BG_OVERLAY};
-                color: {_C.TEXT_PRIMARY};
-                border: 1px solid {_C.BORDER_DEFAULT};
+                background: {_C.TEXT_PRIMARY};
+                color: {_C.TEXT_INVERSE};
+                border: 1px solid {_C.TEXT_PRIMARY};
                 border-radius: {Radii.sm};
                 padding: 6px 10px;
                 font-size: {FontSizes.xs}px;
@@ -248,7 +252,7 @@ class SceneFabMainWindow(QMainWindow):
                 min-height: 40px;
             }}
             QScrollBar::handle:vertical:hover {{
-                background: {_C.BORDER_STRONG};
+                background: {_C.PRIMARY};
             }}
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
                 height: 0;
