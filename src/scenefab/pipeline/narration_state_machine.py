@@ -16,7 +16,6 @@ v2.2 解说生成状态机 — 5 状态 + 评估循环
 - 每个状态是一个 Step 函数, 签名 (ctx: NarrationContext) -> StepResult
 - 状态转移由 NarrationEvaluator 决定 (Phase 2 实现)
 - 集成到 core.unified_event_bus, 发 NarrationStageChanged 事件
-- 与 core.pipeline_engine.PipelineEngine 兼容: 每个状态可作为 DAG Step
 - 失败处理: max_attempts=2, 强制退出循环
 
 v2.2 决策: 见 docs/adr/007-narration-state-machine.md
@@ -463,23 +462,3 @@ class NarrationStateMachine:
             data={"transitions": len(self._transitions)},
         )
 
-    # ============================================================
-    # 复用支持: 转换为 DAG Step
-    # ============================================================
-
-    def to_dag_step(self, state: NarrationState) -> dict[str, Any]:
-        """转换为 PipelineEngine.DAG 兼容的 step dict (Phase 2 完善)
-
-        用法:
-            engine = PipelineEngine()
-            engine.add_step(PipelineStep(
-                id="narration.draft",
-                func=lambda ctx: sm._execute_step(NarrationState.DRAFT, ctx["narration_ctx"]),
-                dependencies=["narration.understand"],
-            ))
-        """
-        return {
-            "id": f"narration.{state.value}",
-            "state": state,
-            "sm": self,
-        }

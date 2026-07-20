@@ -79,7 +79,7 @@ def understand_step(ctx: NarrationContext) -> StepResult:
     真实实现 (Phase 2):
     1. 调用 scenefab.services.ai.scene_analyzer.SceneAnalyzer.analyze()
     2. 填充 ctx.scenes (list[SceneInfo])
-    3. 调用 scenefab.core.short_drama.ShortDramaNarrator.detect_trope()
+    3. 调用 scenefab.pipeline.short_drama.ShortDramaNarrator.detect_trope()
     4. 填充 ctx.bridges (list[Bridge])
 
     降级: SceneAnalyzer 不可用 → 用 stub (从视频时长均匀分段)
@@ -102,7 +102,7 @@ def understand_step(ctx: NarrationContext) -> StepResult:
     # 2. 桥段检测 (仅短剧模式启用)
     if ctx.short_drama_style is not None:
         try:
-            from scenefab.core.short_drama import ShortDramaNarrator, ShortDramaPreset
+            from scenefab.pipeline.short_drama import ShortDramaNarrator, ShortDramaPreset
 
             # 根据 ctx.short_drama_style 选择 preset
             preset = ShortDramaPreset.suspense()  # 默认悬疑
@@ -455,7 +455,7 @@ def _detect_bridges(narrator, scenes: list) -> list[Bridge]:
 
 def _trope_to_bridge(trope) -> BridgeType | None:
     """TropeType → BridgeType 映射 (v2.2 状态机 vs v2.0 short_drama)"""
-    from scenefab.core.short_drama import TropeType
+    from scenefab.pipeline.short_drama import TropeType
 
     mapping = {
         TropeType.IDENTITY_REVEAL: BridgeType.IDENTITY_REVEAL,

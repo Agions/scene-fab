@@ -264,7 +264,7 @@ class TestUnderstandStepFallback:
     ) -> None:
         """短剧模式桥段检测失败时, 跳过而非报错"""
         # 启用短剧模式
-        from scenefab.core.short_drama import ShortDramaStyle
+        from scenefab.pipeline.short_drama import ShortDramaStyle
         from scenefab.pipeline.understanding_steps import understand_step
 
         ctx.short_drama_style = ShortDramaStyle.REVENGE
@@ -280,7 +280,7 @@ class TestUnderstandStepFallback:
             )
         ]
 
-        with patch("scenefab.core.short_drama.ShortDramaNarrator") as mock_narrator:
+        with patch("scenefab.pipeline.short_drama.ShortDramaNarrator") as mock_narrator:
             mock_narrator.return_value.detect_trope.side_effect = RuntimeError("boom")
             result = understand_step(ctx)
 
@@ -303,7 +303,7 @@ class TestUnderstandStepFallback:
             )
         ]
 
-        with patch("scenefab.core.short_drama.ShortDramaNarrator") as mock_narrator:
+        with patch("scenefab.pipeline.short_drama.ShortDramaNarrator") as mock_narrator:
             result = understand_step(ctx)
             # 不应调用 ShortDramaNarrator
             mock_narrator.assert_not_called()
@@ -528,7 +528,7 @@ class TestTropeBridgeMapping:
 
     def test_all_tropes_have_bridge_mapping(self, ctx: NarrationContext) -> None:
         """TropeType 7 个非 GENERAL 类型全部映射到 BridgeType"""
-        from scenefab.core.short_drama import TropeType
+        from scenefab.pipeline.short_drama import TropeType
         from scenefab.pipeline.understanding_steps import _trope_to_bridge
 
         for trope in [
@@ -545,7 +545,7 @@ class TestTropeBridgeMapping:
 
     def test_general_trope_returns_none(self, ctx: NarrationContext) -> None:
         """TropeType.GENERAL → None (不算桥段)"""
-        from scenefab.core.short_drama import TropeType
+        from scenefab.pipeline.short_drama import TropeType
         from scenefab.pipeline.understanding_steps import _trope_to_bridge
 
         assert _trope_to_bridge(TropeType.GENERAL) is None
