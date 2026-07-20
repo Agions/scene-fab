@@ -379,12 +379,16 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     except Exception as e:  # noqa: BLE001
         logger.warning(f"剪映草稿元数据生成失败: {e}")
 
-    # 3. 视频合成 (占位, 实际 FFmpeg 在 step 6 之后)
-    # 这里只写占位 mp4 (合并步骤由 caller 负责)
+    # 3. 视频合成 (真实 FFmpeg: trim → add_audio → burn_subtitles)
+    video_success = False
     try:
-        _write_placeholder_video(video_path, ctx)
+        video_success = _compose_video(
+            video_path, ctx,
+            subtitle_path=subtitle_path,
+            ass_path=ass_path if ass_success else None,
+        )
     except Exception as e:  # noqa: BLE001
-        logger.warning(f"占位视频写入失败: {e}")
+        logger.warning(f"视频合成失败: {e}")
 
     # 4. 更新 ctx 终态
     ctx.final_narration = ctx.current_draft
@@ -393,19 +397,21 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     ctx.final_video_path = video_path
 
     duration_ms = (time.time() - start) * 1000
+    video_label = "视频合成" if video_success else "视频占位"
     return StepResult(
         success=True,
         state=NarrationState.ASSEMBLE,
         duration_ms=duration_ms,
         message=(
-            f"assemble: 字幕 + 草稿 + 视频占位完成 "
+            f"assemble: 字幕 + 草稿 + {video_label}完成 "
             f"(ASS={ass_success}, 剪映={jianying_success}, "
-            f"{subtitle_path.name})"
+            f"视频={video_success}, {subtitle_path.name})"
         ),
         data={
             "subtitle_path": str(subtitle_path),
             "ass_path": str(ass_path) if ass_success else None,
             "video_path": str(video_path),
+            "video_composed": video_success,
             "jianying_path": str(jianying_path) if jianying_success else None,
         },
     )
@@ -491,8 +497,103 @@ def _write_jianying_metadata(ctx: NarrationContext, output_path: Path) -> None:
     )
 
 
+def _compose_video(
+    video_path: Path,
+    ctx: NarrationContext,
+    subtitle_path: Path | None = None,
+    ass_path: Path | None = None,
+) -> bool:
+    """真实 FFmpeg 视频合成：trim → add_audio → burn_subtitles → 输出 MP4
+
+    合成流程:
+    1. 裁剪源视频到 TTS 音频时长
+    2. 替换音轨为 TTS 配音
+    3. 烧录字幕 (ASS 优先, SRT 降级)
+
+    降级: FFmpeg 不可用或源视频不存在 → 写占位 JSON, 返回 False
+    """
+    from scenefab.services.video_tools.ffmpeg_tool import FFmpegTool
+
+    source = ctx.source_video
+    duration = ctx.tts_real_duration_sec or 60.0
+    audio = ctx.tts_audio_path
+
+    # 前置检查：源视频和音频必须存在
+    if not source or not Path(source).exists():
+        logger.warning(f"源视频不存在: {source}, 降级为占位")
+        _write_placeholder_video(video_path, ctx)
+        return False
+
+    if not audio or not Path(audio).exists():
+        logger.warning(f"TTS 音频不存在: {audio}, 降级为占位")
+        _write_placeholder_video(video_path, ctx)
+        return False
+
+    try:
+        FFmpegTool.check_ffmpeg()
+    except Exception:  # noqa: BLE001
+        logger.warning("FFmpeg 不可用, 降级为占位")
+        _write_placeholder_video(video_path, ctx)
+        return False
+
+    tmp_dir = video_path.parent / f"_tmp_{ctx.trace_id[:8]}"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # Step 1: 裁剪源视频到 TTS 时长
+        trimmed = tmp_dir / "trimmed.mp4"
+        if not FFmpegTool.trim_video(str(source), str(trimmed), 0.0, duration):
+            logger.warning("视频裁剪失败, 降级为占位")
+            _write_placeholder_video(video_path, ctx)
+            return False
+
+        # Step 2: 替换音轨为 TTS 配音 (不混合原音)
+        with_audio = tmp_dir / "with_audio.mp4"
+        if not FFmpegTool.add_audio(
+            str(trimmed), str(audio), str(with_audio), mix=False
+        ):
+            logger.warning("音频合并失败, 降级为占位")
+            _write_placeholder_video(video_path, ctx)
+            return False
+
+        # Step 3: 烧录字幕 (ASS 优先, SRT 降级, 无字幕则跳过)
+        sub_file = ass_path if ass_path and ass_path.exists() else subtitle_path
+        if sub_file and sub_file.exists():
+            from scenefab.services.export.direct_video_exporter import (
+                VideoExportConfig,
+                build_burn_subtitles_command,
+            )
+            from scenefab.utils.security import get_ffmpeg_executor
+
+            config = VideoExportConfig()
+            cmd = build_burn_subtitles_command(
+                str(with_audio), str(sub_file), str(video_path), config
+            )
+            executor = get_ffmpeg_executor()
+            result = executor.run(cmd, timeout=600)
+            if result.returncode != 0:
+                # 字幕烧录失败 → 输出无字幕版本
+                logger.warning("字幕烧录失败, 输出无字幕版本")
+                with_audio.rename(video_path)
+        else:
+            # 无字幕 → 直接输出
+            with_audio.rename(video_path)
+
+        return True
+
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"视频合成异常: {e}, 降级为占位")
+        _write_placeholder_video(video_path, ctx)
+        return False
+    finally:
+        # 清理临时文件
+        import shutil
+
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
 def _write_placeholder_video(video_path: Path, ctx: NarrationContext) -> None:
-    """写占位视频元数据 JSON (Phase 5 FFmpeg 合成替换)"""
+    """写占位视频元数据 JSON (FFmpeg 不可用时的降级路径)"""
     placeholder = {
         "version": "1.0",
         "type": "scenefab_placeholder_v22",
