@@ -59,10 +59,10 @@ class DeepSeekProvider(OpenAICompatProvider):
         except Exception as e:
             raise self._provider_error("生成", e)
 
-    async def stream_generate(
+    async def generate_stream(
         self,
         request: LLMRequest,
-    ) -> AsyncIterator[dict]:
+    ) -> AsyncIterator[str]:
         """流式生成文本（支持 SSE）"""
         model = self._get_model_name(request.model)
         messages = self._build_messages(request)
@@ -87,8 +87,7 @@ class DeepSeekProvider(OpenAICompatProvider):
                     delta = data.get("choices", [{}])[0].get("delta", {})
                     content = delta.get("content", "")
                     if content:
-                        yield {"done": False, "content": content}
-                yield {"done": True, "content": ""}
+                        yield content
         except Exception as e:
             raise self._stream_provider_error(e)
 
