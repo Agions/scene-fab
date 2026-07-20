@@ -91,14 +91,10 @@ class SceneFabMainWindow(QMainWindow):
         home.navigate.connect(self._on_navigate)
 
         production = ProductionPage()
-        production.start_requested.connect(
-            lambda: self.statusbar.set_status("创作流程已就绪")
-        )
+        production.start_requested.connect(self._on_start_production)
 
         assets = AssetsPage()
-        assets.import_requested.connect(
-            lambda: self.statusbar.set_status("请选择需要导入的素材")
-        )
+        assets.import_requested.connect(self._on_import_assets)
 
         self.content.add_page("home", home)
         self.content.add_page("create", production)
@@ -213,6 +209,88 @@ class SceneFabMainWindow(QMainWindow):
         if action_id == "export":
             self._on_navigate("create")
             self.statusbar.set_status("请在创作流程完成后导出成片")
+
+    # ══════════════════════════════════════════════════════════════
+    # 生产流程接线
+    # ══════════════════════════════════════════════════════════════
+
+    def _on_start_production(self):
+        """开始新生产流程：选择源视频 → 后台运行 MonologueMaker"""
+        from PySide6.QtWidgets import QFileDialog
+
+        video_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "选择源视频",
+            "",
+            "视频文件 (*.mp4 *.mov *.avi *.mkv *.flv *.wmv);;所有文件 (*)",
+        )
+        if not video_path:
+            return
+
+        self.statusbar.set_status(f"正在处理: {video_path}")
+        self.show_loading(True)
+
+        # 后台线程运行 MonologueMaker
+        from scenefab.core.base_worker import BaseWorker
+
+        class ProductionWorker(BaseWorker):
+            def _run(self):
+                from scenefab.services.video.monologue_maker import MonologueMaker
+
+                maker = MonologueMaker()
+                project = maker.create_project(source_video=video_path)
+                if project is None:
+                    raise RuntimeError("项目创建失败")
+                self.emit_progress(1, 5, "场景分析完成")
+
+                maker.generate_script(project)
+                self.emit_progress(2, 5, "脚本生成完成")
+
+                maker.generate_voice(project)
+                self.emit_progress(3, 5, "配音合成完成")
+
+                maker.generate_captions(project)
+                self.emit_progress(4, 5, "字幕生成完成")
+
+                return project
+
+        self._production_worker = ProductionWorker(
+            name="ProductionWorker", cancellable=True
+        )
+        self._production_worker.progress.connect(self._on_production_progress)
+        self._production_worker.finished.connect(self._on_production_finished)
+        self._production_worker.error.connect(self._on_production_error)
+        self._production_worker.start()
+
+    def _on_production_progress(self, current, total, message):
+        self.statusbar.set_status(f"[{current}/{total}] {message}")
+
+    def _on_production_finished(self, result):
+        self.show_loading(False)
+        if result and result.success:
+            self.statusbar.set_status("✅ 生产流程完成")
+            self.show_message("第一人称解说视频生产完成！\n可在项目资产中查看结果。")
+        else:
+            self.statusbar.set_status("生产流程完成（有警告）")
+
+    def _on_production_error(self, error_msg):
+        self.show_loading(False)
+        self.statusbar.set_status(f"❌ 生产失败: {error_msg}")
+        self.show_message(f"生产流程出错:\n{error_msg}", level="error")
+
+    def _on_import_assets(self):
+        """导入素材：打开文件选择对话框"""
+        from PySide6.QtWidgets import QFileDialog
+
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "导入素材",
+            "",
+            "媒体文件 (*.mp4 *.mov *.avi *.mkv *.mp3 *.wav *.jpg *.png);;所有文件 (*)",
+        )
+        if files:
+            self.statusbar.set_status(f"已选择 {len(files)} 个素材文件")
+            # TODO: 将素材添加到 AssetsPage 列表
 
     def _apply_global_style(self):
         self.setStyleSheet(f"""  # type: ignore[attr-defined]
