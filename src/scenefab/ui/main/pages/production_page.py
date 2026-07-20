@@ -2,7 +2,6 @@
 """Production workflow page."""
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -11,7 +10,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from ...theme.ds_tokens import _C, FontSizes, Radii
+from ...theme.ds_tokens import _C, FontSizes, FontWeights, Radii, ui_font
 from .page_view_models import (
     EXPORT_QUALITY_CHECKS,
     PRODUCTION_STEPS,
@@ -129,31 +128,31 @@ class ProductionPage(QFrame):
 
         badge = QLabel(number)
         badge.setFixedWidth(32)
-        badge.setFont(QFont("", FontSizes.xs, QFont.Weight.Bold))
+        badge.setFont(ui_font(FontSizes.xs, FontWeights.Bold))
         badge.setStyleSheet(f"color: {_C.PRIMARY};")
         layout.addWidget(badge)
 
         copy = QVBoxLayout()
         copy.setSpacing(2)
         title = QLabel(name)
-        title.setFont(QFont("", FontSizes.sm, QFont.Weight.Medium))
+        title.setFont(ui_font(FontSizes.sm, FontWeights.Medium))
         title.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
         copy.addWidget(title)
         detail = QLabel(desc)
-        detail.setFont(QFont("", FontSizes.xs))
+        detail.setFont(ui_font(FontSizes.xs))
         detail.setStyleSheet(f"color: {_C.TEXT_MUTED};")
         copy.addWidget(detail)
         layout.addLayout(copy, 1)
 
         status = QLabel("待开始")
-        status.setFont(QFont("", FontSizes.xs))
+        status.setFont(ui_font(FontSizes.xs))
         status.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
         layout.addWidget(status)
         return row
 
     def _check_item(self, text: str) -> QLabel:
         label = QLabel(text)
-        label.setFont(QFont("", FontSizes.sm))
+        label.setFont(ui_font(FontSizes.sm))
         label.setStyleSheet(f"""
             QLabel {{
                 color: {_C.TEXT_SECONDARY};

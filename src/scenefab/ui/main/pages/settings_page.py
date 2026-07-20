@@ -2,7 +2,6 @@
 """Application settings page."""
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -14,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ...theme.ds_tokens import _C, FontSizes, Radii
+from ...theme.ds_tokens import _C, FontSizes, FontWeights, Radii, ui_font
 from .page_view_models import SETTINGS_GROUPS, SettingRowView
 from .page_widgets import (
     action_button_style,
@@ -161,12 +160,12 @@ class SettingsPage(QFrame):
         text = QVBoxLayout()
         text.setSpacing(2)
         title = QLabel(label)
-        title.setFont(QFont("", FontSizes.sm, QFont.Weight.Medium))
+        title.setFont(ui_font(FontSizes.sm, FontWeights.Medium))
         title.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
         text.addWidget(title)
         if desc:
             desc_label = QLabel(desc)
-            desc_label.setFont(QFont("", FontSizes.xs))
+            desc_label.setFont(ui_font(FontSizes.xs))
             desc_label.setStyleSheet(f"color: {_C.TEXT_MUTED};")
             text.addWidget(desc_label)
         layout.addLayout(text, 1)

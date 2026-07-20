@@ -2,7 +2,6 @@
 """Project assets page."""
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -10,7 +9,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from ...theme.ds_tokens import _C, FontSizes, Radii
+from ...theme.ds_tokens import _C, FontSizes, FontWeights, Radii, ui_font
 from .page_view_models import ASSET_SOURCE_ITEMS, ASSET_TABLE_COLUMNS
 from .page_widgets import (
     action_button,
@@ -115,7 +114,7 @@ class AssetsPage(QFrame):
         layout.setContentsMargins(12, 8, 12, 8)
         for text, stretch in [(kind, 1), (name, 3), (status, 1)]:
             label = QLabel(text)
-            label.setFont(QFont("", FontSizes.xs, QFont.Weight.Medium))
+            label.setFont(ui_font(FontSizes.xs, FontWeights.Medium))
             label.setStyleSheet(
                 f"color: {_C.TEXT_MUTED if header else _C.TEXT_SECONDARY};"
             )
@@ -137,12 +136,12 @@ class AssetsPage(QFrame):
         layout.setSpacing(4)
 
         title_label = QLabel(title)
-        title_label.setFont(QFont("", FontSizes.xs, QFont.Weight.Medium))
+        title_label.setFont(ui_font(FontSizes.xs, FontWeights.Medium))
         title_label.setStyleSheet(f"color: {_C.TEXT_MUTED};")
         layout.addWidget(title_label)
 
         desc_label = QLabel(desc)
-        desc_label.setFont(QFont("", FontSizes.sm, QFont.Weight.Medium))
+        desc_label.setFont(ui_font(FontSizes.sm, FontWeights.Medium))
         desc_label.setStyleSheet(f"color: {_C.TEXT_SECONDARY};")
         layout.addWidget(desc_label)
         return item

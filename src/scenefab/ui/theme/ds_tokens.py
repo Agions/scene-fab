@@ -97,6 +97,20 @@ class FontWeights:
     Bold = 700
 
 
+def ui_font(size: int, weight: int = FontWeights.Normal):
+    """创建 UI 字体（继承应用默认字体族，避免 Qt 字体别名解析警告）。
+
+    替代 QFont("", size, weight) — 空字符串字体族会触发 macOS 上
+    Qt 的 "Sans Serif" 别名解析（耗时 400-500ms）。
+    """
+    from PySide6.QtGui import QFont
+
+    f = QFont()
+    f.setPointSize(size)
+    f.setWeight(QFont.Weight(weight))
+    return f
+
+
 # ═══════════════════════════════════════════════════════════════════
 # 间距系统（8px 基准）
 # ═══════════════════════════════════════════════════════════════════

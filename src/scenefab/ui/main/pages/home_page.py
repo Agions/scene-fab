@@ -2,7 +2,6 @@
 """Main production workspace page."""
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -11,7 +10,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from ...theme.ds_tokens import _C, FontSizes, Radii
+from ...theme.ds_tokens import _C, FontSizes, FontWeights, Radii, ui_font
 from .page_defaults import default_delivery_summary
 from .page_view_models import (
     DELIVERY_PARAMETERS,
@@ -148,17 +147,17 @@ class HomePage(QFrame):
         layout.setSpacing(6)
 
         label = QLabel(title)
-        label.setFont(QFont("", FontSizes.xs, QFont.Weight.Medium))
+        label.setFont(ui_font(FontSizes.xs, FontWeights.Medium))
         label.setStyleSheet(f"color: {_C.TEXT_MUTED};")
         layout.addWidget(label)
 
         val = QLabel(value)
-        val.setFont(QFont("", FontSizes.lg, QFont.Weight.Bold))
+        val.setFont(ui_font(FontSizes.lg, FontWeights.Bold))
         val.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
         layout.addWidget(val)
 
         state = QLabel(status)
-        state.setFont(QFont("", FontSizes.xs))
+        state.setFont(ui_font(FontSizes.xs))
         state.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
         layout.addWidget(state)
         return card
@@ -179,17 +178,17 @@ class HomePage(QFrame):
 
         step_label = QLabel(step)
         step_label.setFixedWidth(32)
-        step_label.setFont(QFont("", FontSizes.xs, QFont.Weight.Bold))
+        step_label.setFont(ui_font(FontSizes.xs, FontWeights.Bold))
         step_label.setStyleSheet(f"color: {_C.PRIMARY};")
         layout.addWidget(step_label)
 
         name_label = QLabel(name)
-        name_label.setFont(QFont("", FontSizes.sm, QFont.Weight.Medium))
+        name_label.setFont(ui_font(FontSizes.sm, FontWeights.Medium))
         name_label.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
         layout.addWidget(name_label, 1)
 
         status_label = QLabel(status)
-        status_label.setFont(QFont("", FontSizes.xs))
+        status_label.setFont(ui_font(FontSizes.xs))
         status_label.setStyleSheet(f"color: {_C.TEXT_MUTED};")
         layout.addWidget(status_label)
         return row
