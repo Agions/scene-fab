@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 
 from .narration_context import (
     NarrationContext,
-    NarrationStyle,
+    ProductionStyle,
 )
 from .narration_state_machine import NarrationState, StepResult
 
@@ -224,13 +224,13 @@ def _generate_hook_candidates_via_llm(
     from scenefab.services.ai.script_models import ScriptConfig, ScriptStyle, VoiceTone
 
     style_to_script = {
-        NarrationStyle.SUSPENSE: ScriptStyle.MONOLOGUE,
-        NarrationStyle.ROMANCE: ScriptStyle.MONOLOGUE,
-        NarrationStyle.REVENGE: ScriptStyle.COMMENTARY,
-        NarrationStyle.UNDERDOG: ScriptStyle.COMMENTARY,
-        NarrationStyle.COMEDY: ScriptStyle.VIRAL,
-        NarrationStyle.LITERARY: ScriptStyle.NARRATION,
-        NarrationStyle.NEUTRAL: ScriptStyle.COMMENTARY,
+        ProductionStyle.SUSPENSE: ScriptStyle.MONOLOGUE,
+        ProductionStyle.ROMANCE: ScriptStyle.MONOLOGUE,
+        ProductionStyle.REVENGE: ScriptStyle.COMMENTARY,
+        ProductionStyle.UNDERDOG: ScriptStyle.COMMENTARY,
+        ProductionStyle.COMEDY: ScriptStyle.VIRAL,
+        ProductionStyle.LITERARY: ScriptStyle.NARRATION,
+        ProductionStyle.NEUTRAL: ScriptStyle.COMMENTARY,
     }
 
     generator = ScriptGenerator()

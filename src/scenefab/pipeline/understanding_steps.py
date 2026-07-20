@@ -29,7 +29,7 @@ from .narration_context import (
     Bridge,
     BridgeType,
     NarrationContext,
-    NarrationStyle,
+    ProductionStyle,
 )
 from .narration_state_machine import NarrationState, StepResult
 
@@ -41,30 +41,30 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================
-# NarrationStyle ↔ ScriptStyle 映射
+# ProductionStyle ↔ ScriptStyle 映射
 # ============================================
 
 
-# v2.2 NarrationStyle → v2.1 ScriptStyle + VoiceTone
+# v2.2 ProductionStyle → v2.1 ScriptStyle + VoiceTone
 # 复用 scenefab.services.ai.script_models 已有枚举
-_NARRATION_TO_SCRIPT_STYLE: dict[NarrationStyle, str] = {
-    NarrationStyle.SUSPENSE: "monologue",  # 悬疑 = 第一人称独白
-    NarrationStyle.ROMANCE: "monologue",  # 甜宠 = 独白
-    NarrationStyle.REVENGE: "commentary",  # 复仇 = 客观解说
-    NarrationStyle.UNDERDOG: "commentary",  # 逆袭 = 客观解说
-    NarrationStyle.COMEDY: "viral",  # 吐槽 = 爆款
-    NarrationStyle.LITERARY: "narration",  # 文艺 = 旁白
-    NarrationStyle.NEUTRAL: "commentary",  # 中性 = 解说
+_NARRATION_TO_SCRIPT_STYLE: dict[ProductionStyle, str] = {
+    ProductionStyle.SUSPENSE: "monologue",  # 悬疑 = 第一人称独白
+    ProductionStyle.ROMANCE: "monologue",  # 甜宠 = 独白
+    ProductionStyle.REVENGE: "commentary",  # 复仇 = 客观解说
+    ProductionStyle.UNDERDOG: "commentary",  # 逆袭 = 客观解说
+    ProductionStyle.COMEDY: "viral",  # 吐槽 = 爆款
+    ProductionStyle.LITERARY: "narration",  # 文艺 = 旁白
+    ProductionStyle.NEUTRAL: "commentary",  # 中性 = 解说
 }
 
-_NARRATION_TO_TONE: dict[NarrationStyle, str] = {
-    NarrationStyle.SUSPENSE: "mysterious",
-    NarrationStyle.ROMANCE: "emotional",
-    NarrationStyle.REVENGE: "excited",
-    NarrationStyle.UNDERDOG: "excited",
-    NarrationStyle.COMEDY: "humorous",
-    NarrationStyle.LITERARY: "calm",
-    NarrationStyle.NEUTRAL: "neutral",
+_NARRATION_TO_TONE: dict[ProductionStyle, str] = {
+    ProductionStyle.SUSPENSE: "mysterious",
+    ProductionStyle.ROMANCE: "emotional",
+    ProductionStyle.REVENGE: "excited",
+    ProductionStyle.UNDERDOG: "excited",
+    ProductionStyle.COMEDY: "humorous",
+    ProductionStyle.LITERARY: "calm",
+    ProductionStyle.NEUTRAL: "neutral",
 }
 
 
@@ -516,13 +516,13 @@ def _build_minimal_story_graph(ctx: NarrationContext):
 def _stub_draft(ctx: NarrationContext, topic: str) -> str:
     """LLM 不可用时, 模板生成 stub 解说稿"""
     style_emoji = {
-        NarrationStyle.SUSPENSE: "🔍",
-        NarrationStyle.ROMANCE: "💕",
-        NarrationStyle.REVENGE: "⚔️",
-        NarrationStyle.UNDERDOG: "🔥",
-        NarrationStyle.COMEDY: "😄",
-        NarrationStyle.LITERARY: "📖",
-        NarrationStyle.NEUTRAL: "🎬",
+        ProductionStyle.SUSPENSE: "🔍",
+        ProductionStyle.ROMANCE: "💕",
+        ProductionStyle.REVENGE: "⚔️",
+        ProductionStyle.UNDERDOG: "🔥",
+        ProductionStyle.COMEDY: "😄",
+        ProductionStyle.LITERARY: "📖",
+        ProductionStyle.NEUTRAL: "🎬",
     }
     emoji = style_emoji.get(ctx.style, "🎬")
 
