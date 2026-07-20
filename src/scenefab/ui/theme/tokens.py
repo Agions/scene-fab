@@ -93,7 +93,7 @@ RADIUS = {
 FONT = {
     "family": (
         "system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', "
-        "'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif"
+        "'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', Arial"
     ),
     "mono": "'JetBrains Mono', 'SF Mono', Consolas, monospace",
     "size": {

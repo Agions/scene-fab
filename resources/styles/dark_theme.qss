@@ -9,7 +9,7 @@
 QWidget {
     background-color: #0a0a0a;
     color: #e5e5e5;
-    font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", Arial;
     font-size: 14px;
     selection-background-color: #06b6d4;
     selection-color: #ffffff;
