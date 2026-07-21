@@ -36,6 +36,7 @@ class ProductionPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("production_page")
+        self._step_statuses: dict[str, QLabel] = {}
         self._setup_style()
         self._setup_ui()
 
@@ -148,6 +149,7 @@ class ProductionPage(QFrame):
         status.setFont(ui_font(FontSizes.xs))
         status.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
         layout.addWidget(status)
+        self._step_statuses[name] = status
         return row
 
     def _check_item(self, text: str) -> QLabel:
@@ -163,3 +165,18 @@ class ProductionPage(QFrame):
             }}
         """)
         return label
+
+    # ── public update API ──────────────────────────────────────────
+
+    def update_step_status(self, step_name: str, status: str, color: str) -> None:
+        """Update the status label of a specific production step."""
+        label = self._step_statuses.get(step_name)
+        if label is not None:
+            label.setText(status)
+            label.setStyleSheet(f"color: {color};")
+
+    def reset_steps(self) -> None:
+        """Reset all step status labels to the default '待开始' state."""
+        for label in self._step_statuses.values():
+            label.setText("待开始")
+            label.setStyleSheet(f"color: {_C.TEXT_DISABLED};")

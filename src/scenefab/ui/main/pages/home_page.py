@@ -40,6 +40,11 @@ class HomePage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("home_page")
+        self._status_values: dict[str, QLabel] = {}
+        self._status_states: dict[str, QLabel] = {}
+        self._workflow_statuses: dict[str, QLabel] = {}
+        self._recent_layout: QVBoxLayout | None = None
+        self._recent_empty: QFrame | None = None
         self._setup_style()
         self._setup_ui()
 
@@ -137,7 +142,9 @@ class HomePage(QFrame):
         row.addWidget(open_btn)
         layout.addLayout(row)
 
-        layout.addWidget(empty_state("暂无项目资产", 120), 1)
+        self._recent_empty = empty_state("暂无项目资产", 120)
+        layout.addWidget(self._recent_empty, 1)
+        self._recent_layout = layout
         return frame
 
     def _status_card(self, title: str, status: str, value: str) -> QFrame:
@@ -155,11 +162,13 @@ class HomePage(QFrame):
         val.setFont(ui_font(FontSizes.lg, FontWeights.Bold))
         val.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
         layout.addWidget(val)
+        self._status_values[title] = val
 
         state = QLabel(status)
         state.setFont(ui_font(FontSizes.xs))
         state.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
         layout.addWidget(state)
+        self._status_states[title] = state
         return card
 
     def _workflow_row(self, step: str, name: str, status: str) -> QFrame:
@@ -191,4 +200,63 @@ class HomePage(QFrame):
         status_label.setFont(ui_font(FontSizes.xs))
         status_label.setStyleSheet(f"color: {_C.TEXT_MUTED};")
         layout.addWidget(status_label)
+        self._workflow_statuses[name] = status_label
         return row
+
+    # ── public update API ──────────────────────────────────────────
+
+    def update_stats(
+        self,
+        projects_count: int = 0,
+        assets_count: int = 0,
+        scenes_count: int = 0,
+        script_status: str = "待生成",
+    ) -> None:
+        """Update dashboard status cards with real data."""
+        if "素材" in self._status_values:
+            self._status_values["素材"].setText(str(assets_count))
+            self._status_states["素材"].setText(
+                "已导入" if assets_count > 0 else "未导入"
+            )
+        if "场景" in self._status_values:
+            self._status_values["场景"].setText(str(scenes_count))
+            self._status_states["场景"].setText(
+                "已拆分" if scenes_count > 0 else "未拆分"
+            )
+        if "脚本" in self._status_values:
+            self._status_values["脚本"].setText(
+                str(projects_count) if projects_count > 0 else "--"
+            )
+            self._status_states["脚本"].setText(script_status)
+
+    def update_recent_projects(self, recent_projects: list[str]) -> None:
+        """Populate the recent-assets panel with project paths."""
+        if self._recent_layout is None:
+            return
+        # Remove previous dynamic rows (keep header row + empty state)
+        while self._recent_layout.count() > 2:
+            item = self._recent_layout.takeAt(1)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        if not recent_projects:
+            if self._recent_empty is not None:
+                self._recent_empty.setVisible(True)
+            return
+
+        if self._recent_empty is not None:
+            self._recent_empty.setVisible(False)
+
+        from pathlib import Path
+
+        for project_path in recent_projects[:5]:
+            name = Path(project_path).name
+            row_label = QLabel(name)
+            row_label.setFont(ui_font(FontSizes.xs))
+            row_label.setStyleSheet(
+                f"color: {_C.TEXT_SECONDARY}; padding: 4px 0;"
+            )
+            self._recent_layout.insertWidget(
+                self._recent_layout.count() - 1, row_label
+            )

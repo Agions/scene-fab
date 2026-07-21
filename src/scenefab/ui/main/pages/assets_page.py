@@ -140,6 +140,23 @@ class AssetsPage(QFrame):
             row = self._row(type_name, meta.name or "未命名项目", date_str)
             self._rows_layout.addWidget(row)
 
+    def add_imported_files(self, file_paths: list[str]) -> None:
+        """Add imported media files to the asset list display."""
+        if not file_paths:
+            return
+        self._empty_state.setVisible(False)
+        self._rows_container.setVisible(True)
+
+        from datetime import date
+        from pathlib import Path
+
+        today = date.today().isoformat()
+        for fp in file_paths:
+            p = Path(fp)
+            kind = p.suffix.lstrip(".").upper() or "文件"
+            row = self._row(kind, p.name, today)
+            self._rows_layout.addWidget(row)
+
     def _build_source_panel(self) -> QFrame:
         frame = panel("source_panel")
         layout = QHBoxLayout(frame)
