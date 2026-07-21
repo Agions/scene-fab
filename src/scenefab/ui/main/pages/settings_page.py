@@ -40,6 +40,10 @@ _CODEC_LABEL_TO_VALUE = {
 }
 _CODEC_VALUE_TO_LABEL = {v: k for k, v in _CODEC_LABEL_TO_VALUE.items()}
 
+# 主题标签 ↔ ThemeManager 模式
+_THEME_LABEL_TO_MODE = {"浅色": "light", "深色": "dark"}
+_THEME_MODE_TO_LABEL = {v: k for k, v in _THEME_LABEL_TO_MODE.items()}
+
 # QSettings 键（用于 SettingsManager 未覆盖的设置项）
 _QSETTINGS_ORG = "SceneFab"
 _QSETTINGS_APP = "Application"
@@ -90,10 +94,19 @@ class ToggleSwitch(QFrame):
 class SettingsPage(QFrame):
     """Professional settings surface."""
 
-    def __init__(self, settings_manager: Any = None, parent=None):
+    def __init__(
+        self,
+        settings_manager: Any = None,
+        parent=None,
+        *,
+        theme_manager: Any = None,
+        project_manager: Any = None,
+    ):
         super().__init__(parent)
         self.setObjectName("settings_page")
         self._settings_manager = settings_manager
+        self._theme_manager = theme_manager
+        self._project_manager = project_manager
         self._tray_toggle: ToggleSwitch | None = None
         self._controls: dict[str, QWidget] = {}
         self._path_edits: dict[str, QLineEdit] = {}
@@ -101,6 +114,7 @@ class SettingsPage(QFrame):
         self._setup_style()
         self._setup_ui()
         self._connect_tray_signal()
+        self._connect_auto_save_signal()
         self.load_settings()
 
     def _setup_style(self):
@@ -132,6 +146,29 @@ class SettingsPage(QFrame):
         if window is not None and hasattr(window, "set_minimize_to_tray"):
             window.set_minimize_to_tray(checked)
 
+    def _connect_auto_save_signal(self):
+        auto_save = self._controls.get("auto_save")
+        if isinstance(auto_save, ToggleSwitch):
+            auto_save.toggled.connect(self._on_auto_save_toggled)
+
+    def _on_auto_save_toggled(self, checked: bool):
+        pm = self._project_manager
+        if pm is not None and hasattr(pm, "auto_save_timer"):
+            if checked:
+                pm.auto_save_timer.start(60000)
+            else:
+                pm.auto_save_timer.stop()
+
+    def _on_theme_changed(self, label: str):
+        mode = _THEME_LABEL_TO_MODE.get(label)
+        if mode is None:
+            return
+        if self._theme_manager is None:
+            from ...theme.theme_manager import ThemeManager
+
+            self._theme_manager = ThemeManager()
+        self._theme_manager.set_theme_mode(mode)
+
     # ══════════════════════════════════════════════════════════════
     # 设置持久化
     # ══════════════════════════════════════════════════════════════
@@ -152,6 +189,12 @@ class SettingsPage(QFrame):
 
         # API Key（通过 SettingsManager 的安全密钥存储）
         self._save_api_key()
+
+        # 主题
+        theme_label = self._combo_text("theme")
+        theme_mode = _THEME_LABEL_TO_MODE.get(theme_label)
+        if theme_mode:
+            qsettings.setValue("appearance/theme_mode", theme_mode)
 
         if manager is not None:
             # 语言
@@ -215,6 +258,11 @@ class SettingsPage(QFrame):
 
         # API Key
         self._load_api_key()
+
+        # 主题
+        theme_mode = qsettings.value("appearance/theme_mode", "light", type=str)
+        theme_label = _THEME_MODE_TO_LABEL.get(theme_mode, "浅色")
+        self._set_combo_text("theme", theme_label)
 
         if manager is None:
             return
@@ -410,6 +458,8 @@ class SettingsPage(QFrame):
             return wrapper
         if row.control == "combo":
             combo = self._combo(row.options)
+            if row.key == "theme":
+                combo.currentTextChanged.connect(self._on_theme_changed)
             self._controls[row.key] = combo
             return combo
         if row.control == "password":

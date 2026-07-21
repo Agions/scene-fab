@@ -32,6 +32,7 @@ class ProductionPage(QFrame):
     """Structured workflow for first-person narration production."""
 
     start_requested = Signal()
+    cancel_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -68,13 +69,19 @@ class ProductionPage(QFrame):
         root.addWidget(scroll)
 
     def _build_header(self) -> QFrame:
-        start_btn = action_button("开始新流程", primary=True)
-        start_btn.clicked.connect(self.start_requested.emit)
+        self._start_btn = action_button("开始新流程", primary=True)
+        self._start_btn.clicked.connect(self.start_requested.emit)
+
+        self._cancel_btn = action_button("取消")
+        self._cancel_btn.clicked.connect(self.cancel_requested.emit)
+        self._cancel_btn.hide()
+
         return header_panel(
             "production_header",
             "创作流程",
             "素材导入、脚本、配音、字幕和竖屏导出集中处理",
-            start_btn,
+            self._start_btn,
+            self._cancel_btn,
         )
 
     def _build_pipeline(self) -> QFrame:
@@ -167,6 +174,11 @@ class ProductionPage(QFrame):
         return label
 
     # ── public update API ──────────────────────────────────────────
+
+    def set_running(self, running: bool) -> None:
+        """Toggle running state: show cancel button, disable start button."""
+        self._cancel_btn.setVisible(running)
+        self._start_btn.setEnabled(not running)
 
     def update_step_status(self, step_name: str, status: str, color: str) -> None:
         """Update the status label of a specific production step."""

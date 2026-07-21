@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Main production workspace page."""
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QVBoxLayout,
 )
 
@@ -37,9 +38,10 @@ class HomePage(QFrame):
     open_project = Signal(str)
     navigate = Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, project_manager=None):
         super().__init__(parent)
         self.setObjectName("home_page")
+        self._project_manager = project_manager
         self._status_values: dict[str, QLabel] = {}
         self._status_states: dict[str, QLabel] = {}
         self._workflow_statuses: dict[str, QLabel] = {}
@@ -81,6 +83,9 @@ class HomePage(QFrame):
         create_btn = action_button("开始生产", primary=True)
         create_btn.clicked.connect(self.create_project.emit)
 
+        open_btn = action_button("打开项目")
+        open_btn.clicked.connect(lambda: self.open_project.emit(""))
+
         assets_btn = action_button("项目资产")
         assets_btn.clicked.connect(lambda: self.navigate.emit("assets"))
         return header_panel(
@@ -88,6 +93,7 @@ class HomePage(QFrame):
             "第一人称短剧解说工作台",
             default_delivery_summary(),
             create_btn,
+            open_btn,
             assets_btn,
         )
 
@@ -252,11 +258,43 @@ class HomePage(QFrame):
 
         for project_path in recent_projects[:5]:
             name = Path(project_path).name
-            row_label = QLabel(name)
-            row_label.setFont(ui_font(FontSizes.xs))
-            row_label.setStyleSheet(
-                f"color: {_C.TEXT_SECONDARY}; padding: 4px 0;"
+            row_btn = QPushButton(name)
+            row_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            row_btn.setFont(ui_font(FontSizes.xs))
+            row_btn.setStyleSheet(f"""
+                QPushButton {{
+                    color: {_C.TEXT_SECONDARY};
+                    background: transparent;
+                    border: none;
+                    text-align: left;
+                    padding: 4px 0;
+                }}
+                QPushButton:hover {{
+                    color: {_C.PRIMARY};
+                }}
+            """)
+            row_btn.clicked.connect(
+                lambda checked=False, p=project_path: self.open_project.emit(p)
             )
             self._recent_layout.insertWidget(
-                self._recent_layout.count() - 1, row_label
+                self._recent_layout.count() - 1, row_btn
             )
+
+    def refresh_stats(self) -> None:
+        """Re-query ProjectManager and update all dashboard cards."""
+        pm = self._project_manager
+        if pm is None:
+            return
+        projects = pm.scan_projects()
+        self.update_stats(
+            projects_count=len(projects),
+            assets_count=sum(
+                len(p.media_files) for p in pm.get_all_projects()
+            ),
+        )
+        self.update_recent_projects(pm.get_recent_projects())
+
+    def update_export_status(self, status: str) -> None:
+        """Update the export status card."""
+        if "导出" in self._status_states:
+            self._status_states["导出"].setText(status)

@@ -5,11 +5,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, QUrl, Signal
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMenu,
+    QMessageBox,
     QVBoxLayout,
     QWidget,
 )
@@ -137,7 +140,7 @@ class AssetsPage(QFrame):
                 else str(meta.project_type)
             )
             date_str = (meta.created_at or "")[:10] or "—"
-            row = self._row(type_name, meta.name or "未命名项目", date_str)
+            row = self._row(type_name, meta.name or "未命名项目", date_str, file_path=project.path)
             self._rows_layout.addWidget(row)
 
     def add_imported_files(self, file_paths: list[str]) -> None:
@@ -154,7 +157,7 @@ class AssetsPage(QFrame):
         for fp in file_paths:
             p = Path(fp)
             kind = p.suffix.lstrip(".").upper() or "文件"
-            row = self._row(kind, p.name, today)
+            row = self._row(kind, p.name, today, file_path=fp)
             self._rows_layout.addWidget(row)
 
     def _build_source_panel(self) -> QFrame:
@@ -168,7 +171,9 @@ class AssetsPage(QFrame):
         layout.addStretch()
         return frame
 
-    def _row(self, kind: str, name: str, status: str, header: bool = False) -> QFrame:
+    def _row(
+        self, kind: str, name: str, status: str, header: bool = False, file_path: str = ""
+    ) -> QFrame:
         row = QFrame()
         row.setObjectName("asset_row")
         bg = _C.BG_ELEVATED if header else _C.BG_BASE
@@ -188,6 +193,15 @@ class AssetsPage(QFrame):
                 f"color: {_C.TEXT_MUTED if header else _C.TEXT_SECONDARY};"
             )
             layout.addWidget(label, stretch)
+
+        if not header and file_path:
+            row.setProperty("file_path", file_path)
+            row.setContextMenuPolicy(
+                Qt.ContextMenuPolicy.CustomContextMenu
+            )
+            row.customContextMenuRequested.connect(
+                lambda pos, r=row: self._show_row_context_menu(pos, r)
+            )
         return row
 
     def _source_item(self, title: str, desc: str) -> QFrame:
@@ -214,3 +228,41 @@ class AssetsPage(QFrame):
         desc_label.setStyleSheet(f"color: {_C.TEXT_SECONDARY};")
         layout.addWidget(desc_label)
         return item
+
+    def _show_row_context_menu(self, pos, row: QFrame):
+        """Show right-click context menu for an asset row."""
+        file_path = row.property("file_path")
+        if not file_path:
+            return
+
+        menu = QMenu(self)
+        open_action = menu.addAction("打开")
+        reveal_action = menu.addAction("在 Finder 中显示")
+        menu.addSeparator()
+        delete_action = menu.addAction("删除")
+
+        chosen = menu.exec(row.mapToGlobal(pos))
+        if chosen is None:
+            return
+
+        from pathlib import Path
+
+        if chosen == open_action:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+        elif chosen == reveal_action:
+            parent = str(Path(file_path).parent)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(parent))
+        elif chosen == delete_action:
+            reply = QMessageBox.question(
+                self,
+                "确认删除",
+                "确定要从列表中移除该项吗？\n（不会删除磁盘上的文件）",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self._rows_layout.removeWidget(row)
+                row.deleteLater()
+                if self._rows_layout.count() == 0:
+                    self._empty_state.setVisible(True)
+                    self._rows_container.setVisible(False)
