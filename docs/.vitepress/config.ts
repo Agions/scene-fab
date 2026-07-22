@@ -18,7 +18,7 @@ const SIDEBAR = [
     text: '生产流程',
     collapsed: false,
     items: [
-      { text: '第一人称生产规范', link: '/guide/first-person-narration-production' },
+      { text: '第一人称生产规范', link: '/guide/narration-spec' },
       { text: 'AI 工作流详解',    link: '/guide/ai-video-guide' },
       { text: '导出发布',         link: '/guide/exporting' },
       { text: '功能边界',         link: '/features' },
@@ -151,7 +151,7 @@ export default defineConfig({
       {
         text: '生产流程',
         items: [
-          { text: '第一人称生产规范', link: '/guide/first-person-narration-production' },
+          { text: '第一人称生产规范', link: '/guide/narration-spec' },
           { text: 'AI 工作流详解',    link: '/guide/ai-video-guide' },
           { text: '导出发布',         link: '/guide/exporting' },
           { text: '功能边界',         link: '/features' },
