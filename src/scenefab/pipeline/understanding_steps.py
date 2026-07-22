@@ -25,7 +25,7 @@ import time
 from typing import TYPE_CHECKING
 
 from .fp_workflow import FIRST_PERSON_SCRIPT_RULES
-from .narration_context import (
+from .narration.context import (
     Bridge,
     BridgeType,
     NarrationContext,
