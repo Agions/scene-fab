@@ -71,7 +71,7 @@ class SceneAnalyzer:
             raise FileNotFoundError(f"视频文件不存在: {video_path}")
 
         # 获取视频时长
-        from ..video_tools.ffmpeg_tool import FFmpegTool
+        from ..video.ffmpeg_tool import FFmpegTool
 
         duration = FFmpegTool.get_duration(str(video_path))
 

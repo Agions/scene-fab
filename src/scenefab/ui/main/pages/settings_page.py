@@ -406,7 +406,7 @@ class SettingsPage(QFrame):
     @staticmethod
     def _api_provider() -> str:
         try:
-            from scenefab.settings import config_manager
+            from scenefab.settings.config import config_manager
 
             return config_manager.config.default_llm
         except Exception:

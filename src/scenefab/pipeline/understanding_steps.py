@@ -24,14 +24,14 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from .first_person_workflow import FIRST_PERSON_SCRIPT_RULES
+from .fp_workflow import FIRST_PERSON_SCRIPT_RULES
 from .narration_context import (
     Bridge,
     BridgeType,
     NarrationContext,
     ProductionStyle,
 )
-from .narration_state_machine import NarrationState, StepResult
+from .narration.state_machine import NarrationState, StepResult
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE
 
 if TYPE_CHECKING:
@@ -468,7 +468,7 @@ def _trope_to_bridge(trope) -> BridgeType | None:
 
 def _probe_duration(video_path: str) -> float:
     """探测视频时长 (经 FFmpegTool 安全执行器), 失败返回 0"""
-    from scenefab.services.video_tools.ffmpeg_tool import FFmpegTool
+    from scenefab.services.video.ffmpeg_tool import FFmpegTool
 
     return FFmpegTool.get_duration(video_path)
 
@@ -577,7 +577,7 @@ def register_understanding_steps(sm) -> None:
         sm = NarrationStateMachine()
         register_understanding_steps(sm)  # 替换 stub
     """
-    from .narration_state_machine import NarrationStateMachine
+    from .narration.state_machine import NarrationStateMachine
 
     assert isinstance(sm, NarrationStateMachine)
 

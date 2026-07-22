@@ -13,7 +13,7 @@ from typing import Any
 
 from scenefab.exceptions import ExportError
 
-from .direct_video_exporter import DirectVideoExporter
+from .video_exporter import DirectVideoExporter
 from .jianying_adapter import JianyingDraft
 from .jianying_exporter import JianyingExporter
 

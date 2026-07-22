@@ -7,7 +7,7 @@ v2.2 重构后, 旧 scene_pipeline.py + 各 Step 模块已删除 (commit 287b050
 详细架构: docs/adr/007-narration-state-machine.md
 """
 
-from .first_person_workflow import (
+from .fp_workflow import (
     FIRST_PERSON_QUALITY_GATES,
     FIRST_PERSON_SCRIPT_RULES,
     FIRST_PERSON_WORKFLOW,
@@ -15,7 +15,7 @@ from .first_person_workflow import (
     WorkflowStage,
     numbered_workflow,
 )
-from .narration import (
+from .narration.engine import (
     PLATFORM_SPECS,
     NarrationConfig,
     NarrationContext,

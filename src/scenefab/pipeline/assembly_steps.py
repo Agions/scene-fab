@@ -10,7 +10,7 @@
 
 降级策略:
 - 无 edge-tts 包: 跳过真实 TTS, 用占位音频
-- 无 video_tools.caption_generator: 用 stub 字幕
+- 无 video.caption_gen: 用 stub 字幕
 - 无 jianying_adapter: 只导出 SRT 字幕 + 草稿元数据 JSON
 - LLM 不可用: TTS_LENGTH_ADJUST 跳过"调 LLM 压缩"步骤, 保留原始 draft
 
@@ -26,8 +26,8 @@ import wave
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .narration_context import NarrationContext
-from .narration_state_machine import NarrationState, StepResult
+from .narration.context import NarrationContext
+from .narration.state_machine import NarrationState, StepResult
 from .text_utils import split_sentences
 
 if TYPE_CHECKING:
@@ -64,7 +64,7 @@ def probe_audio_duration(audio_path: Path) -> float:
 
     # 2. ffprobe (经 FFmpegTool 安全执行器)
     try:
-        from scenefab.services.video_tools.ffmpeg_tool import FFmpegTool
+        from scenefab.services.video.ffmpeg_tool import FFmpegTool
 
         dur = FFmpegTool.get_duration(str(audio_path))
         if dur > 0:
@@ -351,7 +351,7 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     # 1. 字幕生成
     ass_success = False
     try:
-        from scenefab.services.video_tools.caption_generator import CaptionGenerator
+        from scenefab.services.video.caption_gen import CaptionGenerator
 
         generator = CaptionGenerator()
         caption = generator.generate_from_text(
@@ -512,7 +512,7 @@ def _compose_video(
 
     降级: FFmpeg 不可用或源视频不存在 → 写占位 JSON, 返回 False
     """
-    from scenefab.services.video_tools.ffmpeg_tool import FFmpegTool
+    from scenefab.services.video.ffmpeg_tool import FFmpegTool
 
     source = ctx.source_video
     duration = ctx.tts_real_duration_sec or 60.0
@@ -559,7 +559,7 @@ def _compose_video(
         # Step 3: 烧录字幕 (ASS 优先, SRT 降级, 无字幕则跳过)
         sub_file = ass_path if ass_path and ass_path.exists() else subtitle_path
         if sub_file and sub_file.exists():
-            from scenefab.services.export.direct_video_exporter import (
+            from scenefab.services.export.video_exporter import (
                 VideoExportConfig,
                 build_burn_subtitles_command,
             )
@@ -626,7 +626,7 @@ def register_assembly_steps(sm) -> None:
         register_evaluation_steps(sm)
         register_assembly_steps(sm)  # 替换 TTS_LENGTH_ADJUST/TTS/ASSEMBLE
     """
-    from .narration_state_machine import NarrationStateMachine
+    from .narration.state_machine import NarrationStateMachine
 
     assert isinstance(sm, NarrationStateMachine)
 

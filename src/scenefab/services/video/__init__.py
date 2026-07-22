@@ -1,7 +1,7 @@
 """
 视频制作服务。
 
-活跃工具模块（来自 video_tools）：
+活跃工具模块（来自 video）：
 - FFmpegTool        FFmpeg 封装（视频/音频处理便捷门面）
 - hardware          硬件加速检测（HWAccelType + detect_hw_accel 等）
 - probe             ffprobe 视频元数据探测
@@ -14,15 +14,15 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Any
 
-# 视频工具（原 video_tools/__init__.py）
+# 视频工具（原 video/__init__.py）
 from . import hardware, probe
-from .base import (
+from .tool_base import (
     BaseVideoProcessor,
     IVideoProcessor,
     ProcessingResult,
     VideoMetadata,
 )
-from .caption_generator import Caption, CaptionConfig, CaptionGenerator, CaptionStyle
+from .caption_gen import Caption, CaptionConfig, CaptionGenerator, CaptionStyle
 from .ffmpeg_tool import FFmpegTool, HWAccelType
 
 # 视频制作服务（原 video/__init__.py，延迟加载）

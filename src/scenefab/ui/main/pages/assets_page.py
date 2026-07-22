@@ -31,7 +31,7 @@ from .page_widgets import (
 )
 
 if TYPE_CHECKING:
-    from scenefab.project_manager import ProjectManager
+    from scenefab.project.manager import ProjectManager
 
 
 class AssetsPage(QFrame):

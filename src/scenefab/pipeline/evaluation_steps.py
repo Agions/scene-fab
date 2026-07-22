@@ -22,10 +22,10 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from .narration_context import (
+from .narration.context import (
     NarrationContext,
 )
-from .narration_state_machine import NarrationState, StepResult
+from .narration.state_machine import NarrationState, StepResult
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE, split_sentences
 
 if TYPE_CHECKING:
@@ -50,7 +50,7 @@ def evaluate_step(ctx: NarrationContext) -> StepResult:
     start = time.time()
 
     try:
-        from .narration_evaluator import NarrationEvaluator
+        from .narration.evaluator import NarrationEvaluator
 
         evaluator = NarrationEvaluator()
         result = evaluator.evaluate(ctx)
@@ -298,7 +298,7 @@ def _select_best_hook(
 
     Returns: (best_hook_text, best_hook_score, best_style_name)
     """
-    from .narration_evaluator import NarrationEvaluator
+    from .narration.evaluator import NarrationEvaluator
 
     evaluator = NarrationEvaluator()
     best_hook = candidates[0][1]
@@ -350,7 +350,7 @@ def register_evaluation_steps(sm) -> None:
         register_understanding_steps(sm)
         register_evaluation_steps(sm)  # 替换 EVALUATE/HOOK_REWRITE
     """
-    from .narration_state_machine import NarrationStateMachine
+    from .narration.state_machine import NarrationStateMachine
 
     assert isinstance(sm, NarrationStateMachine)
 
