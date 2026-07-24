@@ -11,12 +11,12 @@
 #   make clean         清理临时文件
 
 .SUFFIXES:
-.PHONY: help build build:win build:mac build:mac-arm build:linux clean test test-cov lint format docs
+.PHONY: help build build_win build_mac build_mac_arm build_linux clean test test-cov lint format docs
 
-# ── 版本号（单一真相来源：src/scenefab/__init__.py）────────────────────
-VERSION := $(shell grep '__version__' src/scenefab/__init__.py 2>/dev/null | sed "s/.*__version__ = ['\"]//;s/['\"]//" | tr -d '[:space:]')
+# ── 版本号（单一真相来源：pyproject.toml / src/scenefab/utils/version.py）─
+VERSION := $(shell python3 -c "import sys; sys.path.insert(0, 'src'); from scenefab.utils.version import get_version_string; print(get_version_string())" 2>/dev/null)
 ifeq ($(VERSION),)
-  VERSION := 1.0.0
+  VERSION := 2.4.0
 endif
 PLATFORM := $(shell python3 -c "import sys; s='darwin' if sys.platform=='darwin' else 'win32' if sys.platform=='win32' else 'linux'; print(s)")
 
@@ -53,9 +53,9 @@ help:
 	@echo "版本: $(VERSION)"
 
 # ── 跨平台构建 ─────────────────────────────────────────────────────
-build: build:$(PLATFORM)
+build: build_$(PLATFORM)
 
-build:win:
+build_win:
 	$(step) Windows x64 构建（PyInstaller）...
 	@if [ "$(shell uname)" = "Darwin" ]; then \
 		echo "$(RED)[ERROR]$(NC) Windows 构建只能在 Windows/macOS/Linux 执行"; \
@@ -64,17 +64,17 @@ build:win:
 	@powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1 -Version $(VERSION)
 	@echo "$(GREEN)✅ Windows 构建完成: dist/SceneFab-$(VERSION)-windows-x64.zip$(NC)"
 
-build:mac:
+build_mac:
 	$(step) macOS x64 构建（PyInstaller）...
 	@bash scripts/build_macos.sh x64
 	@echo "$(GREEN)✅ macOS x64 构建完成: dist/SceneFab-$(VERSION)-macos-x64.dmg$(NC)"
 
-build:mac-arm:
+build_mac_arm:
 	$(step) macOS ARM64 构建（PyInstaller）...
 	@bash scripts/build_macos.sh arm64
 	@echo "$(GREEN)✅ macOS ARM64 构建完成: dist/SceneFab-$(VERSION)-macos-arm64.dmg$(NC)"
 
-build:linux:
+build_linux:
 	$(step) Linux x86_64 构建（Nuitka + AppImage）...
 	@bash scripts/build_linux.sh
 	@echo "$(GREEN)✅ Linux 构建完成: SceneFab-$(VERSION)-linux-x86_64.AppImage$(NC)"
