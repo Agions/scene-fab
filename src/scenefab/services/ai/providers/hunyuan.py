@@ -7,6 +7,8 @@
 使用公共混入类减少重复代码
 """
 
+import json
+
 import httpx
 
 from ..base_llm_provider import (
