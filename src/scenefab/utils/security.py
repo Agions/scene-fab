@@ -141,7 +141,9 @@ class PathValidator:
         # 转换为绝对路径
         try:
             abs_path = os.path.abspath(path)
-        except Exception as e:
+        except OSError as e:
+            # 路径解析失败 (含非法字符 / 权限 / 路径过长等)
+            # 不吞 TypeError (path 参数类型错误, 真实 bug)
             return SecurityCheckResult(False, f"路径解析失败: {e}")
 
         # 检查是否在允许的基础目录内
@@ -293,7 +295,10 @@ class SecureExecutor:
 
         except subprocess.TimeoutExpired:
             raise SecurityError(f"命令执行超时: {timeout}秒")
-        except Exception as e:
+        except (subprocess.SubprocessError, FileNotFoundError, PermissionError) as e:
+            # subprocess 失败 / 命令不存在 (FileNotFoundError 是 OSError 子类, 非 SubprocessError)
+            # / 权限不足 (PermissionError 同上)
+            # 不吞 RuntimeError/TypeError 等真实编程 bug
             raise SecurityError(f"命令执行失败: {e}")
 
     def _sanitize_env(self, env: dict[str, str] | None) -> dict[str, str] | None:
@@ -411,6 +416,21 @@ class SecureFileHandler:
             "document": ALLOWED_DOCUMENT_EXTENSIONS,
         }
 
+    def _validate_path_and_ext(self, path: str, category: str) -> None:
+        """路径 + 扩展名验证（read/write 共享）
+
+        Raises:
+            SecurityError: 验证失败
+        """
+        result = self.path_validator.validate(path)
+        if not result.passed:
+            raise SecurityError(f"路径验证失败: {result.message}")
+
+        allowed = self.allowed_extensions.get(category, ALLOWED_DOCUMENT_EXTENSIONS)
+        ext_result = self.path_validator.validate_extension(path, allowed)
+        if not ext_result.passed:
+            raise SecurityError(f"扩展名验证失败: {ext_result.message}")
+
     def read(
         self,
         path: str,
@@ -433,46 +453,31 @@ class SecureFileHandler:
         Raises:
             SecurityError: 安全验证失败
         """
-        # 验证路径
-        result = self.path_validator.validate(path)
-        if not result.passed:
-            raise SecurityError(f"路径验证失败: {result.message}")
-
-        # 验证扩展名
-        allowed = self.allowed_extensions.get(category, ALLOWED_DOCUMENT_EXTENSIONS)
-        ext_result = self.path_validator.validate_extension(path, allowed)
-        if not ext_result.passed:
-            raise SecurityError(f"扩展名验证失败: {ext_result.message}")
+        self._validate_path_and_ext(path, category)
 
         # 检查文件大小
         try:
             size = os.path.getsize(path)
             if size > max_size:
                 raise SecurityError(f"文件过大: {size} > {max_size}")
-        except Exception as e:
+        except OSError as e:
+            # 文件不存在 / 权限不足 / 路径无效
             raise SecurityError(f"无法获取文件大小: {e}")
 
         # 读取文件
         try:
             with open(path, mode) as f:
                 return f.read()  # type: ignore[no-any-return]
-        except Exception as e:
+        except OSError as e:
+            # 文件不存在 / 权限不足 / 磁盘错误
+            # 不吞 TypeError (mode 参数错误, 真实 bug)
             raise SecurityError(f"文件读取失败: {e}")
 
     def write(
         self, path: str, content: str, mode: str = "w", category: str = "document"
     ) -> None:
         """安全写入文件"""
-        # 验证路径
-        result = self.path_validator.validate(path)
-        if not result.passed:
-            raise SecurityError(f"路径验证失败: {result.message}")
-
-        # 验证扩展名
-        allowed = self.allowed_extensions.get(category, ALLOWED_DOCUMENT_EXTENSIONS)
-        ext_result = self.path_validator.validate_extension(path, allowed)
-        if not ext_result.passed:
-            raise SecurityError(f"扩展名验证失败: {ext_result.message}")
+        self._validate_path_and_ext(path, category)
 
         # 确保目录存在
         dir_path = os.path.dirname(path)
@@ -483,7 +488,9 @@ class SecureFileHandler:
         try:
             with open(path, mode) as f:
                 f.write(content)
-        except Exception as e:
+        except OSError as e:
+            # 磁盘满 / 权限不足 / 路径无效
+            # 不吞 TypeError (content/mode 类型错误, 真实 bug)
             raise SecurityError(f"文件写入失败: {e}")
 
 
@@ -535,6 +542,11 @@ def validate_video_path(path: str, base_dir: str | None = None) -> SecurityCheck
 # 所有使用 ffmpeg/ffprobe 的模块统一使用此单例，避免重复实例化
 _FFMPEG_EXECUTOR: SecureExecutor | None = None
 
+# ============ 全局 Probe Executor 单例 ============
+# 只读能力探测 (nvidia-smi / wmic / cpuinfo 等) 走此单例,
+# 仍受白名单审计 + 路径校验约束, 但不限定在 ffmpeg 工具集.
+_PROBE_EXECUTOR: SecureExecutor | None = None
+
 
 def get_ffmpeg_executor() -> SecureExecutor:
     """
@@ -553,3 +565,25 @@ def get_ffmpeg_executor() -> SecureExecutor:
             allowed_commands=["ffmpeg", "ffprobe"],
         )
     return _FFMPEG_EXECUTOR
+
+
+def get_probe_executor() -> SecureExecutor:
+    """
+    获取全局 read-only 探测安全执行器单例。
+
+    用于硬件/系统能力探测 (nvidia-smi / wmic / cpuinfo 等)。
+    仍受 SecureExecutor 审计链约束 (白名单 + 路径 + shell=False + env sanitization),
+    仅扩展白名单允许探测工具, 不影响 ffmpeg 主执行器。
+
+    白名单可扩展: 调用方传 allowed_commands= 可覆盖默认。
+
+    Returns:
+        SecureExecutor: 已配置好的执行器（nvidia-smi, wmic）
+    """
+    global _PROBE_EXECUTOR
+    if _PROBE_EXECUTOR is None:
+        _PROBE_EXECUTOR = SecureExecutor(
+            allowed_base_dirs=[str(Path.home())],
+            allowed_commands=["nvidia-smi", "wmic"],
+        )
+    return _PROBE_EXECUTOR

@@ -26,6 +26,7 @@ AI 第一人称独白制作器 (Monologue Maker)
 
 import logging
 import re
+import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from enum import Enum
@@ -289,7 +290,9 @@ class MonologueMaker(BaseVideoMaker[MonologueProject]):
         if project.video_duration <= 0:
             try:
                 project.video_duration = FFmpegTool.get_duration(source_video) or 0.0
-            except Exception as e:
+            except (subprocess.SubprocessError, FileNotFoundError, OSError) as e:
+                # FFmpegTool.get_duration 失败: 子进程错误 / FFmpeg 未安装 / OS 错误
+                # 不吞 RuntimeError/TypeError 等真实编程 bug
                 logger.warning(f"Failed to get video duration for {source_video}: {e}")
                 project.video_duration = 0.0
 
@@ -328,34 +331,14 @@ class MonologueMaker(BaseVideoMaker[MonologueProject]):
         self._report_progress("生成独白", 1.0)
 
     def _segment_script(self, project: MonologueProject) -> None:
-        """将独白分段 — 支持空白行和中文句末标点双重拆分"""
-        # 优先按空白行分段，否则按中文句末标点分
-        paragraphs = [p.strip() for p in project.full_script.split("\n\n") if p.strip()]
+        """将独白分段 — 支持空白行和中文句末标点双重拆分
 
-        if len(paragraphs) <= 1:
-            # 按句末标点拆分（保留标点）
-            parts = re.split(r"([。！？\?!]+)", project.full_script)
-            merged = []
-            for i in range(0, len(parts) - 1, 2):
-                text = parts[i] + (parts[i + 1] if i + 1 < len(parts) else "")
-                if text.strip():
-                    merged.append(text.strip())
-            # 合并过短的碎片
-            if merged and len(merged) > 3:
-                paragraphs = []
-                buf = ""
-                for p in merged:
-                    buf += p
-                    if len(buf) >= 30:
-                        paragraphs.append(buf)
-                        buf = ""
-                if buf:
-                    paragraphs.append(buf)
-            elif merged:
-                paragraphs = merged
-
-        if not paragraphs:
-            paragraphs = [project.full_script]
+        流程:
+        1. 优先按 \\n\\n 段落分
+        2. 否则按中文句末标点分, 合并过短碎片
+        3. 匹配场景 + 推断情感 + 计算时长 → 创建 MonologueSegment
+        """
+        paragraphs = self._split_paragraphs(project.full_script)
 
         # 匹配场景
         scenes = project.scenes if project.scenes else [None]
@@ -379,6 +362,33 @@ class MonologueMaker(BaseVideoMaker[MonologueProject]):
                 video_end=scene.end if scene else (i + 1) * seg_duration,
             )
             project.segments.append(segment)
+
+    def _split_paragraphs(self, full_script: str) -> list[str]:
+        """将独白文本拆分为段落列表
+
+        拆分策略:
+        - 优先按空行 (\\n\\n) 切分
+        - 若只有 1 段 (无空行), 改按中文句末标点 (。！？?!) 切分
+        - 标点切分时若碎片过短 (merged > 3 且 buf < 30 字), 合并到 30 字以上
+
+        Returns:
+            段落列表 (至少 1 段)
+        """
+        # 优先按空白行分段
+        paragraphs = [p.strip() for p in full_script.split("\n\n") if p.strip()]
+
+        if len(paragraphs) > 1:
+            return paragraphs
+
+        # 按中文句末标点拆分（保留标点）
+        paragraphs = _split_by_chinese_punctuation(full_script)
+        if not paragraphs:
+            return [full_script]
+
+        # 碎片合并: 仅当碎片数 > 3 才合并到 30 字以上, 否则保留原样
+        if len(paragraphs) > 3:
+            return _merge_short_fragments(paragraphs, min_chars=30)
+        return paragraphs
 
     def _infer_emotion(self, text: str, base_emotion: str) -> EmotionType:
         """根据文本内容推断情感"""
@@ -567,36 +577,44 @@ class MonologueMaker(BaseVideoMaker[MonologueProject]):
             if part in ("。", "！", "？"):
                 current_text += part
                 if len(current_text.strip()) >= 2:
-                    duration = (
-                        len(current_text) / segment_words
-                    ) * segment.audio_duration
-                    captions.append(
-                        self._build_fallback_caption(
-                            current_text,
-                            caption_cfg,
-                            current_start,
-                            duration,
-                            segment.emotion.value,
-                        )
+                    self._emit_fallback_caption(
+                        captions, current_text, segment, caption_cfg,
+                        segment_words, current_start,
                     )
+                    duration = len(current_text) / segment_words * segment.audio_duration
                     current_start += duration
                     current_text = ""
             else:
                 current_text += part
 
         if current_text.strip() and len(current_text.strip()) >= 2:
-            duration = (len(current_text) / segment_words) * segment.audio_duration
-            captions.append(
-                self._build_fallback_caption(
-                    current_text,
-                    caption_cfg,
-                    current_start,
-                    duration,
-                    segment.emotion.value,
-                )
+            self._emit_fallback_caption(
+                captions, current_text, segment, caption_cfg,
+                segment_words, current_start,
             )
 
         return captions
+
+    def _emit_fallback_caption(
+        self,
+        captions: list,
+        current_text: str,
+        segment,
+        caption_cfg,
+        segment_words: int,
+        current_start: float,
+    ) -> None:
+        """构造 fallback caption（loop 内 + 尾随双调用共享）"""
+        duration = (len(current_text) / segment_words) * segment.audio_duration
+        captions.append(
+            self._build_fallback_caption(
+                current_text,
+                caption_cfg,
+                current_start,
+                duration,
+                segment.emotion.value,
+            )
+        )
 
     def _build_fallback_caption(
         self,
@@ -669,3 +687,44 @@ def create_monologue(
     maker.generate_captions(project)
 
     return maker.export_to_jianying(project, output_jianying_dir)
+
+
+# ============================================
+# MonologueMaker._split_paragraphs 的 2 个纯函数辅助
+# ============================================
+
+
+def _split_by_chinese_punctuation(text: str) -> list[str]:
+    """按中文 + 英文句末标点拆分, 保留标点.
+
+    支持的标点: 。 ！ ？ ? !
+
+    Example:
+        "你好。今天！是吗?" → ["你好。", "今天！", "是吗?"]
+    """
+    parts = re.split(r"([。！？\?!]+)", text)
+    result: list[str] = []
+    for i in range(0, len(parts) - 1, 2):
+        chunk = parts[i] + (parts[i + 1] if i + 1 < len(parts) else "")
+        if chunk.strip():
+            result.append(chunk.strip())
+    return result
+
+
+def _merge_short_fragments(fragments: list[str], min_chars: int = 30) -> list[str]:
+    """合并短碎片, 每段累计到至少 min_chars 字才输出.
+
+    Example:
+        ["短。", "也短。", "再来一句凑够30字。", "短。"] (min_chars=10) →
+        ["短。也短。再来一句凑够30字。短。"]
+    """
+    result: list[str] = []
+    buf = ""
+    for frag in fragments:
+        buf += frag
+        if len(buf) >= min_chars:
+            result.append(buf)
+            buf = ""
+    if buf:
+        result.append(buf)
+    return result

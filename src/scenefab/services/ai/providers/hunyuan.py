@@ -72,8 +72,10 @@ class HunyuanProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
             )
         except httpx.HTTPStatusError as e:
             raise self._handle_http_error(e)
-        except Exception as e:
-            raise ProviderError(f"生成失败: {str(e)}")
+        except httpx.HTTPError as e:
+            raise ProviderError(f"生成失败 (网络错误): {e}") from e
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            raise ProviderError(f"生成失败 (响应解析): {e}") from e
 
         if response.status_code != 200:
             raise ProviderError(f"API Error: {response.status_code}")
@@ -114,6 +116,7 @@ class HunyuanProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
                 },
             ) as response:
                 response.raise_for_status()
+<<<<<<< HEAD
                 async for data in self._iter_json_stream_payloads(response, sse=False):
                     choices = data.get("Choices", [])
                     if choices:
@@ -122,3 +125,21 @@ class HunyuanProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
                             yield delta["Content"]
         except Exception as e:
             raise self._stream_provider_error(e)
+=======
+                async for line in response.aiter_lines():
+                    if line:
+                        try:
+                            data = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        if "Choices" in data:
+                            delta = data["Choices"][0].get("Delta", {})
+                            if "Content" in delta:
+                                yield delta["Content"]
+        except httpx.HTTPStatusError as e:
+            raise self._handle_http_error(e)
+        except httpx.HTTPError as e:
+            raise ProviderError(f"流式生成失败 (网络错误): {e}") from e
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            raise ProviderError(f"流式生成失败 (响应解析): {e}") from e
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

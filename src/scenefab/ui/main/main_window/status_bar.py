@@ -84,5 +84,12 @@ class StatusBar(QFrame):
     def clear_info(self):
         while self._info_labels.count():
             item = self._info_labels.takeAt(0)
+<<<<<<< HEAD
             if item.widget():  # type: ignore[union-attr]
                 item.widget().deleteLater()  # type: ignore[union-attr]
+=======
+            assert item is not None  # for type checker
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

@@ -13,22 +13,26 @@
 - 无 video.caption_gen: 用 stub 字幕
 - 无 jianying_adapter: 只导出 SRT 字幕 + 草稿元数据 JSON
 - LLM 不可用: TTS_LENGTH_ADJUST 跳过"调 LLM 压缩"步骤, 保留原始 draft
-
-v2.2 决策: docs/adr/007-narration-state-machine.md
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import subprocess
 import time
 import wave
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+<<<<<<< HEAD
 from .narration.context import NarrationContext
 from .narration.state_machine import NarrationState, StepResult
 from .text_utils import split_sentences
+=======
+from .narration_context import NarrationContext
+from .narration_state_machine import NarrationState, StepResult, success_step
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 if TYPE_CHECKING:
     pass
@@ -69,7 +73,9 @@ def probe_audio_duration(audio_path: Path) -> float:
         dur = FFmpegTool.get_duration(str(audio_path))
         if dur > 0:
             return dur
-    except Exception:  # noqa: BLE001
+    except (subprocess.SubprocessError, FileNotFoundError, OSError):
+        # FFmpeg subprocess 失败 / FFmpeg 未安装 / 文件不存在
+        # 不吞 RuntimeError/TypeError 等真实编程 bug
         pass
 
     # 3. 文件大小估算 (16kbps 兜底)
@@ -119,17 +125,7 @@ def tts_length_adjust_step(ctx: NarrationContext) -> StepResult:
     needs_adjust = deviation > 0.05  # 偏离 > 5% 才调
 
     if not needs_adjust:
-        duration_ms = (time.time() - start) * 1000
-        return StepResult(
-            success=True,
-            state=NarrationState.TTS_LENGTH_ADJUST,
-            duration_ms=duration_ms,
-            message=(
-                f"tts_length_adjust: 时长 OK (est={estimated_sec:.1f}s, "
-                f"target={target_sec:.1f}s, 偏离 {deviation * 100:.1f}% < 5%)"
-            ),
-            data={"deviation": deviation, "adjusted": False},
-        )
+        return success_step(start, state=NarrationState.TTS_LENGTH_ADJUST, message=f'tts_length_adjust: 时长 OK (est={estimated_sec:.1f}s, target={target_sec:.1f}s, 偏离 {deviation * 100:.1f}% < 5%)', data={'deviation': deviation, 'adjusted': False})
 
     # 3. 需要调整: 调 LLM 压缩/扩展
     try:
@@ -140,36 +136,12 @@ def tts_length_adjust_step(ctx: NarrationContext) -> StepResult:
             new_estimated = new_chars / ctx.platform_spec.char_per_second
             ctx.tts_real_duration_sec = new_estimated
 
-            duration_ms = (time.time() - start) * 1000
-            return StepResult(
-                success=True,
-                state=NarrationState.TTS_LENGTH_ADJUST,
-                duration_ms=duration_ms,
-                message=(
-                    f"tts_length_adjust: 调整 {actual_chars}→{new_chars} 字, "
-                    f"est {estimated_sec:.1f}s→{new_estimated:.1f}s"
-                ),
-                data={
-                    "deviation_before": deviation,
-                    "chars_before": actual_chars,
-                    "chars_after": new_chars,
-                    "adjusted": True,
-                },
-            )
+            return success_step(start, state=NarrationState.TTS_LENGTH_ADJUST, message=f'tts_length_adjust: 调整 {actual_chars}→{new_chars} 字, est {estimated_sec:.1f}s→{new_estimated:.1f}s', data={'deviation_before': deviation, 'chars_before': actual_chars, 'chars_after': new_chars, 'adjusted': True})
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[{ctx.trace_id[:8]}] LLM 长度调整失败, 保留原 draft: {e}")
 
     # 4. 降级: 保留原 draft (Phase 1 行为)
-    duration_ms = (time.time() - start) * 1000
-    return StepResult(
-        success=True,
-        state=NarrationState.TTS_LENGTH_ADJUST,
-        duration_ms=duration_ms,
-        message=(
-            f"tts_length_adjust: 偏离 {deviation * 100:.1f}% > 5% 但 LLM 不可用, 保留原 draft"
-        ),
-        data={"deviation": deviation, "adjusted": False, "fallback": True},
-    )
+    return success_step(start, state=NarrationState.TTS_LENGTH_ADJUST, message=f'tts_length_adjust: 偏离 {deviation * 100:.1f}% > 5% 但 LLM 不可用, 保留原 draft', data={'deviation': deviation, 'adjusted': False, 'fallback': True})
 
 
 def _adjust_draft_length_via_llm(
@@ -266,21 +238,7 @@ def tts_step(ctx: NarrationContext) -> StepResult:
             ctx.tts_real_duration_sec = real_duration
 
         ctx.tts_audio_path = audio_path
-        duration_ms = (time.time() - start) * 1000
-        return StepResult(
-            success=True,
-            state=NarrationState.TTS,
-            duration_ms=duration_ms,
-            message=(
-                f"tts: Edge-TTS 完成 ({len(ctx.current_draft)} 字, "
-                f"音频 {real_duration:.1f}s @ {audio_path.name})"
-            ),
-            data={
-                "audio_path": str(audio_path),
-                "duration_sec": real_duration,
-                "chars": len(ctx.current_draft),
-            },
-        )
+        return success_step(start, state=NarrationState.TTS, message=f'tts: Edge-TTS 完成 ({len(ctx.current_draft)} 字, 音频 {real_duration:.1f}s @ {audio_path.name})', data={'audio_path': str(audio_path), 'duration_sec': real_duration, 'chars': len(ctx.current_draft)})
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[{ctx.trace_id[:8]}] Edge-TTS 失败, 降级 stub: {e}")
         return _tts_stub(ctx, audio_path, start)
@@ -295,7 +253,9 @@ def _tts_stub(ctx: NarrationContext, audio_path: Path, start: float) -> StepResu
             wf.setsampwidth(2)
             wf.setframerate(16000)
             wf.writeframes(b"\x00" * 3200)  # 0.1s
-    except Exception as e:  # noqa: BLE001
+    except (OSError, wave.Error) as e:
+        # wave 写文件失败 / WAV 格式错
+        # 不吞 TypeError (wf 方法调用错, 真实 bug)
         return StepResult(
             success=False,
             state=NarrationState.TTS,
@@ -307,14 +267,7 @@ def _tts_stub(ctx: NarrationContext, audio_path: Path, start: float) -> StepResu
     ctx.tts_real_duration_sec = estimated_sec
     ctx.tts_audio_path = audio_path
 
-    duration_ms = (time.time() - start) * 1000
-    return StepResult(
-        success=True,
-        state=NarrationState.TTS,
-        duration_ms=duration_ms,
-        message=f"tts: 降级 stub (估算 {estimated_sec:.1f}s, {audio_path.name})",
-        data={"audio_path": str(audio_path), "fallback": True},
-    )
+    return success_step(start, state=NarrationState.TTS, message=f'tts: 降级 stub (估算 {estimated_sec:.1f}s, {audio_path.name})', data={'audio_path': str(audio_path), 'fallback': True})
 
 
 # ============================================
@@ -376,12 +329,15 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     try:
         _write_jianying_metadata(ctx, jianying_path)
         jianying_success = True
-    except Exception as e:  # noqa: BLE001
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
+        # 文件 IO 失败 / JSON 序列化失败 / 字段类型错
+        # 不吞 RuntimeError/AttributeError 等真实编程 bug
         logger.warning(f"剪映草稿元数据生成失败: {e}")
 
     # 3. 视频合成 (真实 FFmpeg: trim → add_audio → burn_subtitles)
     video_success = False
     try:
+<<<<<<< HEAD
         video_success = _compose_video(
             video_path, ctx,
             subtitle_path=subtitle_path,
@@ -389,6 +345,13 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
         )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"视频合成失败: {e}")
+=======
+        _write_placeholder_video(video_path, ctx)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
+        # 文件 IO 失败 / JSON 序列化失败 / 字段类型错
+        # 不吞 RuntimeError/AttributeError 等真实编程 bug
+        logger.warning(f"占位视频写入失败: {e}")
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     # 4. 更新 ctx 终态
     ctx.final_narration = ctx.current_draft
@@ -396,6 +359,7 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     ctx.final_subtitle_path = subtitle_path
     ctx.final_video_path = video_path
 
+<<<<<<< HEAD
     duration_ms = (time.time() - start) * 1000
     video_label = "视频合成" if video_success else "视频占位"
     return StepResult(
@@ -415,6 +379,9 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
             "jianying_path": str(jianying_path) if jianying_success else None,
         },
     )
+=======
+    return success_step(start, state=NarrationState.ASSEMBLE, message=f'assemble: 字幕 + 草稿 + 视频占位完成 (ASS={ass_success}, 剪映={jianying_success}, {subtitle_path.name})', data={'subtitle_path': str(subtitle_path), 'ass_path': str(ass_path) if ass_success else None, 'video_path': str(video_path), 'jianying_path': str(jianying_path) if jianying_success else None})
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 # ============================================

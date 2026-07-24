@@ -101,7 +101,9 @@ class Project:
                 f.write(str(os.getpid()))
             self.is_modified = False
             return True
-        except Exception as e:
+        except (OSError, TypeError, ValueError) as e:
+            # 文件写入失败 / project_data 结构错 / 字段类型错
+            # 不吞 RuntimeError/AttributeError 等真实编程 bug
             logging.error(f"Failed to save project {self.id}: {e}")
             return False
 
@@ -121,7 +123,9 @@ class Project:
             self.is_loaded = True
             self.is_modified = False
             return True
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            # 文件读取失败 / JSON 解析失败 / 字段缺失 / 数据结构错
+            # 不吞 RuntimeError/AttributeError 等真实编程 bug
             logging.error(f"Failed to load project {self.id}: {e}")
             return False
 
@@ -144,7 +148,9 @@ class Project:
             }
             write_json(os.path.join(backup_path, "backup_info.json"), backup_info)
             return backup_path
-        except Exception as e:
+        except (OSError, TypeError, ValueError) as e:
+            # 目录创建失败/文件写入失败 / backup_info 字段类型错
+            # 不吞 RuntimeError/AttributeError 等真实编程 bug
             logging.error(f"Failed to create backup for project {self.id}: {e}")
             return None
 
@@ -165,7 +171,9 @@ class Project:
             backups.sort(key=lambda x: x[1], reverse=True)
             for backup_path, _ in backups[keep_count:]:
                 shutil.rmtree(backup_path)
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, KeyError) as e:
+            # 文件读取失败 / JSON 解析失败 / 字段缺失
+            # 不吞 RuntimeError/TypeError 等真实编程 bug
             logging.error(f"Failed to cleanup backups for project {self.id}: {e}")
 
 
@@ -253,7 +261,7 @@ class ProjectManager(QObject):
         try:
             import psutil
 
-            return psutil.pid_exists(int(pid_str))  # type: ignore[no-any-return, attr-defined]  # type: ignore[attr-defined]
+            return psutil.pid_exists(int(pid_str))  # type: ignore[no-any-return]
         except (ImportError, ValueError):
             return False
 
@@ -464,5 +472,7 @@ class ProjectManager(QObject):
         if os.path.exists(self.temp_dir):
             try:
                 shutil.rmtree(self.temp_dir)
-            except Exception as e:
+            except OSError as e:
+                # 权限不足 / 目录不存在 / 文件被占用
+                # 不吞 TypeError (temp_dir 类型错, 真实 bug)
                 self.logger.warning(f"Failed to cleanup temp dir: {e}")

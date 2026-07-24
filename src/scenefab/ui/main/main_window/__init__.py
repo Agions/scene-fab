@@ -1,33 +1,55 @@
+#!/usr/bin/env python3
 """
 SceneFab 主窗口包
 
-专业生产工作台布局:
-- 左侧文本导航
-- 顶部操作栏
-- 中央生产页面
-- 底部状态栏
+职责划分(Phase 1 重构后):
+- ``MainWindow``  本类 — 仅负责装配 Sidebar / TopBar / ContentArea / StatusBar
+  并把信号接起来。无业务、无路由、无托盘。
+- ``PageRouter``     — 懒加载 + 页面切换 (ui/main/page_router.py)
+- ``SystemTrayController`` — 托盘菜单 + 关闭拦截 (ui/main/system_tray.py)
+- ``registry``       — 页面元数据 + 工厂 (ui/main/registry.py)
 """
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 from PySide6.QtCore import QSettings, Qt
 from PySide6.QtGui import QAction, QKeySequence
+=======
+from typing import TYPE_CHECKING
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
+<<<<<<< HEAD
     QShortcut,
+=======
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     QVBoxLayout,
     QWidget,
 )
 
-from scenefab.ui.theme.ds_tokens import _C, FontSizes, Radii
+from scenefab.ui.main.main_window.content_area import ContentArea
+from scenefab.ui.main.main_window.nav_components import Sidebar
+from scenefab.ui.main.main_window.status_bar import StatusBar
+from scenefab.ui.main.main_window.top_bar import TopBar
+from scenefab.ui.main.page_router import PageRouter
+from scenefab.ui.main.registry import NAV_ITEMS, PAGE_TITLES
+from scenefab.ui.main.system_tray import SystemTrayController
+from scenefab.ui.theme.ds_tokens import (
+    _C,
+    FontSizes,
+    QSSComponents,
+    Radii,
+    set_theme_mode,
+)
+from scenefab.ui.theme.runtime import ThemeAwareMixin, restyle_app
 
-from .content_area import ContentArea
-from .nav_components import Sidebar
-from .status_bar import StatusBar
-from .top_bar import TopBar
+if TYPE_CHECKING:
+    from scenefab.application import Application
 
 # 支持拖入的视频文件扩展名
 _VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi", ".mkv")
@@ -57,27 +79,46 @@ _ALL_PRODUCTION_STEPS = (
 )
 
 
-class SceneFabMainWindow(QMainWindow):
-    """SceneFab 主窗口"""
+class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
+    """SceneFab 主窗口 — 装配器,只做信号路由。
 
-    PAGE_TITLES = {
-        "home": ("工作台", ""),
-        "create": ("创作流程", ""),
-        "assets": ("项目资产", ""),
-        "settings": ("设置", ""),
-    }
+    Phase 1 之后不直接持有页面、不直接读 services、不直接管托盘。
+    注入的 ``application`` 实例在 Phase 2 才会被 ViewModel 消费。
 
+<<<<<<< HEAD
     def __init__(self, application=None):
+=======
+    现在通过 :class:`ThemeAwareMixin` 接入运行时主题切换:
+    :func:`build_global_stylesheet` 在每次主题变更后被
+    :meth:`apply_theme` 重新求值,新的 ``_C.X`` 字面值注入到
+    QApplication 级别的 ``*`` selector 块里。
+    """
+
+    def __init__(self, application: Application | None = None) -> None:
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         super().__init__()
         self._application = application
         self.setWindowTitle("SceneFab")
         self.setMinimumSize(1200, 720)
+<<<<<<< HEAD
         self._tray = None
         self._minimize_to_tray_enabled = False
         self._quitting = False
         self._last_project = None  # 最近一次生产完成的项目（MonologueProject）
         self._theme_manager = None
         self.setAcceptDrops(True)
+=======
+        self.setStyleSheet(self.build_global_stylesheet())
+
+        # 子组件
+        self.sidebar: Sidebar
+        self.content: ContentArea
+        self.topbar: TopBar
+        self.statusbar: StatusBar
+        self.router: PageRouter
+        self.tray: SystemTrayController
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         self._setup_ui()
 
         # 恢复窗口几何（首次启动使用默认尺寸）
@@ -89,6 +130,7 @@ class SceneFabMainWindow(QMainWindow):
             self.resize(1200, 720)
 
         self._connect_signals()
+<<<<<<< HEAD
         self._apply_global_style()
         self._apply_saved_theme()
         self._init_tray()
@@ -100,6 +142,16 @@ class SceneFabMainWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         # 垂直布局：顶部栏 + 上半为 [侧边栏 | 主内容]，底部为状态栏
+=======
+
+    # ──────────────────────────────────────────────────────────
+    # 装配
+    # ──────────────────────────────────────────────────────────
+
+    def _setup_ui(self) -> None:
+        central = QWidget()
+        self.setCentralWidget(central)
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         outer = QVBoxLayout(central)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
@@ -109,21 +161,20 @@ class SceneFabMainWindow(QMainWindow):
         outer.addWidget(self.topbar)
 
         body = QWidget()
-        root = QHBoxLayout(body)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(0)
+        root_layout = QHBoxLayout(body)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(0)
 
-        # 侧边栏
-        self.sidebar = Sidebar()
-        root.addWidget(self.sidebar)
+        self.sidebar = Sidebar(NAV_ITEMS)
+        root_layout.addWidget(self.sidebar)
 
-        # 主内容
         self.content = ContentArea()
-        self._lazy_load_pages()
-        root.addWidget(self.content, 1)
+        self.router = PageRouter(self.content, application=self._application, parent=self)
+        root_layout.addWidget(self.content, 1)
 
         outer.addWidget(body, 1)
 
+<<<<<<< HEAD
         # 状态栏（自绘 QFrame，置于底部，而非 QMainWindow.setStatusBar）
         self.statusbar = StatusBar()
         outer.addWidget(self.statusbar)
@@ -236,9 +287,25 @@ class SceneFabMainWindow(QMainWindow):
             home.update_recent_projects(project_manager.get_recent_projects())
 
     def _connect_signals(self):
-        self.sidebar.navigated.connect(self._on_navigate)
-        self.topbar.action_triggered.connect(self._on_action)
+=======
+        self.topbar = TopBar("工作台")
+        self.setMenuWidget(self.topbar)
 
+        self.statusbar = StatusBar()
+        outer.addWidget(self.statusbar)
+
+        self.tray = SystemTrayController(self)
+
+    def _connect_signals(self) -> None:
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+        self.sidebar.navigated.connect(self._on_navigate)
+        self.router.page_changed.connect(self._on_page_changed)
+        self.topbar.action_triggered.connect(self._on_action)
+        self.tray.show_window_requested.connect(self._restore_from_tray)
+        self.tray.open_settings_requested.connect(self._open_settings_from_tray)
+        self.tray.quit_requested.connect(self._quit_application)
+
+<<<<<<< HEAD
     # ══════════════════════════════════════════════════════════════
     # 系统托盘集成
     # ══════════════════════════════════════════════════════════════
@@ -290,22 +357,29 @@ class SceneFabMainWindow(QMainWindow):
         if self._quitting:
             self._save_geometry()
             event.accept()
+=======
+    def _on_page_changed(self, page_id: str) -> None:
+        spec = PAGE_TITLES.get(page_id)
+        if spec is None:
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             return
-        if (
-            self._minimize_to_tray_enabled
-            and self._tray is not None
-            and self._tray.is_enabled
-            and self._tray.is_available
-        ):
-            event.ignore()
-            self.hide()
-            if not hasattr(self, "_tray_hint_shown"):
-                self._tray.show_notification(
-                    "SceneFab",
-                    "应用已最小化到系统托盘。双击图标或右键菜单可恢复窗口。",
-                )
-                self._tray_hint_shown = True
+        self.topbar.set_title(spec.title, spec.breadcrumb)
+        self.statusbar.set_status(f"当前: {spec.title}")
+        # Lazy-connect the settings page theme_changed signal: routes
+        # through here once the user has opened the page at least once.
+        if page_id == "settings":
+            self._wire_theme_switcher()
+
+    def _wire_theme_switcher(self) -> None:
+        """Connect :attr:`SettingsPage.theme_changed` exactly once.
+
+        The router caches pages, so the same ``SettingsPage`` instance is
+        re-shown across visits — guarding the connect with a flag avoids
+        duplicate slots firing twice on repeat navigation.
+        """
+        if getattr(self, "_theme_signal_wired", False):
             return
+<<<<<<< HEAD
         # 生产流程运行中时请求确认
         worker = getattr(self, "_production_worker", None)
         if worker is not None and worker.isRunning():
@@ -354,16 +428,40 @@ class SceneFabMainWindow(QMainWindow):
         title, breadcrumb = self.PAGE_TITLES.get(page_id, (page_id, ""))
         self.topbar.set_title(title, breadcrumb)
         self.statusbar.set_status(f"当前: {title}")
+=======
+        page = self.router._page_map.get("settings")
+        connect = getattr(page, "theme_changed", None)
+        if connect is None:
+            return
+        connect.connect(self._on_theme_switched)
+        self._theme_signal_wired = True
 
-    def navigate_to(self, page_id: str, **kwargs):
-        """导航到指定页面（公共接口）"""
-        self._on_navigate(page_id)
+    def _on_theme_switched(self, mode: str) -> None:
+        """Apply a new theme: rebind tokens → restyle the whole tree.
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
-    @property
-    def app(self):
-        """获取 QApplication 实例"""
-        return QApplication.instance()
+        Iterates over every cached page that mixes in
+        :class:`ThemeAwareMixin` and calls :meth:`apply_theme` so
+        already-rendered widgets pick up the new ``_C`` literals.
+        """
+        set_theme_mode(mode)
+        # Update self first so the global ``*`` block picks up new colours.
+        self.apply_theme()
+        # Then walk every ThemeAwareMixin page in the cache.
+        for page in getattr(self.router, "_page_map", {}).values():  # pragma: no cover
+            apply = getattr(page, "apply_theme", None)
+            if callable(apply):
+                try:
+                    apply()
+                except Exception:  # noqa: BLE001 — be tolerant of buggy pages
+                    pass
+        # Finally let Qt re-polish non-themed widgets (e.g. native dialogs).
+        restyle_app()
 
+    def build_global_stylesheet(self) -> str:
+        """Return the QApplication-level stylesheet using the **current** ``_C`` values.
+
+<<<<<<< HEAD
     def show_message(self, message: str, level: str = "info"):
         """显示消息提示"""
         from PySide6.QtWidgets import QMessageBox
@@ -757,6 +855,13 @@ class SceneFabMainWindow(QMainWindow):
 
     def _apply_global_style(self):
         self.setStyleSheet(f"""  # type: ignore[attr-defined]
+=======
+        Re-evaluated every time :meth:`ThemeAwareMixin.apply_theme`
+        is called (via :func:`restyle_app` triggered by SettingsPage),
+        so colour literals stay in sync after :func:`set_theme_mode`.
+        """
+        prefix = f"""
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             QMainWindow {{
                 background: {_C.BG_BASE};
                 outline: none;
@@ -774,14 +879,22 @@ class SceneFabMainWindow(QMainWindow):
                 color: {_C.PRIMARY_DARKER};
                 border-color: {_C.PRIMARY};
             }}
+<<<<<<< HEAD
             QToolTip {{
                 background: {_C.TEXT_PRIMARY};
                 color: {_C.TEXT_INVERSE};
                 border: 1px solid {_C.TEXT_PRIMARY};
+=======
+            QTooltip {{
+                background: {_C.BG_OVERLAY};
+                color: {_C.TEXT_PRIMARY};
+                border: 1px solid {_C.BORDER_DEFAULT};
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
                 border-radius: {Radii.sm};
                 padding: 6px 10px;
                 font-size: {FontSizes.xs}px;
             }}
+<<<<<<< HEAD
             QScrollBar:vertical {{
                 background: transparent;
                 width: 6px;
@@ -808,11 +921,82 @@ class SceneFabMainWindow(QMainWindow):
                 border-radius: 3px;
                 min-width: 40px;
             }}
+=======
+        """
+        suffix = f"""
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             * {{
                 selection-background-color: {_C.PRIMARY};
                 selection-color: {_C.TEXT_INVERSE};
             }}
-        """)
+        """
+        return prefix + QSSComponents.scrollbar() + suffix
+
+    # ThemeAwareMixin hook: route _build_stylesheet to the live builder above
+    def _build_stylesheet(self) -> str:
+        return self.build_global_stylesheet()
+
+    # ──────────────────────────────────────────────────────────
+    # 路由 + 动作
+    # ──────────────────────────────────────────────────────────
+
+    def _on_navigate(self, page_id: str) -> None:
+        self.router.navigate(page_id)
+
+    def navigate_to(self, page_id: str, **_kwargs: object) -> None:
+        """公共导航接口(供其他模块从外部跳转)。"""
+        self._on_navigate(page_id)
+
+    def _on_action(self, action_id: str) -> None:
+        if action_id == "export":
+            self._on_navigate("create")
+            self.statusbar.set_status("请在创作流程完成后导出成片")
+
+    # ──────────────────────────────────────────────────────────
+    # 托盘 / 关闭
+    # ──────────────────────────────────────────────────────────
+
+    def _restore_from_tray(self) -> None:
+        self.tray.restore_from_tray(self)
+
+    def _open_settings_from_tray(self) -> None:
+        self._restore_from_tray()
+        self._on_navigate("settings")
+
+    def _quit_application(self) -> None:
+        app = QApplication.instance()
+        if app is not None:
+            app.quit()
+
+    def set_minimize_to_tray(self, enabled: bool) -> None:
+        """供 SettingsPage 调用的关闭行为开关。"""
+        self.tray.set_minimize_to_tray(enabled)
+
+    def closeEvent(self, event) -> None:
+        self.tray.handle_close_event(self, event)
+
+    # ──────────────────────────────────────────────────────────
+    # 公共便利方法
+    # ──────────────────────────────────────────────────────────
+
+    @property
+    def app(self) -> QApplication:
+        return QApplication.instance()
+
+    @property
+    def application(self) -> Application | None:
+        return self._application
+
+    def show_message(self, message: str, level: str = "info") -> None:
+        if level == "error":
+            QMessageBox.critical(self, "错误", message)
+        elif level == "warning":
+            QMessageBox.warning(self, "警告", message)
+        else:
+            QMessageBox.information(self, "提示", message)
+
+    def show_loading(self, show: bool = True) -> None:
+        self.statusbar.set_status("加载中..." if show else "就绪")
 
     def _apply_saved_theme(self):
         """Read the persisted theme mode from QSettings and apply it."""

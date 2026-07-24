@@ -24,6 +24,7 @@
 
 import logging
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +36,7 @@ from .jianying_adapter import (
     CanvasConfig,
     JianyingConfig,
     JianyingDraft,
-    MaterialType,  # noqa: F401  # intentionally re-exported for tests
+    MaterialType,  # noqa: F401  # indirect re-export — see comment below
     Segment,
     TextMaterial,
     TimeRange,
@@ -43,6 +44,11 @@ from .jianying_adapter import (
     TrackType,
     VideoMaterial,
 )
+
+# Note on MaterialType import: this module re-imports MaterialType for symmetry
+# with the other adapter types (AudioMaterial, Track, etc.). It is NOT in __all__,
+# so it is package-private. If you need MaterialType in test code, import it
+# directly from `scenefab.services.export.jianying_adapter` (the canonical path).
 
 logger = logging.getLogger(__name__)
 
@@ -426,6 +432,8 @@ class JianyingExporter:
                 "height": meta["height"],
                 "duration": TimeRange.from_seconds(0, meta["duration"]).duration,
             }
-        except Exception as e:
+        except (subprocess.SubprocessError, FileNotFoundError, json.JSONDecodeError, KeyError, IndexError) as e:
+            # ffprobe 失败 / FFmpeg 未安装 / JSON 解析失败 / 字段缺失
+            # 不吞 RuntimeError/TypeError 等真实编程 bug
             logger.error(f"获取视频信息失败: {e}")
             return {"width": 1920, "height": 1080, "duration": 0}

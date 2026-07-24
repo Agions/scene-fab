@@ -44,6 +44,7 @@ desktop.ini
 *.log
 temp/
 cache/
+!src/**/cache/
 output/
 exports/
 
@@ -62,7 +63,130 @@ exports/
 *.mp3
 *.flac
 
+<<<<<<< HEAD
 # ── 文档构建产物 ─────────────────────────────────
+=======
+# PyQt6 related
+*.pyc
+*.pyo
+*.qmlc
+*.jsc
+*.jsc.gz
+
+# UI component files that might be generated
+*.ui~
+
+# Resource files that might be generated
+resources/icons/generated/
+resources/styles/generated/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Merge files
+*.rej
+*.patch
+
+# Additional Python project files
+.ruff_cache/
+.pylint.d/
+
+# Agent / AI tooling scratch (not part of project source)
+.hermes/
+.claude/
+
+# Runtime-generated output directories (transient build / export artifacts)
+outputs/
+dist/
+build/
+
+# Build artifacts
+*.dylib
+*.dll
+*.a
+*.lib
+
+# Documentation build artifacts
+docs/build/
+
+# Package management
+*.whl
+*.tar.gz
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# CI/CD - workflows are tracked
+# !.github/workflows/ is tracked for CI/CD builds
+# .gitlab-ci.yml
+# Jenkinsfile
+
+# Local development
+.devcontainer/
+.trae
+.agents
+.gemini
+.claude
+.agent
+# 规划文档（禁止提交）
+UPGRADE_PLAN.md
+docs/planning/
+docs/dev/
+
+# Coverage
+htmlcov/
+.coverage
+cov.xml
+
+# VitePress
+docs/.vitepress/dist/
+
+# pnpm
+node_modules/
+pnpm-lock.yaml
+
+REFORMATION_REPORT.md
+
+# Development docs (local only)
+DEVELOPMENT.md
+TODO.md
+REFORMATION_REPORT.md
+RESEARCH_*.md
+*.draft.md
+notes/
+research/
+
+# Development docs (local only)
+DEVELOPMENT.md
+TODO.md
+REFORMATION_REPORT.md
+RESEARCH_*.md
+*.draft.md
+
+# Internal planning docs
+SPEC.md
+PLAN.md
+ARCHITECTURE.md
+
+# Design/Architecture learning records
+.learnings/
+
+# Archived dead code (confirmation pending before deletion)
+_DEAD/
+
+# Build artifacts
+# 注意：仅忽略 docs 的构建产物/依赖，不能忽略整个 docs/（源文件需入库，
+# 否则 CI 全新检出会缺文件导致死链/构建失败）。
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 docs/.vitepress/.temp/

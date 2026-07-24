@@ -16,8 +16,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+<<<<<<< HEAD
 from ...theme.ds_tokens import _C, FontSizes, FontWeights, Radii, ui_font
 from .page_view_models import SETTINGS_GROUPS, SettingRowView
+=======
+from ...theme.ds_tokens import _C, FontSizes, Radii, get_theme_mode
+from ...theme.runtime import ThemeAwareMixin
+from ..controls import ToggleSwitch
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 from .page_widgets import (
     action_button_style,
     header_panel,
@@ -28,6 +34,7 @@ from .page_widgets import (
     section_title,
 )
 
+<<<<<<< HEAD
 # 界面语言标签 ↔ ProjectSettingsManager 语言代码
 _LANGUAGE_LABEL_TO_CODE = {"简体中文": "zh-CN", "English": "en-US"}
 _LANGUAGE_CODE_TO_LABEL = {v: k for k, v in _LANGUAGE_LABEL_TO_CODE.items()}
@@ -89,10 +96,23 @@ class ToggleSwitch(QFrame):
         self.setProperty("checked", checked)
         self.style().unpolish(self)
         self.style().polish(self)
+=======
+# Theme mode options presented in the appearance combo box.
+THEME_OPTIONS = ("浅色", "深色")  # display labels
+THEME_MODES = ("light", "dark")  # values emitted on theme_changed
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
-class SettingsPage(QFrame):
-    """Professional settings surface."""
+class SettingsPage(QFrame, ThemeAwareMixin):
+    """Professional settings surface.
+
+    Hosts the theme switcher in :meth:`_appearance_group`. Picking a
+    new option emits :attr:`theme_changed`; :class:`SceneFabMainWindow`
+    listens and applies the new palette via :func:`restyle_app` plus
+    each :class:`ThemeAwareMixin.apply_theme`.
+    """
+
+    theme_changed = Signal(str)  # "light" / "dark"
 
     def __init__(
         self,
@@ -108,6 +128,7 @@ class SettingsPage(QFrame):
         self._theme_manager = theme_manager
         self._project_manager = project_manager
         self._tray_toggle: ToggleSwitch | None = None
+<<<<<<< HEAD
         self._controls: dict[str, QWidget] = {}
         self._path_edits: dict[str, QLineEdit] = {}
         self._status_label: QLabel | None = None
@@ -116,9 +137,30 @@ class SettingsPage(QFrame):
         self._connect_tray_signal()
         self._connect_auto_save_signal()
         self.load_settings()
+=======
+        self._theme_combo: QComboBox | None = None
+        # Apply stylesheet once ThemeAwareMixin is in the MRO. The mixin
+        # has no ``__init__`` — declaring it on the class is enough.
+        ThemeAwareMixin.__init__(self)
+        self.setStyleSheet(self._build_stylesheet())
+        self._setup_ui()
+        self._connect_tray_signal()
+        self._connect_theme_signal()
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     def _setup_style(self):
+        # Kept for backwards-compat: ThemeAwareMixin.__init__ now calls
+        # build_stylesheet directly. Re-applied here so subclasses that
+        # override ``_setup_style`` keep working.
         self.setStyleSheet(page_background_style("settings_page"))
+
+    def _build_stylesheet(self) -> str:
+        """Return the page-level stylesheet using the **current** ``_C``.
+
+        Used by :class:`ThemeAwareMixin.apply_theme` to refresh colours
+        after :func:`set_theme_mode`.
+        """
+        return page_background_style("settings_page")
 
     def _setup_ui(self):
         root = QVBoxLayout(self)
@@ -127,11 +169,20 @@ class SettingsPage(QFrame):
         scroll = scroll_area()
         container = page_container()
         layout = container.layout()
+        assert layout is not None  # for type checker
 
         layout.addWidget(self._build_header())
+<<<<<<< HEAD
         for title, rows in SETTINGS_GROUPS:
             layout.addWidget(self._settings_group(title, rows))
         layout.addWidget(self._build_footer())
+=======
+        layout.addWidget(self._workspace_group())
+        layout.addWidget(self._appearance_group())
+        layout.addWidget(self._ai_group())
+        layout.addWidget(self._export_group())
+        layout.addWidget(self._behavior_group())
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         layout.addStretch()
 
         scroll.setWidget(container)
@@ -140,6 +191,29 @@ class SettingsPage(QFrame):
     def _connect_tray_signal(self):
         if self._tray_toggle is not None:
             self._tray_toggle.toggled.connect(self._on_tray_toggled)
+
+    def _connect_theme_signal(self):
+        if self._theme_combo is not None:
+            self._theme_combo.currentIndexChanged.connect(self._on_theme_changed)
+
+    def _on_theme_changed(self, index: int) -> None:
+        if 0 <= index < len(THEME_MODES):
+            mode = THEME_MODES[index]
+            self.theme_changed.emit(mode)
+
+    def set_theme_mode_index(self, mode: str) -> None:
+        """Programmatically select a theme option without firing the signal.
+
+        Used by :class:`SceneFabMainWindow` when restoring the user's
+        persisted preference on startup. Falls back silently when the
+        combo has not been built yet (headless test path).
+        """
+        if self._theme_combo is None or mode not in THEME_MODES:
+            return
+        target = THEME_MODES.index(mode)
+        self._theme_combo.blockSignals(True)
+        self._theme_combo.setCurrentIndex(target)
+        self._theme_combo.blockSignals(False)
 
     def _on_tray_toggled(self, checked: bool):
         window = self.window()
@@ -417,10 +491,22 @@ class SettingsPage(QFrame):
             self._status_label.setText(message)
 
     def _build_header(self) -> QFrame:
+<<<<<<< HEAD
         return header_panel(
             "settings_header", "系统设置", "配置默认工作区、AI 服务和导出参数"
+=======
+        return header_panel("settings_header", "系统设置", "配置默认工作区、AI 服务和导出参数")
+
+    def _workspace_group(self) -> QFrame:
+        group = self._group("工作区")
+        layout = group.layout()
+        assert layout is not None  # for type checker
+        layout.addWidget(
+            self._row("项目目录", self._path_input("~/SceneFab/projects"), "默认项目保存位置")
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         )
 
+<<<<<<< HEAD
     def _build_footer(self) -> QFrame:
         footer = panel("settings_footer")
         layout = QHBoxLayout(footer)
@@ -446,9 +532,50 @@ class SettingsPage(QFrame):
         for row in rows:
             layout.addWidget(
                 self._row(row.label, self._control_for_row(row), row.description)
+=======
+    def _appearance_group(self) -> QFrame:
+        """Theme selector — emits ``theme_changed`` on pick.
+
+        The combo is captured on the instance so that
+        :meth:`set_theme_mode_index` can sync it to the persisted
+        preference without bouncing the signal back.
+        """
+        group = self._group("外观")
+        layout = group.layout()
+        assert layout is not None  # for type checker
+        theme_combo = self._combo(list(THEME_OPTIONS))
+        # Default to the active theme (light on startup).
+        theme_combo.setCurrentIndex(THEME_MODES.index(get_theme_mode()))
+        self._theme_combo = theme_combo
+        layout.addWidget(
+            self._row(
+                "界面主题",
+                theme_combo,
+                "切换后立即生效",
+            )
+        )
+        return group
+
+    def _ai_group(self) -> QFrame:
+        group = self._group("AI 服务")
+        layout = group.layout()
+        assert layout is not None  # for type checker
+        api_input = QLineEdit()
+        api_input.setEchoMode(QLineEdit.EchoMode.Password)
+        api_input.setPlaceholderText("输入 API Key")
+        api_input.setFixedWidth(280)
+        api_input.setStyleSheet(self._input_style())
+        layout.addWidget(self._row("API Key", api_input, "用于脚本生成和画面理解"))
+        layout.addWidget(
+            self._row(
+                "默认模型",
+                self._combo(["deepseek-v4-pro", "gpt-5", "gemini-3.1-pro", "qwen3.7-max", "claude-sonnet-4-6"]),
+                "影响脚本质量和响应速度",
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             )
         return group
 
+<<<<<<< HEAD
     def _control_for_row(self, row: SettingRowView) -> QWidget:
         if row.control == "path":
             wrapper, edit, button = self._path_input(row.value)
@@ -473,6 +600,38 @@ class SettingsPage(QFrame):
             self._controls[row.key] = toggle
             return toggle
         raise ValueError(f"Unsupported settings control: {row.control}")
+=======
+    def _export_group(self) -> QFrame:
+        group = self._group("导出默认值")
+        layout = group.layout()
+        assert layout is not None  # for type checker
+        layout.addWidget(
+            self._row(
+                "画布",
+                self._combo(["1080x1920", "720x1280", "1920x1080"]),
+                "短视频默认使用竖屏 9:16",
+            )
+        )
+        layout.addWidget(self._row("帧率", self._combo(["30 fps", "60 fps", "24 fps"])))
+        layout.addWidget(
+            self._row(
+                "编码",
+                self._combo(["MP4 / H.264", "MP4 / H.265", "MOV / ProRes"]),
+            )
+        )
+        return group
+
+    def _behavior_group(self) -> QFrame:
+        group = self._group("应用行为")
+        layout = group.layout()
+        assert layout is not None  # for type checker
+        layout.addWidget(self._row("自动保存", ToggleSwitch(True), "每 5 分钟保存项目状态"))
+        self._tray_toggle = ToggleSwitch(False)
+        layout.addWidget(
+            self._row("关闭到系统托盘", self._tray_toggle, "关闭窗口时保持后台运行")
+        )
+        return group
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     def _group(self, title: str) -> QFrame:
         group = panel(f"settings_{title}")

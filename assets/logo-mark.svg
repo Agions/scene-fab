@@ -1,65 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 256 256"
-     role="img"
-     aria-label="SceneFab">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="SceneFab mark">
+  <title>SceneFab</title>
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0a0e1a"/>
-      <stop offset="100%" stop-color="#0f1629"/>
+    <!-- 深空背景渐变 -->
+    <linearGradient id="bgMark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050816"/>
+      <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient>
-    <linearGradient id="play" x1="0%" y1="0%" x2="100%" y2="100%">
+
+    <!-- 主品牌渐变: cyan → violet -->
+    <linearGradient id="brandMark" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
+      <stop offset="55%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#a855f7"/>
     </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+
+    <!-- 高光渐变 (顶部亮线) -->
+    <linearGradient id="hiMark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+
+    <!-- 内核径向渐变 (中心高亮) -->
+    <radialGradient id="coreMark" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </radialGradient>
+
+    <!-- 外发光 -->
+    <filter id="glowMark" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="6" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
+
+    <!-- 剪裁路径: 圆角方形 (跟 app icon 同形状) -->
+    <clipPath id="clipMark">
+      <rect width="256" height="256" rx="56" ry="56"/>
+    </clipPath>
   </defs>
 
-  <!-- Background -->
-  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <!-- 1. 底板: 深空圆角方 -->
+  <rect width="256" height="256" rx="56" ry="56" fill="url(#bgMark)"/>
 
-  <!-- Outer border -->
-  <rect x="8" y="8" width="240" height="240" rx="48" stroke="url(#accent)" stroke-width="1.5" opacity="0.2"/>
+  <!-- 2. 内描边: 极淡品牌色 (质感) -->
+  <rect x="1" y="1" width="254" height="254" rx="55" ry="55"
+        fill="none" stroke="url(#brandMark)" stroke-width="1" opacity="0.25"/>
 
-  <!-- Viewfinder corners -->
-  <g transform="translate(128, 118)">
-    <!-- Top-left -->
-    <path d="M-40 -40 L-40 -30 M-40 -40 L-30 -40" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
-    <!-- Top-right -->
-    <path d="M40 -40 L40 -30 M40 -40 L30 -40" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
-    <!-- Bottom-left -->
-    <path d="M-40 40 L-40 30 M-40 40 L-30 40" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
-    <!-- Bottom-right -->
-    <path d="M40 40 L40 30 M40 40 L30 40" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
+  <!-- 3. 外环 (轨道/时间线) - 代表流水线 -->
+  <g clip-path="url(#clipMark)" opacity="0.95">
+    <!-- 大外环 -->
+    <circle cx="128" cy="128" r="92"
+            fill="none" stroke="url(#brandMark)" stroke-width="2.5"
+            stroke-dasharray="3 6" opacity="0.55"/>
+
+    <!-- 中环 (实线,主框架) -->
+    <circle cx="128" cy="128" r="68"
+            fill="none" stroke="url(#brandMark)" stroke-width="1.5"
+            opacity="0.7"/>
+
+    <!-- 4 个 tick (12/3/6/9 点位,工业感) -->
+    <g fill="url(#hiMark)">
+      <circle cx="128" cy="36"  r="2.5"/>
+      <circle cx="220" cy="128" r="2.5"/>
+      <circle cx="128" cy="220" r="2.5"/>
+      <circle cx="36"  cy="128" r="2.5"/>
+    </g>
   </g>
 
-  <!-- Play button -->
-  <g filter="url(#glow)">
-    <path d="M112 88 L112 168 L176 128 Z" fill="url(#play)" opacity="0.9"/>
+  <!-- 4. 内核盘: 视频帧 -->
+  <g transform="translate(128 128)">
+    <!-- 中心圆盘 (深色,做对比) -->
+    <circle r="44" fill="#050816"/>
+    <circle r="44" fill="none" stroke="url(#brandMark)" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- AI 弧线 (围绕中心,代表 AI 处理) -->
+    <path d="M -28 0 A 28 28 0 0 1 0 -28" fill="none"
+          stroke="url(#hiMark)" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+    <path d="M 28 0 A 28 28 0 0 1 0 28" fill="none"
+          stroke="url(#hiMark)" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+
+    <!-- 中心 Play 三角 (主识别符) -->
+    <path d="M -10 -16 L 18 0 L -10 16 Z" fill="url(#coreMark)" filter="url(#glowMark)"/>
   </g>
 
-  <!-- AI sparkle -->
-  <g transform="translate(200, 78)">
-    <path d="M0 -10 L3 -3 L10 0 L3 3 L0 10 L-3 3 L-10 0 L-3 -3 Z" fill="#22d3ee" opacity="0.85"/>
+  <!-- 5. 角落 AI sparkle (3 个,代表 AI 能力点缀) -->
+  <g fill="url(#hiMark)" opacity="0.9">
+    <!-- 主 sparkle (右上) -->
+    <path d="M 196 60
+             L 199 67
+             L 206 70
+             L 199 73
+             L 196 80
+             L 193 73
+             L 186 70
+             L 193 67 Z"/>
   </g>
-
-  <!-- Secondary sparkle -->
-  <g transform="translate(215, 98) scale(0.5)">
-    <path d="M0 -10 L3 -3 L10 0 L3 3 L0 10 L-3 3 L-10 0 L-3 -3 Z" fill="#a78bfa" opacity="0.6"/>
+  <g fill="#a855f7" opacity="0.7">
+    <!-- 副 sparkle (右下) -->
+    <path d="M 210 88
+             L 211.5 92
+             L 215.5 93.5
+             L 211.5 95
+             L 210 99
+             L 208.5 95
+             L 204.5 93.5
+             L 208.5 92 Z"/>
   </g>
-
-  <!-- SF monogram -->
-  <text x="128" y="218" text-anchor="middle"
-        font-family="Inter, SF Pro Display, system-ui, -apple-system, sans-serif"
-        font-weight="800" font-size="36" fill="url(#accent)" letter-spacing="6">SF</text>
 </svg>

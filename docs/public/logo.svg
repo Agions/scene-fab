@@ -1,92 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 256 256"
-     role="img"
-     aria-label="SceneFab - AI 影视解说视频创作工具">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="SceneFab mark">
+  <title>SceneFab</title>
   <defs>
-    <!-- Deep space background -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f0c29"/>
-      <stop offset="50%" stop-color="#1a1a3e"/>
-      <stop offset="100%" stop-color="#24243e"/>
+    <!-- 深空背景渐变 -->
+    <linearGradient id="bgMark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050816"/>
+      <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
-    <!-- Film strip warm gradient -->
-    <linearGradient id="filmGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff8a5b"/>
-      <stop offset="100%" stop-color="#e63946"/>
+
+    <!-- 主品牌渐变: cyan → violet -->
+    <linearGradient id="brandMark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="55%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#a855f7"/>
     </linearGradient>
-    <!-- AI neural pulse cool gradient -->
-    <linearGradient id="aiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#4cc9f0"/>
-      <stop offset="100%" stop-color="#7209b7"/>
+
+    <!-- 高光渐变 (顶部亮线) -->
+    <linearGradient id="hiMark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
     </linearGradient>
-    <!-- Center play disc -->
-    <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a1a3e"/>
-      <stop offset="100%" stop-color="#0f0c29"/>
+
+    <!-- 内核径向渐变 (中心高亮) -->
+    <radialGradient id="coreMark" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
     </radialGradient>
+
+    <!-- 外发光 -->
+    <filter id="glowMark" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- 剪裁路径: 圆角方形 (跟 app icon 同形状) -->
+    <clipPath id="clipMark">
+      <rect width="256" height="256" rx="56" ry="56"/>
+    </clipPath>
   </defs>
 
-  <!-- Background rounded square -->
-  <rect width="256" height="256" rx="56" ry="56" fill="url(#bgGrad)"/>
+  <!-- 1. 底板: 深空圆角方 -->
+  <rect width="256" height="256" rx="56" ry="56" fill="url(#bgMark)"/>
 
-  <!-- Subtle starfield (corner sparkles) -->
-  <g fill="#ffffff" opacity="0.6">
-    <circle cx="32" cy="36" r="1.5"/>
-    <circle cx="222" cy="48" r="2"/>
-    <circle cx="44" cy="218" r="1.5"/>
-    <circle cx="220" cy="210" r="2"/>
-    <circle cx="208" cy="32" r="1"/>
-    <circle cx="36" cy="220" r="1"/>
-  </g>
+  <!-- 2. 内描边: 极淡品牌色 (质感) -->
+  <rect x="1" y="1" width="254" height="254" rx="55" ry="55"
+        fill="none" stroke="url(#brandMark)" stroke-width="1" opacity="0.25"/>
 
-  <!-- Film strip (45° tilt) -->
-  <g transform="rotate(-22 128 128)">
-    <rect x="32" y="108" width="192" height="40" fill="url(#filmGrad)" rx="4"/>
-    <!-- Top perforations row -->
-    <g fill="#0f0c29" opacity="0.85">
-      <rect x="42" y="114" width="8" height="6" rx="1"/>
-      <rect x="62" y="114" width="8" height="6" rx="1"/>
-      <rect x="82" y="114" width="8" height="6" rx="1"/>
-      <rect x="102" y="114" width="8" height="6" rx="1"/>
-      <rect x="122" y="114" width="8" height="6" rx="1"/>
-      <rect x="142" y="114" width="8" height="6" rx="1"/>
-      <rect x="162" y="114" width="8" height="6" rx="1"/>
-      <rect x="182" y="114" width="8" height="6" rx="1"/>
-      <rect x="202" y="114" width="8" height="6" rx="1"/>
-    </g>
-    <!-- Bottom perforations row -->
-    <g fill="#0f0c29" opacity="0.85">
-      <rect x="42" y="136" width="8" height="6" rx="1"/>
-      <rect x="62" y="136" width="8" height="6" rx="1"/>
-      <rect x="82" y="136" width="8" height="6" rx="1"/>
-      <rect x="102" y="136" width="8" height="6" rx="1"/>
-      <rect x="122" y="136" width="8" height="6" rx="1"/>
-      <rect x="142" y="136" width="8" height="6" rx="1"/>
-      <rect x="162" y="136" width="8" height="6" rx="1"/>
-      <rect x="182" y="136" width="8" height="6" rx="1"/>
-      <rect x="202" y="136" width="8" height="6" rx="1"/>
+  <!-- 3. 外环 (轨道/时间线) - 代表流水线 -->
+  <g clip-path="url(#clipMark)" opacity="0.95">
+    <!-- 大外环 -->
+    <circle cx="128" cy="128" r="92"
+            fill="none" stroke="url(#brandMark)" stroke-width="2.5"
+            stroke-dasharray="3 6" opacity="0.55"/>
+
+    <!-- 中环 (实线,主框架) -->
+    <circle cx="128" cy="128" r="68"
+            fill="none" stroke="url(#brandMark)" stroke-width="1.5"
+            opacity="0.7"/>
+
+    <!-- 4 个 tick (12/3/6/9 点位,工业感) -->
+    <g fill="url(#hiMark)">
+      <circle cx="128" cy="36"  r="2.5"/>
+      <circle cx="220" cy="128" r="2.5"/>
+      <circle cx="128" cy="220" r="2.5"/>
+      <circle cx="36"  cy="128" r="2.5"/>
     </g>
   </g>
 
-  <!-- AI neural pulse line crossing through the film -->
-  <path d="M 32 168 Q 64 152 96 168 T 160 168 T 224 168"
-        stroke="url(#aiGrad)"
-        stroke-width="3.5"
-        stroke-linecap="round"
-        fill="none"
-        opacity="0.9"/>
-  <!-- Pulse echo (secondary) -->
-  <path d="M 32 184 Q 64 176 96 184 T 160 184 T 224 184"
-        stroke="url(#aiGrad)"
-        stroke-width="1.8"
-        stroke-linecap="round"
-        fill="none"
-        opacity="0.5"/>
-
-  <!-- Center play triangle on dark disc -->
+  <!-- 4. 内核盘: 视频帧 -->
   <g transform="translate(128 128)">
-    <circle r="42" fill="url(#discGrad)" opacity="0.92"/>
-    <path d="M -12 -18 L 18 0 L -12 18 Z" fill="url(#aiGrad)"/>
+    <!-- 中心圆盘 (深色,做对比) -->
+    <circle r="44" fill="#050816"/>
+    <circle r="44" fill="none" stroke="url(#brandMark)" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- AI 弧线 (围绕中心,代表 AI 处理) -->
+    <path d="M -28 0 A 28 28 0 0 1 0 -28" fill="none"
+          stroke="url(#hiMark)" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+    <path d="M 28 0 A 28 28 0 0 1 0 28" fill="none"
+          stroke="url(#hiMark)" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+
+    <!-- 中心 Play 三角 (主识别符) -->
+    <path d="M -10 -16 L 18 0 L -10 16 Z" fill="url(#coreMark)" filter="url(#glowMark)"/>
+  </g>
+
+  <!-- 5. 角落 AI sparkle (3 个,代表 AI 能力点缀) -->
+  <g fill="url(#hiMark)" opacity="0.9">
+    <!-- 主 sparkle (右上) -->
+    <path d="M 196 60
+             L 199 67
+             L 206 70
+             L 199 73
+             L 196 80
+             L 193 73
+             L 186 70
+             L 193 67 Z"/>
+  </g>
+  <g fill="#a855f7" opacity="0.7">
+    <!-- 副 sparkle (右下) -->
+    <path d="M 210 88
+             L 211.5 92
+             L 215.5 93.5
+             L 211.5 95
+             L 210 99
+             L 208.5 95
+             L 204.5 93.5
+             L 208.5 92 Z"/>
   </g>
 </svg>

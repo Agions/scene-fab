@@ -1,146 +1,113 @@
 <div align="center">
 
-<img src="assets/logo-horizontal.svg" alt="SceneFab" width="400"/>
+<img src="assets/logo-horizontal.svg" alt="SceneFab" width="480"/>
 
-<p><strong>AI 驱动的影视/短剧第一人称解说生产工具</strong></p>
+# SceneFab · AI 影视解说视频创作工具
 
-<p>将素材理解、脚本生成、配音合成、字幕装配和平台导出串成标准化流程</p>
+> **从素材理解、脚本生成、配音合成到多平台导出，一站式自动化生产流程**
 
-<br/>
+[![Version](https://img.shields.io/badge/v2.4.0-06b6d4?style=for-the-badge&logo=git&logoColor=white)](https://github.com/Agions/scene-fab/releases)
+[![Python](https://img.shields.io/badge/Python-3.10+-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PySide6](https://img.shields.io/badge/PySide6-6.9+-3b82f6?style=for-the-badge&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
+[![FFmpeg](https://img.shields.io/badge/FFmpeg-6.x-3b82f6?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
+[![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge)](LICENSE)
 
-[![Version](https://img.shields.io/badge/v2.1.2-06b6d4?style=flat-square&logo=git&logoColor=white)](https://github.com/Agions/scene-fab/releases)
-[![Python](https://img.shields.io/badge/Python-3.10+-3b82f6?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![PySide6](https://img.shields.io/badge/PySide6-6.9+-3b82f6?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
-[![FFmpeg](https://img.shields.io/badge/FFmpeg-6.x-3b82f6?style=flat-square&logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
-[![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/Agions/scene-fab/pr-check.yml?branch=main&style=flat-square&color=22c55e&label=CI)](https://github.com/Agions/scene-fab/actions)
 [![Docs](https://img.shields.io/github/actions/workflow/status/Agions/scene-fab/deploy-pages.yml?style=flat-square&color=3b82f6&label=Docs)](https://agions.github.io/scene-fab/)
 [![Stars](https://img.shields.io/github/stars/Agions/scene-fab?style=flat-square&color=f59e0b)](https://github.com/Agions/scene-fab/stargazers)
+[![Issues](https://img.shields.io/github/issues/Agions/scene-fab?style=flat-square&color=ef4444)](https://github.com/Agions/scene-fab/issues)
 
-<br/>
-
-[快速开始](#快速开始) · [功能特性](#功能特性) · [架构概览](#架构概览) · [文档](#文档) · [贡献](#贡献)
+[**在线文档**](https://agions.github.io/scene-fab/) · [**下载安装**](https://github.com/Agions/scene-fab/releases) · [**快速开始**](#快速开始) · [**报告问题**](https://github.com/Agions/scene-fab/issues/new?template=bug_report.md) · [**功能建议**](https://github.com/Agions/scene-fab/discussions)
 
 </div>
 
 ---
 
-## 目录
+## 🎬 它是什么？
 
-- [简介](#简介)
-- [功能特性](#功能特性)
-- [快速开始](#快速开始)
-- [架构概览](#架构概览)
-- [AI 模型支持](#ai-模型支持)
-- [配置说明](#配置说明)
-- [技术栈](#技术栈)
-- [项目结构](#项目结构)
-- [文档](#文档)
-- [贡献](#贡献)
-- [许可证](#许可证)
+**SceneFab** 是一款面向影视和短剧**第一人称解说**的 AI 视频创作工具。它将视频理解、脚本生成、配音合成、字幕装配和平台导出串成标准化流程，支持从单集创作到整季批量生产的完整链路。
 
----
+系统围绕 **DAG 并行流水线引擎** 构建，采用事件驱动架构，支持 10+ 个 LLM 提供商和多平台导出预设。
 
-## 简介
+### 解决什么问题？
 
-SceneFab 是面向影视和短剧第一人称解说的生产工具。它将素材理解、脚本生成、配音合成、字幕装配和平台导出串成标准化流程，支持从单集创作到整季批量生产的完整链路。
-
-系统围绕 DAG 并行流水线引擎构建，采用四层架构设计，支持 10 个 LLM 提供商和 8 个导出平台预设。
-
-### 适用场景
-
-| 场景 | 说明 |
-|------|------|
-| 短剧单集解说 | 30-90 秒竖屏稿，支持 Hook 生成和桥段检测 |
-| 短剧整季批量 | 统一标签和关系设定，按集批量生成 |
-| 电影/剧集片段解说 | 场景拆分 + 情绪峰值筛选 + 第一人称脚本 |
-| 剪映继续精剪 | 导出剪映草稿，保留时间轴供二次处理 |
+| 痛点 | SceneFab 方案 |
+|------|---------------|
+| 🎞️ 视频拆条全靠手工打点，效率低 | AI 智能语义拆条（Qwen2.5-VL），按情节自动切分 |
+| 📝 写脚本要理解人物关系 + 桥段 + 节奏 | 剧情图谱 + 桥段识别 + 第一人称 Hook→主体→钩子结构 |
+| 🎙️ 配音成本高、音色不一致 | Edge-TTS 多音色 + F5-TTS 音色克隆，本地运行 |
+| ⏱️ 字幕和配音对不齐 | 50ms 精度时间戳对齐，偏差 < 50ms 验收标准 |
+| 📱 多平台导出参数杂 | 8 平台预设（抖音/B站/小红书/YouTube/TikTok...），一键导出 |
+| 📚 短剧整季批量生产成本高 | 整季批量 + 断点续传 + 并行 worker + 实时进度追踪 |
 
 ---
 
-## 功能特性
+## 🚀 核心能力
 
-### 视频理解
-
-| 能力 | 说明 |
-|------|------|
-| 场景分析 | 自动识别场景切换、提取关键帧和画面摘要 |
-| 人物识别 | 识别画面中的人物、推断角色关系 |
-| 情绪峰值检测 | 检测冲突、反转、高潮等情绪节点 |
-| 桥段检测 | 识别短剧常见桥段（打脸、逆袭、误会等） |
-| StoryGraph 构建 | 构建剧情图谱，追踪人物和剧情线 |
-
-### 解说生成
-
-| 能力 | 说明 |
-|------|------|
-| 第一人称脚本 | Hook · 主体 · 反击 · 收束 · 钩子结构 |
-| Hook 改写 | 自动生成多个 Hook 变体供选择 |
-| 桥段模板 | 基于桥段标签自动匹配叙事模板 |
-| 前情承接 | 连载模式下自动引用前集摘要 |
-| 多模型复核 | 支持跨模型交叉审核脚本质量 |
-| 字数约束 | 按平台和时长自动控制脚本字数 |
-
-### 配音与字幕
-
-| 能力 | 说明 |
-|------|------|
-| Edge-TTS 配音 | 多音色、语速/音调调节 |
-| F5-TTS 音色克隆 | 基于参考音频克隆音色 |
-| 时间戳对齐 | 配音音频自动生成字幕时间戳 |
-| SRT/ASS 字幕 | 支持纯文本和完整样式两种格式 |
-| 安全区控制 | 字幕自动避开平台互动栏和标题区 |
-
-### 多平台导出
-
-| 平台 | 画布 | 预设 |
-|------|------|------|
-| 抖音 | 9:16 | 1080×1920 |
-| B站 | 16:9 | 1920×1080 |
-| 小红书 | 9:16 | 1080×1920 |
-| YouTube | 16:9 | 1920×1080 |
-| TikTok | 9:16 | 1080×1920 |
-| 快手 | 9:16 | 1080×1920 |
-| 西瓜视频 | 16:9 | 1920×1080 |
-| 微信视频号 | 9:16 | 1080×1920 |
-
-### 批量处理
-
-- 短剧整季批量生成
-- 断点续传支持
-- 并行 worker 处理
-- 实时进度追踪
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <h3>🎬 AI 视频理解</h3>
+      <p>场景分析 · 人物识别 · 情绪峰值检测<br/>桥段识别 · StoryGraph 剧情图谱</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>📝 第一人称脚本</h3>
+      <p>Hook 改写 · 桥段模板 · 多模型复核<br/>字数约束 · 风格预设（7 种）</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>🎙️ 智能配音合成</h3>
+      <p>Edge-TTS 多音色 · F5-TTS 克隆<br/>50ms 时间戳对齐 · 音量稳定</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <h3>📐 字幕装配</h3>
+      <p>SRT/ASS 双格式 · 安全区控制<br/>样式保留 · 多平台适配</p>
+    </td>
+    <td align="center">
+      <h3>📱 多平台导出</h3>
+      <p>8 平台预设 · H.264/H.265<br/>剪映草稿 JSON · MP4 直出</p>
+    </td>
+    <td align="center">
+      <h3>🔄 批量生产</h3>
+      <p>整季批量 · 断点续传 · 并行 worker<br/>实时进度 · 失败重试</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 快速开始
+## ⚡ 快速开始
 
-### 安装
+### 📥 安装 SceneFab
+
+#### 方式一：下载安装包（推荐新手）
+
+从 [Releases](https://github.com/Agions/scene-fab/releases) 下载对应平台的安装包：
+
+| 平台 | 文件 | 系统要求 |
+|------|------|----------|
+| Windows | `SceneFab-Setup-x.x.x.exe` | Windows 10+ |
+| macOS | `SceneFab-x.x.x.dmg` | macOS 11+ (Apple Silicon / Intel) |
+| Linux | `SceneFab-x.x.x.AppImage` | Ubuntu 20.04+ / glibc 2.31+ |
+
+#### 方式二：pip 安装（推荐开发者）
 
 ```bash
+# 1. 安装 SceneFab
 pip install scenefab
-```
 
-验证 FFmpeg：
-
-```bash
+# 2. 验证 FFmpeg（必需依赖）
 ffmpeg -version
+# 应输出：ffmpeg version 6.x ...
+
+# 如果未安装 FFmpeg：
+brew install ffmpeg          # macOS
+sudo apt install ffmpeg      # Ubuntu/Debian
+winget install ffmpeg        # Windows
 ```
 
-如果未安装 FFmpeg：
-
-```bash
-# macOS
-brew install ffmpeg
-
-# Ubuntu/Debian
-sudo apt install ffmpeg
-
-# Windows
-# 从 https://ffmpeg.org/download.html 下载并添加到 PATH
-```
-
-### 配置
+### ⚙️ 配置 AI 服务
 
 编辑 `config/llm.yaml`，填入至少一个 API Key：
 
@@ -159,138 +126,94 @@ LLM:
     model: "qwen3.7-max"
 ```
 
-或使用环境变量：
+或使用环境变量（更安全）：
 
 ```bash
 export DEEPSEEK_API_KEY="sk-your-deepseek-key"
 export QWEN_API_KEY="sk-your-qwen-key"
 ```
 
-### 运行
+### ▶️ 启动 SceneFab
 
 ```bash
-# 启动 GUI
+# 启动 GUI（默认）
 scenefab
 
 # 查看版本
 scenefab --version
+
+# 查看帮助
+scenefab --help
 ```
 
-详细安装说明请参阅 [安装指南](https://agions.github.io/scene-fab/guide/installation)。
+详细说明请参阅 [在线文档 - 快速开始](https://agions.github.io/scene-fab/guide/quick-start)。
 
 ---
 
-## 架构概览
+## 🏗️ 技术架构
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                      UI 层 (PySide6)                        │
-│         主窗口 · 页面 · 导航 · 主题 · 系统托盘               │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                    核心引擎层                                │
-│    状态机 · DAG 并行流水线 · 批量处理器 · 任务模型            │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                   业务服务层                                 │
-│  AI 服务 (LLM · Vision · TTS) · 视频服务 · 导出服务          │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                  基础设施层                                  │
-│    事件总线 · DI 容器 · 审计日志 · 安全封装 · 配置管理        │
-└─────────────────────────────────────────────────────────────┘
+SceneFab 采用**事件驱动的 DAG 并行流水线**架构，每个模块职责清晰、易于扩展：
+
+```mermaid
+flowchart TB
+    subgraph Client["桌面客户端 (PySide6 6.9+)"]
+        UI[工作台 · 创作流程 · 项目资产]
+        ViewModel[MVVM ViewModel]
+    end
+
+    subgraph Core["核心引擎"]
+        Bus[事件总线]
+        Engine[DAG 流水线引擎]
+        DI[依赖注入容器]
+    end
+
+    subgraph Services["业务服务"]
+        AI[AI 服务<br/>LLM · 视觉 · TTS · 脚本生成]
+        Video[视频服务<br/>分析 · 处理 · 导出]
+        Export[导出服务<br/>剪映 · MP4 · 字幕]
+    end
+
+    subgraph Pipeline["生产流水线"]
+        Import[① 素材导入]
+        Analyze[② 场景分析]
+        Script[③ 脚本生成]
+        Voice[④ 配音合成]
+        Caption[⑤ 字幕对齐]
+        Pub[⑥ 导出发布]
+    end
+
+    UI --> ViewModel
+    ViewModel --> Bus
+    Bus --> Engine
+    Engine --> DI
+    DI --> AI
+    DI --> Video
+    DI --> Export
+    Engine --> Pipeline
+
+    Import --> Analyze
+    Analyze --> Script
+    Script --> Voice
+    Voice --> Caption
+    Caption --> Pub
+
+    classDef brand fill:#0e7490,stroke:#22d3ee,color:#fff
+    classDef accent fill:#7c3aed,stroke:#a855f7,color:#fff
+    class Engine,DI,Bus brand
+    class AI,Video,Export accent
 ```
 
-### 生产流水线
+### 关键设计决策
 
-```text
-视频输入
-  → 场景理解 (SceneAnalyzer)
-  → 剧情图谱 (StoryGraph)
-  → 桥段识别 (TropeDetector)
-  → 第一人称脚本 (ScriptGenerator)
-  → 质量评估 (NarrationEvaluator)
-  → Hook 改写 (HookRewriter)
-  → 配音合成 (VoiceGenerator)
-  → 字幕装配 (SubtitleAssembler)
-  → 平台导出 (MultiPlatformExporter)
-```
-
-完整架构说明请参阅 [架构概览](https://agions.github.io/scene-fab/architecture)。
+- **MVVM 架构** — UI 与业务逻辑解耦（v2.4.0 全面 ViewModel 化）
+- **事件驱动** — 解耦模块通信，所有状态变更可追溯
+- **DAG 流水线** — 支持并行执行和断点续传
+- **插件化** — LLM / TTS / 视觉模型均可热插拔
+- **本地优先** — 视频数据不出本机，仅 AI 调用走云端
 
 ---
 
-## AI 模型支持
-
-SceneFab 支持 10 个 LLM 提供商：
-
-| 提供商 | 推荐模型 | 用途 |
-|--------|----------|------|
-| DeepSeek | deepseek-v4-pro | 脚本生成（推荐） |
-| Qwen (阿里云) | qwen3.7-max | 脚本生成 + 视觉理解 |
-| OpenAI | gpt-5 | 脚本生成 |
-| Claude (Anthropic) | claude-opus-4-6 | 脚本生成 |
-| Gemini (Google) | gemini-3.1-pro | 视觉理解 |
-| Kimi (月之暗面) | moonshot-v1-128k | 长文本处理 |
-| GLM-5 (智谱) | glm-5-plus | 脚本生成 |
-| 豆包 (字节) | doubao-pro-128k | 脚本生成 |
-| 混元 (腾讯) | hunyuan-pro | 脚本生成 |
-| 本地模型 (Ollama) | qwen3:32b | 离线部署 |
-
-详细配置请参阅 [AI 模型参考](https://agions.github.io/scene-fab/ai-models)。
-
----
-
-## 配置说明
-
-SceneFab 使用两个配置文件：
-
-### config/app_config.yaml
-
-应用级配置（缓存、视频参数、TTS、LLM 提供商）：
-
-```yaml
-cache:
-  enabled: true
-  max_size: 100
-  ttl: 3600
-
-video:
-  min_segment_duration: 9.0
-  max_segment_duration: 60.0
-
-tts:
-  provider: "edge"
-  voice: "zh-CN-XiaoxiaoNeural"
-  rate: 1.0
-```
-
-### config/llm.yaml
-
-LLM 专用配置（API Key、模型、参数）：
-
-```yaml
-LLM:
-  default_provider: "deepseek"
-
-  deepseek:
-    enabled: true
-    api_key: ${DEEPSEEK_API_KEY}
-    model: "deepseek-v4-pro"
-    max_tokens: 32768
-    temperature: 0.7
-```
-
-支持环境变量替换（`${VAR_NAME}`），也可使用 `.env` 文件。
-
-完整配置说明请参阅 [配置参考](https://agions.github.io/scene-fab/config)。
-
----
-
-## 技术栈
+## 🛠️ 技术栈
 
 | 组件 | 技术选型 | 用途 |
 |------|----------|------|
@@ -306,9 +229,9 @@ LLM:
 
 ---
 
-## 项目结构
+## 📁 项目结构
 
-```text
+```
 scene-fab/
 ├── src/scenefab/              # 主包
 │   ├── core/                  # 基础设施（事件总线 · DI · 审计 · 流水线引擎）
@@ -323,19 +246,21 @@ scene-fab/
 │   ├── api/                   # HTTP API（FastAPI 路由）
 │   ├── ui/                    # 用户界面（PySide6 页面 · 主题）
 │   └── utils/                 # 工具函数（安全 · 版本 · 日志）
-├── tests/                     # 测试套件（640+ 测试）
+├── tests/                     # 测试套件
 ├── docs/                      # VitePress 文档站
-├── config/                    # 配置文件
-├── resources/                 # 资源文件（图标 · 样式）
-└── scripts/                   # 构建脚本
+├── assets/                    # 品牌资源（logo · 徽章）
+├── resources/                 # 应用资源（图标 · 样式）
+├── scripts/                   # 构建/工具脚本
+└── config/                    # 配置文件
 ```
 
 ---
 
-## 文档
+## 📚 文档导航
 
 | 文档 | 说明 |
 |------|------|
+| [在线文档](https://agions.github.io/scene-fab/) | 完整文档中心（VitePress） |
 | [快速开始](https://agions.github.io/scene-fab/guide/quick-start) | 3 步安装、配置和首次运行 |
 | [安装指南](https://agions.github.io/scene-fab/guide/installation) | 各平台完整安装步骤 |
 | [AI 配置](https://agions.github.io/scene-fab/guide/ai-configuration) | 多服务商配置详解 |
@@ -344,17 +269,36 @@ scene-fab/
 | [生产规范](https://agions.github.io/scene-fab/guide/first-person-narration-production) | 第一人称解说完整生产流程 |
 | [AI 工作流](https://agions.github.io/scene-fab/guide/ai-video-guide) | 从视频到成片的 AI 流程详解 |
 | [导出发布](https://agions.github.io/scene-fab/guide/exporting) | 导出格式与平台预设 |
-| [架构概览](https://agions.github.io/scene-fab/architecture) | 四层架构 · 状态机 · 数据流 |
-| [AI 模型](https://agions.github.io/scene-fab/ai-models) | 模型选择与推荐配置 |
-| [配置参考](https://agions.github.io/scene-fab/config) | 两文件配置结构详解 |
-| [功能矩阵](https://agions.github.io/scene-fab/features) | 功能状态与适用场景 |
-| [安全设计](https://agions.github.io/scene-fab/security) | 安全模型与最佳实践 |
 | [疑难排查](https://agions.github.io/scene-fab/guide/troubleshooting) | 常见问题解决 |
-| [常见问题](https://agions.github.io/scene-fab/faq) | FAQ |
 
 ---
 
-## 贡献
+## 🗺️ 路线图
+
+### ✅ v2.4.0（2026-07-01）— UI 架构升级
+
+- [x] **Phase 1** — UI 模块化分层（净 -1536 行死代码）
+- [x] **Phase 2** — ViewModel 化拆分
+- [x] **Phase 3** — 暗色主题 + 运行时切换端到端
+- [x] **品牌重塑** — 双色调 logo 系统 + OG image + 渲染 pipeline
+
+### 🚧 v2.5.0（计划中）
+
+- [ ] **drag-drop 文件拖拽**（`AssetsPage` 的 `dragEnterEvent`/`dropEvent`）
+- [ ] **ViewModel 严格分层**（移除 `TYPE_CHECKING` hack, viewmodel 不再依赖 UI 类型）
+- [ ] **macOS 公证**（解决 Gatekeeper 拦截）
+- [ ] **批量生产 UI**（整季批量可视化调度）
+
+### 💡 v3.0.0（远期）
+
+- [ ] **Web 版本** — Tauri 重写桌面端 + Web 端复用核心
+- [ ] **多人协作** — 云端项目同步 + 团队权限
+- [ ] **AI 实时预览** — 边生成边预览，减少等待焦虑
+- [ ] **插件市场** — 第三方 LLM / TTS / 视觉模型接入
+
+---
+
+## 🤝 贡献
 
 欢迎贡献代码、报告问题或提出建议。
 
@@ -378,20 +322,44 @@ make lint
 make format
 ```
 
-### 提交规范
+### 提交规范（Conventional Commits）
 
-- 使用 [Conventional Commits](https://www.conventionalcommits.org/) 格式
-- 提交前运行 `make lint` 和 `make test`
-- 新功能需要添加测试
+| 类型 | 用途 | 示例 |
+|------|------|------|
+| `feat` | 新功能 | `feat(pipeline): add batch production support` |
+| `fix` | Bug 修复 | `fix(ai): handle Qwen API timeout gracefully` |
+| `docs` | 文档变更 | `docs(readme): update installation steps` |
+| `style` | 代码格式（无逻辑变更） | `style(ui): fix indentation in HomePage` |
+| `refactor` | 代码重构 | `refactor(core): split event bus into modules` |
+| `perf` | 性能优化 | `perf(video): cache scene analysis results` |
+| `test` | 测试相关 | `test(services): add e2e for export pipeline` |
+| `chore` | 构建/工具 | `chore(deps): bump PySide6 to 6.9` |
+
+提交前请运行 `make lint` 和 `make test`。
 
 ### 问题反馈
 
-- [Bug 报告](https://github.com/Agions/scene-fab/issues/new?template=bug_report.md)
-- [功能建议](https://github.com/Agions/scene-fab/issues/new?template=feature_request.md)
+- 🐛 [Bug 报告](https://github.com/Agions/scene-fab/issues/new?template=bug_report.md)
+- 💡 [功能建议](https://github.com/Agions/scene-fab/issues/new?template=feature_request.md)
+- 💬 [讨论区](https://github.com/Agions/scene-fab/discussions)
 
 ---
 
-## 许可证
+## 🙏 致谢
+
+SceneFab 的诞生离不开以下开源项目：
+
+- [PySide6](https://doc.qt.io/qtforpython/) — Qt 官方 Python 绑定
+- [FFmpeg](https://ffmpeg.org/) — 跨平台音视频处理
+- [Edge-TTS](https://github.com/rany2/edge-tts) — 免费高质量 TTS
+- [F5-TTS](https://github.com/SWivid/F5-TTS) — 开源音色克隆
+- [PySceneDetect](https://www.scenedetect.com/) — 视频场景检测
+- [Pydantic](https://pydantic-docs.helpmanual.io/) — 数据验证
+- [VitePress](https://vitepress.dev/) — 文档站框架
+
+---
+
+## 📄 许可证
 
 [MIT License](LICENSE) © 2025-2026 [Agions](https://github.com/Agions)
 
@@ -399,6 +367,8 @@ make format
 
 <div align="center">
 
-**[文档](https://agions.github.io/scene-fab/)** · **[更新日志](CHANGELOG.md)** · **[许可证](LICENSE)**
+**[⭐ Star](https://github.com/Agions/scene-fab)** · **[🍴 Fork](https://github.com/Agions/scene-fab/fork)** · **[📖 文档](https://agions.github.io/scene-fab/)** · **[📝 更新日志](CHANGELOG.md)**
+
+<sub>SceneFab v2.4.0 · Made with ❤️ by [Agions](https://github.com/Agions) and [contributors](https://github.com/Agions/scene-fab/graphs/contributors)</sub>
 
 </div>

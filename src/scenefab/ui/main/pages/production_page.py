@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Production workflow page."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QFrame,
@@ -27,19 +31,30 @@ from .page_widgets import (
     section_title,
 )
 
+if TYPE_CHECKING:
+    from ...viewmodels.production_viewmodel import ProductionPageViewModel
+
 
 class ProductionPage(QFrame):
-    """Structured workflow for first-person narration production."""
+    """Structured workflow for first-person narration production.
+
+    Phase 2B: 5-step pipeline + per-step status are read from
+    :class:`ProductionPageViewModel`. The view renders them declaratively
+    and forwards ``start_requested`` clicks to ``vm.start_pipeline()``.
+    """
 
     start_requested = Signal()
     cancel_requested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, viewmodel: ProductionPageViewModel | None = None, parent=None):
         super().__init__(parent)
+        self._vm = viewmodel
         self.setObjectName("production_page")
         self._step_statuses: dict[str, QLabel] = {}
         self._setup_style()
         self._setup_ui()
+        if self._vm is not None:
+            self._bind_viewmodel()
 
     def _setup_style(self):
         self.setStyleSheet(page_background_style("production_page"))
@@ -51,6 +66,7 @@ class ProductionPage(QFrame):
         scroll = scroll_area()
         container = page_container()
         layout = container.layout()
+        assert layout is not None  # for type checker
 
         layout.addWidget(self._build_header())
 
@@ -91,10 +107,34 @@ class ProductionPage(QFrame):
         layout.setSpacing(12)
         layout.addWidget(section_title("流程队列"))
 
+<<<<<<< HEAD
         for step in PRODUCTION_STEPS:
             layout.addWidget(self._step_row(step.number, step.name, step.detail))
+=======
+        # Phase 2B: read 5 steps from VM (falls back to canon if no VM)
+        steps = self._step_definitions()
+        self._step_rows: list[tuple[QFrame, QLabel | None, QLabel | None, QLabel | None, str, str]] = []
+        for number, name, desc in steps:
+            row = self._step_row(number, name, desc)
+            layout.addWidget(row)
+            # 保存 step row 引用,后续 _refresh_step_status 用
+            # _step_rows 内 tuple: (row, badge, title, status_label, number, name)
+            # 但 _step_row 返回 row,内部的 badge/title/status 都是 row 的子 widget
+            # 取出来便于更新
+            badge = row.findChild(QLabel, "step_badge")
+            title = row.findChild(QLabel, "step_title")
+            status_lbl = row.findChild(QLabel, "step_status")
+            self._step_rows.append((row, badge, title, status_lbl, number, name))
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         layout.addStretch()
         return frame
+
+    def _step_definitions(self) -> list[tuple[str, str, str]]:
+        if self._vm is not None:
+            return self._vm.step_definitions
+        # Fallback: mirror the VM canon so no-VM smoke tests still render
+        from ...viewmodels.production_viewmodel import STEP_DEFINITIONS
+        return STEP_DEFINITIONS
 
     def _build_brief(self) -> QFrame:
         frame = panel("production_brief")
@@ -135,6 +175,7 @@ class ProductionPage(QFrame):
         layout.setSpacing(12)
 
         badge = QLabel(number)
+        badge.setObjectName("step_badge")
         badge.setFixedWidth(32)
         badge.setFont(ui_font(FontSizes.xs, FontWeights.Bold))
         badge.setStyleSheet(f"color: {_C.PRIMARY};")
@@ -143,7 +184,12 @@ class ProductionPage(QFrame):
         copy = QVBoxLayout()
         copy.setSpacing(2)
         title = QLabel(name)
+<<<<<<< HEAD
         title.setFont(ui_font(FontSizes.sm, FontWeights.Medium))
+=======
+        title.setObjectName("step_title")
+        title.setFont(QFont("", FontSizes.sm, QFont.Weight.Medium))
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         title.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
         copy.addWidget(title)
         detail = QLabel(desc)
@@ -153,7 +199,12 @@ class ProductionPage(QFrame):
         layout.addLayout(copy, 1)
 
         status = QLabel("待开始")
+<<<<<<< HEAD
         status.setFont(ui_font(FontSizes.xs))
+=======
+        status.setObjectName("step_status")
+        status.setFont(QFont("", FontSizes.xs))
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         status.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
         layout.addWidget(status)
         self._step_statuses[name] = status
@@ -173,6 +224,7 @@ class ProductionPage(QFrame):
         """)
         return label
 
+<<<<<<< HEAD
     # ── public update API ──────────────────────────────────────────
 
     def set_running(self, running: bool) -> None:
@@ -192,3 +244,53 @@ class ProductionPage(QFrame):
         for label in self._step_statuses.values():
             label.setText("待开始")
             label.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
+=======
+    # ──────────────────────────────────────────────────────────
+    # ViewModel 绑定 (Phase 2B)
+    # ──────────────────────────────────────────────────────────
+
+    def _bind_viewmodel(self) -> None:
+        vm = self._vm
+        if vm is None:
+            return
+        vm.step_status_changed.connect(self._refresh_step_status)
+        vm.pipeline_state_changed.connect(self._refresh_pipeline_state)
+        self._refresh_step_status()
+        self._refresh_pipeline_state()
+
+    def _refresh_step_status(self) -> None:
+        """Update each step row's status label from VM."""
+        if self._vm is None or not self._step_rows:
+            return
+        statuses = self._vm.step_status
+        for index, (_row, _badge, _title, status_lbl, _num, _name) in enumerate(self._step_rows):
+            raw = statuses[index] if index < len(statuses) else "pending"
+            label = self._vm.get_status_label(raw)
+            color = {
+                "pending": _C.TEXT_DISABLED,
+                "active": _C.PRIMARY,
+                "done": "#10b981",  # 绿
+                "error": "#ef4444",  # 红
+            }.get(raw, _C.TEXT_MUTED)
+            if status_lbl is not None:
+                status_lbl.setText(label)
+                status_lbl.setStyleSheet(f"color: {color};")
+
+    def _refresh_pipeline_state(self) -> None:
+        """Update the header / start button enabled state from VM."""
+        if self._vm is None:
+            return
+        # Disabled start while running (Phase 2B: simple model, full UX is 2C+)
+        # Currently: just observe — disabled-state wiring is a small follow-up
+        # in Phase 2B+1 when full pipeline UI lands.
+        _ = self._vm.pipeline_state  # observe; future hook for button state
+
+    # ──────────────────────────────────────────────────────────
+    # 公共入口 (Phase 2B: start button 转发到 VM)
+    # ──────────────────────────────────────────────────────────
+
+    def start_pipeline(self, source_video: str, context: str) -> None:
+        """Forward start request to ViewModel (no-op if no VM bound)."""
+        if self._vm is not None:
+            self._vm.start_pipeline(source_video, context)
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

@@ -10,8 +10,6 @@ v2.2 Phase 3 — NarrationEvaluator 5 维加权评估器
 设计原则:
 - 0 LLM 调用 (5 维都是规则评分), 评估本身不消耗 token
 - 短剧连续生产时强制检查题材标签、人物关系和下一集钩子
-
-v2.2 决策: docs/adr/007-narration-state-machine.md
 """
 
 from __future__ import annotations
@@ -48,6 +46,28 @@ class DimensionScore:
     def weighted(self) -> float:
         """加权后的分数"""
         return self.score * self.weight
+
+
+def make_dimension_score(
+    name: str,
+    score: float,
+    issues: list[str] | None = None,
+    suggestions: list[str] | None = None,
+) -> DimensionScore:
+    """Build a :class:`DimensionScore` with weight auto-fetched from
+    :data:`DIMENSION_WEIGHTS`.
+
+    Replaces the 10-site inline ``DimensionScore(name=X, score=Y,
+    weight=DIMENSION_WEIGHTS[X], issues=..., suggestions=...)`` boilerplate
+    scattered across every ``_eval_*`` method.
+    """
+    return DimensionScore(
+        name=name,
+        score=score,
+        weight=DIMENSION_WEIGHTS[name],
+        issues=issues if issues is not None else [],
+        suggestions=suggestions if suggestions is not None else [],
+    )
 
 
 @dataclass(slots=True)
@@ -185,10 +205,9 @@ class NarrationEvaluator:
             score, draft, ctx, issues, suggestions
         )
 
-        return DimensionScore(
+        return make_dimension_score(
             name="hook",
             score=score,
-            weight=DIMENSION_WEIGHTS["hook"],
             issues=issues,
             suggestions=suggestions,
         )
@@ -231,13 +250,7 @@ class NarrationEvaluator:
         bridges = ctx.bridges
         if not bridges:
             # 无桥段要求 → 默认 8 分 (不扣分)
-            return DimensionScore(
-                name="bridge",
-                score=8.0,
-                weight=DIMENSION_WEIGHTS["bridge"],
-                issues=[],
-                suggestions=[],
-            )
+            return make_dimension_score(name="bridge", score=8.0)
 
         # 桥段 → 关键词映射
         bridge_keywords: dict[BridgeType, list[str]] = {
@@ -292,10 +305,9 @@ class NarrationEvaluator:
         score = trigger_rate * 10.0
         score = self._apply_content_tag_gate(score, draft, ctx, issues, suggestions)
 
-        return DimensionScore(
+        return make_dimension_score(
             name="bridge",
             score=score,
-            weight=DIMENSION_WEIGHTS["bridge"],
             issues=issues,
             suggestions=suggestions,
         )
@@ -313,11 +325,7 @@ class NarrationEvaluator:
         suggestions: list[str] = []
 
         if not ctx.story_graph or not ctx.story_graph.characters:
-            return DimensionScore(
-                name="consistency",
-                score=8.0,
-                weight=DIMENSION_WEIGHTS["consistency"],
-            )
+            return make_dimension_score(name="consistency", score=8.0)
 
         # 1. 角色名一致性
         char_names = [c.name for c in ctx.story_graph.characters if c.name]
@@ -359,10 +367,9 @@ class NarrationEvaluator:
             score = min(10.0, score + 0.5)  # 无问题小奖励
         score = self._apply_relationship_gate(score, draft, ctx, issues, suggestions)
 
-        return DimensionScore(
+        return make_dimension_score(
             name="consistency",
             score=score,
-            weight=DIMENSION_WEIGHTS["consistency"],
             issues=issues,
             suggestions=suggestions,
         )
@@ -388,10 +395,9 @@ class NarrationEvaluator:
         target_chars = int(spec.char_per_second * spec.target_duration_sec)
 
         if target_chars == 0:
-            return DimensionScore(
+            return make_dimension_score(
                 name="platform",
                 score=5.0,
-                weight=DIMENSION_WEIGHTS["platform"],
                 issues=["平台规格未配置"],
             )
 
@@ -434,10 +440,9 @@ class NarrationEvaluator:
             )
             suggestions.append(f"开场前 {spec.min_hook_chars} 字内应包含强钩子")
 
-        return DimensionScore(
+        return make_dimension_score(
             name="platform",
             score=score,
-            weight=DIMENSION_WEIGHTS["platform"],
             issues=issues,
             suggestions=suggestions,
         )
@@ -457,13 +462,16 @@ class NarrationEvaluator:
         if not ctx.few_shots:
             # 无 few_shots → 默认 8 分
             score = self._apply_next_hook_gate(8.0, draft, ctx, issues, suggestions)
+<<<<<<< HEAD:src/scenefab/pipeline/narration/evaluator.py
             score = self._apply_first_person_viewpoint_gate(
                 score, draft, ctx, issues, suggestions
             )
             return DimensionScore(
+=======
+            return make_dimension_score(
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/pipeline/narration_evaluator.py
                 name="style",
                 score=score,
-                weight=DIMENSION_WEIGHTS["style"],
                 issues=issues,
                 suggestions=suggestions,
             )
@@ -478,11 +486,7 @@ class NarrationEvaluator:
             style_words.update(words[:10])
 
         if not style_words:
-            return DimensionScore(
-                name="style",
-                score=8.0,
-                weight=DIMENSION_WEIGHTS["style"],
-            )
+            return make_dimension_score(name="style", score=8.0)
 
         # 命中统计
         hits = sum(1 for w in style_words if w in draft)
@@ -499,10 +503,9 @@ class NarrationEvaluator:
             score, draft, ctx, issues, suggestions
         )
 
-        return DimensionScore(
+        return make_dimension_score(
             name="style",
             score=score,
-            weight=DIMENSION_WEIGHTS["style"],
             issues=issues,
             suggestions=suggestions,
         )

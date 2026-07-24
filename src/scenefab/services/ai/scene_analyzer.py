@@ -14,6 +14,11 @@
 
 import logging
 import re
+<<<<<<< HEAD
+=======
+import subprocess
+from collections.abc import Callable
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 from pathlib import Path
 
 from ...utils.security import get_ffmpeg_executor
@@ -27,6 +32,19 @@ logger = logging.getLogger(__name__)
 # 基础场景分析器（原 scene_analyzer.py 的实现）
 # =============================================================================
 __all__ = ["SceneAnalyzer"]
+
+
+# 场景类型 → 中文名映射（format_scenes_for_llm 与 select_best_scenes 共享）
+_SCENE_TYPE_NAMES: dict = {
+    SceneType.LANDSCAPE: "风景画面",
+    SceneType.B_ROLL: "素材画面",
+    SceneType.ACTION: "动作场景",
+    SceneType.TALKING_HEAD: "人物讲话",
+    SceneType.TRANSITION: "转场",
+    SceneType.TITLE: "标题画面",
+    SceneType.PRODUCT: "产品展示",
+    SceneType.UNKNOWN: "未知",
+}
 
 
 class SceneAnalyzer:
@@ -196,7 +214,9 @@ class SceneAnalyzer:
         except TimeoutError:
             logger.warning("场景检测超时")
             return [0.0]
-        except Exception as e:
+        except (subprocess.SubprocessError, OSError, ValueError, IndexError) as e:
+            # FFmpeg subprocess 失败 / OS 资源错误 / float 转换失败 / list 越界
+            # 不吞 RuntimeError/TypeError 等真实编程 bug
             logger.error(f"场景检测失败: {e}")
             return [0.0]
 
@@ -270,8 +290,8 @@ class SceneAnalyzer:
             match = re.search(regex, result.stderr)
             if match:
                 return float(match.group(1))
-        except Exception:
-            pass
+        except (subprocess.SubprocessError, OSError, ValueError) as e:
+            logger.debug(f"_run_video_metric failed (cmd={cmd[1]}): {e}")
         return default
 
     def _get_avg_brightness(
@@ -312,7 +332,8 @@ class SceneAnalyzer:
             if scores:
                 avg_score = sum(float(s) for s in scores) / len(scores)
                 return min(1.0, avg_score * 2)
-        except Exception as e:
+        except (subprocess.SubprocessError, OSError, ValueError, IndexError) as e:
+            # FFmpeg subprocess 失败 / OS 资源错误 / float 转换失败 / list 越界
             logger.debug(f"Scene score detection failed: {e}")
         return 0.3
 
@@ -397,6 +418,104 @@ class SceneAnalyzer:
                 if result.returncode == 0:
                     scene.keyframe_path = str(output_path)
 
-            except Exception as e:
+            except (subprocess.SubprocessError, OSError) as e:
+                # FFmpeg subprocess 失败 / 文件 IO 错误
+                # 不吞 RuntimeError/TypeError 等真实编程 bug
                 logger.error(f"提取关键帧失败 (场景 {scene.index}): {e}")
 
+<<<<<<< HEAD
+=======
+    # ── 重要性评分与关键时刻提取（原 SceneAnalyzerV2） ─────────────
+
+    def analyze_with_importance(
+        self,
+        video_path: str,
+        narration_importance_fn: Callable[[SceneInfo], float] | None = None,
+    ) -> list[SceneInfo]:
+        """分析视频场景并计算重要性评分"""
+        scenes = self.analyze(video_path)
+        for scene in scenes:
+            scene.suitability_score = self._scorer.calculate_importance(
+                scene, self._importance_weights
+            )
+            if narration_importance_fn is not None:
+                scene.narration_importance = narration_importance_fn(scene)  # type: ignore[attr-defined]
+            elif (
+                not hasattr(scene, "narration_importance")
+                or scene.narration_importance <= 0
+            ):
+                scene.narration_importance = self._scorer.calculate_narration_importance(scene)  # type: ignore[attr-defined]
+        return scenes
+
+    def extract_key_moments(
+        self,
+        scenes: list[SceneInfo],
+        top_k: int = 5,
+        min_score: float = 30.0,
+    ) -> list[SceneInfo]:
+        """提取关键时刻（得分最高的场景）"""
+        filtered = [s for s in scenes if s.suitability_score >= min_score]
+        return sorted(filtered, key=lambda s: s.suitability_score, reverse=True)[:top_k]
+
+    def extract_key_moments_by_type(
+        self,
+        scenes: list[SceneInfo],
+        scene_type: SceneType,
+        top_k: int = 3,
+    ) -> list[SceneInfo]:
+        """按场景类型提取关键时刻"""
+        filtered = [s for s in scenes if s.type == scene_type]
+        return sorted(filtered, key=lambda s: s.suitability_score, reverse=True)[:top_k]
+
+    def generate_scene_context_prompt(self, scenes: list[SceneInfo]) -> str:
+        """生成场景上下文提示（用于 ScriptGenerator）"""
+        if not scenes:
+            return "## 场景列表\n\n*暂无场景数据*"
+
+        lines = ["## 场景列表\n"]
+        for i, scene in enumerate(scenes, 1):
+            start_str = f"{int(scene.start // 60):02d}:{int(scene.start % 60):02d}"
+            end_str = f"{int(scene.end // 60):02d}:{int(scene.end % 60):02d}"
+            type_name = _SCENE_TYPE_NAMES.get(scene.type, "未知")
+
+            lines.append(f"{i}. **{start_str} - {end_str}** {type_name}")
+            lines.append(f"   - 类型: `{scene.type.value}`")
+            lines.append(f"   - 评分: {scene.suitability_score:.0f}/100")
+            if scene.description:
+                lines.append(f"   - 描述: {scene.description}")
+
+            details = []
+            if scene.avg_brightness > 0:
+                b = scene.avg_brightness
+                details.append(f"亮度{'暗' if b < 0.3 else '亮' if b > 0.7 else '适中'}")
+            if scene.motion_level > 0:
+                m = scene.motion_level
+                details.append(f"运动{'静态' if m < 0.2 else '剧烈' if m > 0.7 else '适中'}")
+            if scene.audio_level > 0:
+                details.append(f"音频{'有' if scene.audio_level > 0.3 else '弱'}")
+            if details:
+                lines.append(f"   - 特征: {', '.join(details)}")
+            lines.append("")
+
+        return "\n".join(lines)
+
+    def generate_brief_scene_summary(
+        self,
+        scenes: list[SceneInfo],
+        max_scenes: int = 10,
+    ) -> str:
+        """生成简短场景摘要（适用于提示词）"""
+        if not scenes:
+            return "视频包含0个有效场景。"
+
+        sorted_scenes = sorted(scenes, key=lambda s: s.suitability_score, reverse=True)[
+            :max_scenes
+        ]
+
+        parts = [f"视频共 {len(scenes)} 个场景，选取最重要的 {len(sorted_scenes)} 个：\n"]
+        for scene in sorted_scenes:
+            start_str = f"{int(scene.start // 60):02d}:{int(scene.start % 60):02d}"
+            type_name = _SCENE_TYPE_NAMES.get(scene.type, "未知")
+            parts.append(f"- [{start_str}] {type_name} (评分:{scene.suitability_score:.0f})")
+        return "\n".join(parts)
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

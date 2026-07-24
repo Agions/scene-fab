@@ -12,8 +12,6 @@
 降级策略:
 - 评估器: 永远可用 (5 维都是规则评分, 无 LLM 依赖)
 - Hook 改写: 需 LLM, 失败时保留原 draft (Phase 1 行为)
-
-v2.2 决策: docs/adr/007-narration-state-machine.md
 """
 
 from __future__ import annotations
@@ -25,8 +23,12 @@ from typing import TYPE_CHECKING
 from .narration.context import (
     NarrationContext,
 )
+<<<<<<< HEAD
 from .narration.state_machine import NarrationState, StepResult
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE, split_sentences
+=======
+from .narration_state_machine import NarrationState, StepResult, success_step
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 if TYPE_CHECKING:
     pass
@@ -60,30 +62,7 @@ def evaluate_step(ctx: NarrationContext) -> StepResult:
         ctx.eval_issues = result.issues
         ctx.eval_suggestion = result.suggestion
 
-        duration_ms = (time.time() - start) * 1000
-        return StepResult(
-            success=True,
-            state=NarrationState.EVALUATE,
-            duration_ms=duration_ms,
-            message=(
-                f"evaluate: {result.total_score:.1f}/10 ({result.reason}), "
-                f"{len(result.dimension_scores)} 维, "
-                f"{len(result.issues)} issues"
-            ),
-            data={
-                "total_score": result.total_score,
-                "accept": result.accept,
-                "dimension_scores": [
-                    {
-                        "name": d.name,
-                        "score": d.score,
-                        "weight": d.weight,
-                        "issues": d.issues,
-                    }
-                    for d in result.dimension_scores
-                ],
-            },
-        )
+        return success_step(start, state=NarrationState.EVALUATE, message=f'evaluate: {result.total_score:.1f}/10 ({result.reason}), {len(result.dimension_scores)} 维, {len(result.issues)} issues', data={'total_score': result.total_score, 'accept': result.accept, 'dimension_scores': [{'name': d.name, 'score': d.score, 'weight': d.weight, 'issues': d.issues} for d in result.dimension_scores]})
     except Exception as e:  # noqa: BLE001
         # 评估失败不应该阻塞状态机, 用最低分兜底
         logger.error(f"[{ctx.trace_id[:8]}] 评估器异常: {e}")
@@ -149,14 +128,7 @@ def hook_rewrite_step(ctx: NarrationContext) -> StepResult:
 
     if not candidates:
         # 极端降级: 保留原 draft
-        duration_ms = (time.time() - start) * 1000
-        return StepResult(
-            success=True,
-            state=NarrationState.HOOK_REWRITE,
-            duration_ms=duration_ms,
-            message="hook_rewrite: 候选为空, 保留原 draft",
-            data={"candidates": 0, "kept_original": True},
-        )
+        return success_step(start, state=NarrationState.HOOK_REWRITE, message='hook_rewrite: 候选为空, 保留原 draft', data={'candidates': 0, 'kept_original': True})
 
     # 2. 评估器打分选最佳
     best_hook, best_score, best_style = _select_best_hook(
@@ -167,23 +139,7 @@ def hook_rewrite_step(ctx: NarrationContext) -> StepResult:
     new_draft = _replace_hook_in_draft(original_draft, best_hook)
     ctx.current_draft = new_draft
 
-    duration_ms = (time.time() - start) * 1000
-    return StepResult(
-        success=True,
-        state=NarrationState.HOOK_REWRITE,
-        duration_ms=duration_ms,
-        message=(
-            f"hook_rewrite: 5 候选中选 '{best_style}' (Hook={best_score:.1f}/10), "
-            f"draft {len(original_draft)} → {len(new_draft)} 字"
-        ),
-        data={
-            "candidates": len(candidates),
-            "best_style": best_style,
-            "best_hook_score": best_score,
-            "original_chars": len(original_draft),
-            "new_chars": len(new_draft),
-        },
-    )
+    return success_step(start, state=NarrationState.HOOK_REWRITE, message=f"hook_rewrite: 5 候选中选 '{best_style}' (Hook={best_score:.1f}/10), draft {len(original_draft)} → {len(new_draft)} 字", data={'candidates': len(candidates), 'best_style': best_style, 'best_hook_score': best_score, 'original_chars': len(original_draft), 'new_chars': len(new_draft)})
 
 
 # ============================================

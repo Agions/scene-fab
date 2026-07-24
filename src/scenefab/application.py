@@ -135,6 +135,7 @@ class Application(QObject):
             for service_name in self._service_container.all_names():
                 service = self._service_container.get_by_name(service_name)
                 if hasattr(service, "start"):
+                    assert service is not None  # for type checker
                     if not service.start():
                         self.error_occurred.emit(
                             "SERVICE_ERROR", f"Failed to start service: {service_name}"
@@ -169,6 +170,7 @@ class Application(QObject):
             for service_name in reversed(services_list):
                 service = self._service_container.get_by_name(service_name)
                 if hasattr(service, "stop"):
+                    assert service is not None  # for type checker
                     try:
                         service.stop()
                     except Exception as e:
@@ -206,7 +208,7 @@ class Application(QObject):
     def get_service(self, service_type: type[T]) -> T | None:
         """获取指定类型的服务 (TypeVar 化 — 替代原 object | None 的类型擦除)"""
         try:
-            return self._service_container.get(service_type)  # type: ignore[return-value]
+            return self._service_container.get(service_type)
         except ValueError:
             return None
 
@@ -397,6 +399,10 @@ class Application(QObject):
             # 创建并注册设置管理器
             settings_manager = ProjectSettingsManager(config_manager)
             self.register_service("settings_manager", settings_manager)
+
+            # 创建并注册 MonologueMaker (Phase 2B — ProductionViewModel 需要)
+            from scenefab.services.video.monologue_maker import MonologueMaker
+            self.register_service("monologue_maker", MonologueMaker())
 
             self.logger.info("服务初始化完成")
             return True

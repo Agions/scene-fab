@@ -4,13 +4,12 @@ TTS 提供者实现
 包含 EdgeTTS、OpenAI TTS、F5-TTS、PilotTTS、OmniVoice、IndexTTS2 等多种后端实现。
 """
 
-import asyncio
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Coroutine
 from pathlib import Path
 from typing import Any
 
+from ...utils.async_bridge import run_async_safely
 from ...utils.security import SecurityError, get_ffmpeg_executor
 from .voice_models import (
     GeneratedVoice,
@@ -46,7 +45,7 @@ class TTSProvider(ABC):
         """统一获取音频时长（子模块如有更优实现可覆盖）"""
         # 优先用 pydub（适合本地 wav/mp3）
         try:
-            from pydub import AudioSegment  # type: ignore[import-untyped]
+            from pydub import AudioSegment
 
             audio = AudioSegment.from_file(audio_path)
             return len(audio) / 1000.0
@@ -190,25 +189,19 @@ class EdgeTTSProvider(TTSProvider):
             for data in audio_chunks:
                 f.write(data)
 
+<<<<<<< HEAD
     def _run_async_safely(
         self, coro_factory: Callable[[], Coroutine[Any, Any, None]]
     ) -> None:
+=======
+    def _run_async_safely(self, coro_factory: Any) -> Any:
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         """在已有/无 event loop 下安全运行异步协程.
 
         EdgeTTS 必须运行在自己的 loop 中; 若调用方已持有 loop,
         用独立线程的 ThreadPoolExecutor 隔离. 否则 asyncio.run() 即可.
         """
-        try:
-            asyncio.get_running_loop()
-        except RuntimeError:
-            asyncio.run(coro_factory())
-            return
-
-        # 调用方在事件循环中 — 隔离到独立线程
-        import concurrent.futures
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            pool.submit(asyncio.run, coro_factory()).result()
+        return run_async_safely(coro_factory)
 
     def _build_generated_voice(
         self,
@@ -230,6 +223,133 @@ class EdgeTTSProvider(TTSProvider):
             sentence_timestamps=sentence_timestamps,
         )
 
+<<<<<<< HEAD
+=======
+    async def generate_streaming(
+        self,
+        text: str,
+        output_path: str,
+        config: VoiceConfig,
+        progress_callback=None,
+    ) -> GeneratedVoice:
+        """流式异步生成配音，边生成边写入文件
+
+        progress_callback 签名: callback(completed: bool, timestamp: dict)
+        """
+        voice, rate_str, pitch_str = self._build_streaming_params(config)
+        communicate = self._build_communicate(text, voice, rate_str, pitch_str)
+
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        sentence_timestamps: list[dict[str, Any]] = []
+        await self._stream_chunks_to_file(
+            communicate, output_path, sentence_timestamps, progress_callback
+        )
+
+        if progress_callback:
+            progress_callback(True, None)
+
+        duration = self._get_audio_duration(output_path)
+        return self._build_voice_result(
+            text, output_path, config, voice, duration, sentence_timestamps,
+        )
+
+    def _build_streaming_params(self, config: VoiceConfig) -> tuple[str, str, str]:
+        """选择声音并构造语速/音调参数字符串"""
+        voice = config.voice_id or self._select_voice(config)
+
+        rate_str = (
+            f"+{int((config.rate - 1) * 100)}%"
+            if config.rate >= 1
+            else f"{int((config.rate - 1) * 100)}%"
+        )
+        pitch_str = (
+            f"+{int((config.pitch - 1) * 50)}Hz"
+            if config.pitch >= 1
+            else f"{int((config.pitch - 1) * 50)}Hz"
+        )
+        return voice, rate_str, pitch_str
+
+    def _build_communicate(
+        self, text: str, voice: str, rate_str: str, pitch_str: str,
+    ) -> Any:
+        """构造 edge-tts Communicate 对象（集中惰性导入）"""
+        import edge_tts
+
+        return edge_tts.Communicate(text, voice, rate=rate_str, pitch=pitch_str)
+
+    async def _stream_chunks_to_file(
+        self,
+        communicate: Any,
+        output_path: str,
+        sentence_timestamps: list[dict[str, Any]],
+        progress_callback=None,
+    ) -> None:
+        """遍历 edge-tts 流，写入音频并收集时间戳，回调每句进度"""
+        submaker = self.edge_tts.SubMaker()
+
+        with open(output_path, "wb") as f:
+            async for chunk in communicate.stream():
+                if chunk["type"] == "SentenceBoundary":
+                    submaker.feed(chunk)
+                    start_s = chunk["offset"] / 10_000_000
+                    end_s = (chunk["offset"] + chunk["duration"]) / 10_000_000
+                    ts_entry = {
+                        "text": chunk["text"],
+                        "start": start_s,
+                        "end": end_s,
+                    }
+                    sentence_timestamps.append(ts_entry)
+
+                    if progress_callback:
+                        progress_callback(False, ts_entry)
+
+                elif chunk["type"] == "audio":
+                    f.write(chunk["data"])
+
+    def _build_voice_result(
+        self,
+        text: str,
+        output_path: str,
+        config: VoiceConfig,
+        voice: str,
+        duration: float,
+        sentence_timestamps: list[dict[str, Any]],
+    ) -> GeneratedVoice:
+        """构造 GeneratedVoice 返回对象"""
+        return GeneratedVoice(
+            audio_path=output_path,
+            duration=duration,
+            text=text,
+            voice_id=voice,
+            format=config.output_format,
+            sentence_timestamps=sentence_timestamps,
+        )
+
+    def generate_with_callback(
+        self,
+        text: str,
+        output_path: str,
+        config: VoiceConfig,
+        progress_callback=None,
+    ) -> GeneratedVoice:
+        """
+        带进度回调的同步生成方法（兼容现有接口）
+
+        Args:
+            text: 要生成的文本
+            output_path: 输出文件路径
+            config: 语音配置
+            progress_callback: 进度回调，signature: callback(done: bool, info: dict)
+        """
+        async def _generate():
+            return await self.generate_streaming(
+                text, output_path, config, progress_callback
+            )
+
+        return run_async_safely(_generate)  # type: ignore[no-any-return]
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     def _select_voice(self, config: VoiceConfig) -> str:
         """根据配置选择声音"""
         gender_key = config.gender.value

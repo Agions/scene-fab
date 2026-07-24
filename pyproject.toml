@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scenefab"
-version = "2.1.2"
+version = "2.4.0"
 description = "SceneFab - AI 影视解说视频创作工具，一键完成智能拆条 · 解说生成 · 配音合成"
 readme = "README.md"
 license = {text = "MIT"}
@@ -212,6 +212,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "numpy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["deepl", "fastapi", "fastapi.middleware.cors", "fastapi.responses", "importlib_metadata", "keyring", "orjson", "PIL", "pydub", "torch"]
 ignore_missing_imports = true
 
 [tool.uv]

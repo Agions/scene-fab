@@ -12,10 +12,12 @@ Qwen3.7 Vision Provider
 API 文档：https://help.aliyun.com/zh/model-studio/developer-reference/qwen3-7
 """
 
+import json
 import logging
 import os
 from typing import Any
 
+import openai
 from openai import OpenAI
 
 from ..model_catalog import DEFAULT_MODELS, provider_models
@@ -104,35 +106,14 @@ class Qwen37Provider(VisionProvider):
         if prompt is None:
             prompt = self._get_default_prompt()
 
-        try:
-            # 构建视频内容
-            video_content = {
-                "type": "video_url",
-                "video_url": {"url": video_path, "fps": fps},
-            }
-
-            # 调用 API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {  # type: ignore[unused-ignore, misc, object]
-                        "role": "user",
-                        "content": [video_content, {"type": "text", "text": prompt}],
-                    }
-                ],
-                max_tokens=4096,
-            )
-
-            # 解析响应
-            result_text = response.choices[0].message.content or ""
-            return self._parse_response(result_text)
-
-        except Exception as e:
-            logger.error(f"Qwen3.7 视频分析失败: {e}")
-            return VisionAnalysisResult(
-                description=f"分析失败: {str(e)}",
-                raw_response=str(e),
-            )
+        video_content = {
+            "type": "video_url",
+            "video_url": {"url": video_path, "fps": fps},
+        }
+        return self._invoke_chat_completion(
+            [video_content, {"type": "text", "text": prompt}],
+            error_label="视频",
+        )
 
     def analyze_image(
         self,
@@ -152,35 +133,14 @@ class Qwen37Provider(VisionProvider):
         if prompt is None:
             prompt = self._get_default_prompt()
 
-        try:
-            # 构建图像内容
-            image_content = {
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"},
-            }
-
-            # 调用 API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {  # type: ignore[unused-ignore, misc, object]
-                        "role": "user",
-                        "content": [image_content, {"type": "text", "text": prompt}],
-                    }
-                ],
-                max_tokens=4096,
-            )
-
-            # 解析响应
-            result_text = response.choices[0].message.content or ""
-            return self._parse_response(result_text)
-
-        except Exception as e:
-            logger.error(f"Qwen3.7 图像分析失败: {e}")
-            return VisionAnalysisResult(
-                description=f"分析失败: {str(e)}",
-                raw_response=str(e),
-            )
+        image_content = {
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"},
+        }
+        return self._invoke_chat_completion(
+            [image_content, {"type": "text", "text": prompt}],
+            error_label="图像",
+        )
 
     def analyze_video_with_timestamps(
         self,
@@ -226,17 +186,12 @@ class Qwen37Provider(VisionProvider):
 
             # 从响应中提取 JSON
             response_text = result.raw_response
-            # 查找 JSON 块
-            if "```json" in response_text:
-                json_str = response_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in response_text:
-                json_str = response_text.split("```")[1].split("```")[0].strip()
-            else:
-                json_str = response_text
+            json_str = _extract_json_block(response_text)
 
-            return json.loads(json_str)  # type: ignore[no-any-return]
-        except Exception as e:
-            logger.warning(f"解析时间戳响应失败: {e}")
+            return json.loads(json_str)  # type: ignore[no-any-return]  # noqa: ERA001
+        except (json.JSONDecodeError, KeyError, IndexError, ValueError) as e:
+            # JSON 解析/字段缺失错误 (上游 LLM 返回非预期格式)
+            logger.warning(f"解析时间戳响应失败 (响应解析): {e}")
             return {
                 "summary": result.description,
                 "events": [],
@@ -269,13 +224,7 @@ class Qwen37Provider(VisionProvider):
             import json
 
             # 尝试从响应中提取 JSON
-            if "```json" in response_text:
-                json_str = response_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in response_text:
-                json_str = response_text.split("```")[1].split("```")[0].strip()
-            else:
-                json_str = response_text
-
+            json_str = _extract_json_block(response_text)
             data = json.loads(json_str)
 
             # 填充结果
@@ -291,11 +240,56 @@ class Qwen37Provider(VisionProvider):
             result.first_person_hook = data.get("first_person_hook", "")
             result.confidence = 0.9  # Qwen3.7 置信度较高
 
-        except Exception as e:
-            logger.warning(f"解析 Qwen3.7 响应失败: {e}")
+        except (json.JSONDecodeError, KeyError, IndexError, ValueError) as e:
+            # JSON 解析/字段缺失错误 (上游 LLM 返回非预期格式, 截取原文兜底)
+            logger.warning(f"解析 Qwen3.7 响应失败 (响应解析): {e}")
             result.description = response_text[:500]  # 截取前500字符
 
         return result
+
+
+    def _invoke_chat_completion(
+        self,
+        user_content: list[dict[str, Any]],
+        error_label: str,
+    ) -> VisionAnalysisResult:
+        """Call the OpenAI-compat chat completion API with shared error handling.
+
+        ``error_label`` is the human-readable media kind (``"视频"`` / ``"图像"``)
+        used in error messages; ``user_content`` is the message-parts list for the
+        single user message. Centralises the API call, response parsing, and the
+        two error paths used by :meth:`analyze_video` and :meth:`analyze_image`.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {  # type: ignore[misc]
+                        "role": "user",
+                        "content": user_content,  # type: ignore[misc]
+                    }
+                ],
+                max_tokens=4096,
+            )
+
+            # 解析响应
+            result_text = response.choices[0].message.content or ""
+            return self._parse_response(result_text)
+
+        except openai.OpenAIError as e:
+            # API/HTTP/网络错误 (openai SDK 异常基类, 覆盖所有 4xx/5xx/连接/超时)
+            logger.error(f"Qwen3.7 {error_label}分析失败 (API错误): {e}")
+            return VisionAnalysisResult(
+                description=f"分析失败 (API错误): {str(e)}",
+                raw_response=str(e),
+            )
+        except (json.JSONDecodeError, KeyError, IndexError, ValueError) as e:
+            # 响应解析错误 (上游返回非预期格式 / 字段缺失)
+            logger.error(f"Qwen3.7 {error_label}分析失败 (响应解析): {e}")
+            return VisionAnalysisResult(
+                description=f"分析失败 (响应解析): {str(e)}",
+                raw_response=str(e),
+            )
 
 
 # 便捷函数
@@ -317,3 +311,16 @@ def create_qwen37_provider(
         api_key = os.getenv("QWEN_API_KEY", "")
 
     return Qwen37Provider(api_key=api_key, model=model)
+
+
+def _extract_json_block(text: str) -> str:
+    """从 markdown ```json ... ``` 块提取 JSON 文本，无包裹时返回原文.
+
+    Qwen3.7 LLM 返回常带代码块标记, 需要先剥离.
+    analyze_video_with_timestamps 和 _parse_response 都用此模式.
+    """
+    if "```json" in text:
+        return text.split("```json")[1].split("```")[0].strip()
+    if "```" in text:
+        return text.split("```")[1].split("```")[0].strip()
+    return text

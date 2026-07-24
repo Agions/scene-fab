@@ -11,9 +11,9 @@
 
 from __future__ import annotations
 
-from importlib import import_module
 from typing import Any
 
+<<<<<<< HEAD
 # 视频工具（原 video/__init__.py）
 from . import hardware, probe
 from .tool_base import (
@@ -26,6 +26,10 @@ from .caption_gen import Caption, CaptionConfig, CaptionGenerator, CaptionStyle
 from .ffmpeg_tool import FFmpegTool, HWAccelType
 
 # 视频制作服务（原 video/__init__.py，延迟加载）
+=======
+from scenefab.utils.lazy_imports import make_lazy_getattr
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 _EXPORTS = {
     "BaseVideoMaker": ".base_maker",
     "MonologueMaker": ".monologue_maker",
@@ -63,13 +67,10 @@ _EXPORTS = {
 
 
 def __getattr__(name: str) -> Any:
-    module_name = _EXPORTS.get(name)
-    if module_name is None:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    module = import_module(module_name, __name__)
-    value = getattr(module, name)
-    globals()[name] = value
-    return value
+    return _lazy_getattr(name)
+
+
+_lazy_getattr = make_lazy_getattr(_EXPORTS, package_name=__name__)
 
 
 __all__ = list(_EXPORTS) + [

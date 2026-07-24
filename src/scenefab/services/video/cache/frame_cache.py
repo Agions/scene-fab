@@ -6,29 +6,29 @@
 from __future__ import annotations
 
 import logging
-import shutil
-import threading
-from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
-from typing import Any, Callable, Optional
-
 import os
 import pickle
+import shutil
 import stat
+import threading
+from collections import OrderedDict
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
 _OWNER_RW = stat.S_IRUSR | stat.S_IWUSR
 
 
-def __safe_pickle_load(path: Path) -> Any:
+def _safe_pickle_load(path: Path) -> Any:
     """读取 pickle 文件（仅限当前用户私有文件）"""
     with open(path, "rb") as f:
         return pickle.load(f)
 
 
-def __safe_pickle_dump(value: Any, path: Path) -> None:
+def _safe_pickle_dump(value: Any, path: Path) -> None:
     """写入 pickle 文件（owner-only 权限）"""
     with open(path, "wb") as f:
         pickle.dump(value, f)
@@ -65,10 +65,10 @@ class VideoFrameCache:
     """
 
     # 全局共享缓存实例
-    _shared_cache: Optional["VideoFrameCache"] = None
+    _shared_cache: VideoFrameCache | None = None
 
     @classmethod
-    def get_shared(cls) -> "VideoFrameCache":
+    def get_shared(cls) -> VideoFrameCache:
         """获取共享缓存实例"""
         if cls._shared_cache is None:
             cls._shared_cache = cls(
@@ -82,7 +82,7 @@ class VideoFrameCache:
         self,
         max_frames: int = 100,
         max_memory_mb: int = 500,
-        temp_dir: Optional[str] = None,
+        temp_dir: str | None = None,
         disk_fallback: bool = True,
     ):
         """
@@ -151,8 +151,12 @@ class VideoFrameCache:
                     # 重新加入内存缓存
                     self.set(key, frame)
                     return frame  # type: ignore[no-any-return]
-                except Exception as e:
-                    logger.debug(f"磁盘读取失败: {e}")
+                except (OSError, pickle.UnpicklingError) as e:
+                    # 真实 I/O 错误 (磁盘满/损坏), warning 级别让用户感知
+                    logger.warning(
+                        "frame_cache 磁盘读取失败 key=%s path=%s: %s",
+                        key, disk_path, e,
+                    )
 
         return None
 
@@ -185,8 +189,12 @@ class VideoFrameCache:
                         disk_path = self._get_disk_path(oldest_key)
                         _safe_pickle_dump(oldest_frame, disk_path)
                         self._disk_write_count += 1
-                    except Exception as e:
-                        logger.debug(f"磁盘回退写入失败: {e}")
+                    except (OSError, pickle.PicklingError) as e:
+                        # 真实 I/O 错误 (磁盘满/权限), warning 级别让用户感知
+                        logger.warning(
+                            "frame_cache 磁盘回退写入失败 key=%s: %s",
+                            oldest_key, e,
+                        )
 
             # 存储到内存
             self._memory_cache[key] = frame
@@ -199,8 +207,8 @@ class VideoFrameCache:
         self,
         video_path: str,
         timestamps: list[float],
-        extract_func: Callable[[str, float], Optional[np.ndarray]],
-        progress_callback: Optional[Callable[[int, int], None]] = None,
+        extract_func: Callable[[str, float], np.ndarray | None],
+        progress_callback: Callable[[int, int], None] | None = None,
     ) -> dict[str, np.ndarray]:
         """
         批量预提取关键帧（并行）
@@ -217,7 +225,7 @@ class VideoFrameCache:
         total = len(timestamps)
 
         # 第一步：并行提取所有缺失帧
-        def extract_missing(ts: float) -> tuple[str, Optional[np.ndarray]]:
+        def extract_missing(ts: float) -> tuple[str, np.ndarray | None]:
             key = self._generate_key(video_path, ts)
             # 检查缓存（只用于跳过，不阻塞其他线程）
             if self.get(key) is not None:

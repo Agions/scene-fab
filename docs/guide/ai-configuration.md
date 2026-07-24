@@ -139,5 +139,6 @@ LLM:
 
 ## 相关文档
 
-- [配置参考](/config) — 两文件配置结构详解
-- [AI 模型参考](/ai-models) — 模型选择与推荐配置
+- [快速开始](/guide/quick-start) — 3 步上手
+- [CLI 参考](/guide/cli-reference) — 环境变量配置
+- [疑难排查](/guide/troubleshooting) — 常见问题解决

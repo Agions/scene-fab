@@ -14,8 +14,6 @@
 - **零破坏兼容 v2.1**: 现有 monologue_maker.generate_script 完全不动
 - **复用现有模型**: SceneInfo / StoryGraph / ScriptConfig / GeneratedScript 直接复用
 - **错误隔离**: 任何底层异常被捕获, 状态机主循环接到 StepResult(success=False) 转 ERROR
-
-v2.2 决策: docs/adr/007-narration-state-machine.md
 """
 
 from __future__ import annotations
@@ -24,19 +22,32 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
+<<<<<<< HEAD
 from .fp_workflow import FIRST_PERSON_SCRIPT_RULES
 from .narration.context import (
+=======
+from scenefab.services.ai.script_models import (
+    ScriptConfig,
+    ScriptStyle,
+    VoiceTone,
+)
+
+from .narration_context import (
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     Bridge,
     BridgeType,
     NarrationContext,
     ProductionStyle,
 )
+<<<<<<< HEAD
 from .narration.state_machine import NarrationState, StepResult
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE
+=======
+from .narration_state_machine import NarrationState, StepResult, success_step
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 if TYPE_CHECKING:
     from scenefab.services.ai.script_generator.script_generator import ScriptGenerator
-    from scenefab.services.ai.script_models import ScriptConfig
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +128,7 @@ def understand_step(ctx: NarrationContext) -> StepResult:
             logger.warning(f"[{ctx.trace_id[:8]}] 桥段检测失败, 跳过: {e}")
             ctx.bridges = []
 
+<<<<<<< HEAD
     duration_ms = (time.time() - start) * 1000
     return StepResult(
         success=True,
@@ -128,6 +140,9 @@ def understand_step(ctx: NarrationContext) -> StepResult:
             "bridges": len(ctx.bridges),
         },
     )
+=======
+    return success_step(start, state=NarrationState.UNDERSTAND, message=f'understand: {len(ctx.scenes)} 场景, {len(ctx.bridges)} 桥段', data={'scenes': len(ctx.scenes), 'bridges': len(ctx.bridges)})
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 # ============================================
@@ -152,17 +167,7 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
     # 短视频 (< 10 分钟) 跳过 LongVideoUnderstanding, 用 scenes 拼一份简化 story_graph
     if video_duration < 600:
         ctx.story_graph = _build_minimal_story_graph(ctx)
-        duration_ms = (time.time() - start) * 1000
-        return StepResult(
-            success=True,
-            state=NarrationState.STORYGRAPH,
-            duration_ms=duration_ms,
-            message=(
-                f"storygraph: 短视频 ({video_duration:.0f}s), "
-                f"跳过 LongVideoUnderstanding, 用 scenes 拼装"
-            ),
-            data={"duration_sec": video_duration, "skipped_long": True},
-        )
+        return success_step(start, state=NarrationState.STORYGRAPH, message=f'storygraph: 短视频 ({video_duration:.0f}s), 跳过 LongVideoUnderstanding, 用 scenes 拼装', data={'duration_sec': video_duration, 'skipped_long': True})
 
     # 长视频: 尝试 LongVideoUnderstanding
     try:
@@ -175,24 +180,11 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
             level=UnderstandingLevel.FLASH,  # Phase 2 默认 FLASH (省 token)
         )
         ctx.story_graph = result.story_graph
-        duration_ms = (time.time() - start) * 1000
-        return StepResult(
-            success=True,
-            state=NarrationState.STORYGRAPH,
-            duration_ms=duration_ms,
-            message=(
-                f"storygraph: 长视频 ({video_duration:.0f}s), "
-                f"LongVideoUnderstanding 完成"
-            ),
-            data={
-                "duration_sec": video_duration,
-                "characters": len(result.story_graph.characters),
-                "plot_events": len(result.story_graph.plot_events),
-            },
-        )
+        return success_step(start, state=NarrationState.STORYGRAPH, message=f'storygraph: 长视频 ({video_duration:.0f}s), LongVideoUnderstanding 完成', data={'duration_sec': video_duration, 'characters': len(result.story_graph.characters), 'plot_events': len(result.story_graph.plot_events)})
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[{ctx.trace_id[:8]}] LongVideoUnderstanding 失败, 降级: {e}")
         ctx.story_graph = _build_minimal_story_graph(ctx)
+<<<<<<< HEAD
         duration_ms = (time.time() - start) * 1000
         return StepResult(
             success=True,
@@ -201,6 +193,9 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
             message=(f"storygraph: 长视频 ({video_duration:.0f}s) 但理解失败, 降级"),
             data={"duration_sec": video_duration, "fallback": True},
         )
+=======
+        return success_step(start, state=NarrationState.STORYGRAPH, message=f'storygraph: 长视频 ({video_duration:.0f}s) 但理解失败, 降级', data={'duration_sec': video_duration, 'fallback': True})
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 # ============================================
@@ -251,20 +246,7 @@ def draft_step(ctx: NarrationContext) -> StepResult:
         ctx.current_draft = _stub_draft(ctx, topic)
         ctx.current_segments = _stub_segments(ctx, ctx.current_draft)
 
-    duration_ms = (time.time() - start) * 1000
-    return StepResult(
-        success=True,
-        state=NarrationState.DRAFT,
-        duration_ms=duration_ms,
-        message=(
-            f"draft 完成 (attempt={ctx.draft_attempts + 1}, "
-            f"chars={len(ctx.current_draft)})"
-        ),
-        data={
-            "chars": len(ctx.current_draft),
-            "segments": len(ctx.current_segments),
-        },
-    )
+    return success_step(start, state=NarrationState.DRAFT, message=f'draft 完成 (attempt={ctx.draft_attempts + 1}, chars={len(ctx.current_draft)})', data={'chars': len(ctx.current_draft), 'segments': len(ctx.current_segments)})
 
 
 # ============================================
@@ -277,34 +259,19 @@ def _build_narration_prompt(
 ) -> tuple[str, ScriptConfig]:
     """把 NarrationContext 翻译成 ScriptGenerator 友好的 (topic, ScriptConfig)
 
-    4 类上下文映射:
+    4 类上下文映射 (每个区块已抽到独立函数, 主函数只负责组装):
     ① 指令上下文 (persona/style/platform) → ScriptConfig.style/tone/target_duration
     ② 数据上下文 (story_graph/scenes/bridges) → topic 主体
     ③ 历史上下文 (history) → topic 末尾"前情提要"段
     ④ 工具上下文 (few_shots/bridge_templates) → ScriptConfig.keywords 注入
     """
-    from scenefab.services.ai.script_models import (
-        ScriptConfig,
-        ScriptStyle,
-        VoiceTone,
-    )
-
-    # —— ① 指令上下文 ——
-    script_style_str = _NARRATION_TO_SCRIPT_STYLE.get(ctx.style, "commentary")
-    tone_str = _NARRATION_TO_TONE.get(ctx.style, "neutral")
-
-    style_enum = ScriptStyle(script_style_str)
-    tone_enum = VoiceTone(tone_str)
-
-    # 平台规格 → 目标时长
-    platform_spec = ctx.platform_spec
-    target_duration = platform_spec.target_duration_sec
-    # 抖音 4.5字/秒, B站 4.0字/秒, 已在 platform_spec 里
-    words_per_second = platform_spec.char_per_second
+    # —— ① 指令上下文 → ScriptConfig.style/tone/target_duration ——
+    style_enum, tone_enum, target_duration, words_per_second = _map_directive_context(ctx)
 
     # —— ② 数据上下文 → topic 主体 ——
-    topic_parts: list[str] = []
+    topic_parts = _build_topic_data_parts(ctx)
 
+<<<<<<< HEAD
     workflow_rules = "；".join(
         f"{rule.label}: {rule.value}" for rule in FIRST_PERSON_SCRIPT_RULES
     )
@@ -313,10 +280,15 @@ def _build_narration_prompt(
     # 短剧生产字段: 题材、爽点、关系和集数上下文
     if ctx.content_tags:
         topic_parts.append(f"【短剧标签】{', '.join(ctx.content_tags[:8])}")
+=======
+    # —— ③ 历史上下文 → "前情提要" 段 ——
+    _append_history_part(topic_parts, ctx)
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
-    if ctx.relationship_notes:
-        topic_parts.append(f"【人物关系】{'; '.join(ctx.relationship_notes[:5])}")
+    # —— ④ 工具上下文 → ScriptConfig.keywords ——
+    keywords = _collect_keywords(ctx, topic_parts)
 
+<<<<<<< HEAD
     episode_parts: list[str] = []
     if ctx.episode_index is not None:
         episode_parts.append(f"第 {ctx.episode_index} 集")
@@ -379,8 +351,12 @@ def _build_narration_prompt(
     if len(topic_parts) == 1:
         topic_parts.append("【主题】通用影视解说")
     topic = "\n".join(topic_parts)
+=======
+    # —— 组装 topic ——
+    topic = "\n".join(topic_parts) if topic_parts else "通用影视解说"
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
-    # 组装 ScriptConfig
+    # —— 组装 ScriptConfig ——
     config = ScriptConfig(
         style=style_enum,
         tone=tone_enum,
@@ -392,6 +368,142 @@ def _build_narration_prompt(
     )
 
     return topic, config
+
+
+# ============================================
+# _build_narration_prompt 的 4 个上下文映射子函数
+# ============================================
+
+
+def _map_directive_context(ctx: NarrationContext) -> tuple[ScriptStyle, VoiceTone, float, float]:
+    """① 指令上下文: persona/style/platform → ScriptConfig 风格/语气/时长
+
+    Returns:
+        (style_enum, tone_enum, target_duration_sec, words_per_second)
+    """
+    script_style_str = _NARRATION_TO_SCRIPT_STYLE.get(ctx.style, "commentary")
+    tone_str = _NARRATION_TO_TONE.get(ctx.style, "neutral")
+
+    platform_spec = ctx.platform_spec
+    # 抖音 4.5字/秒, B站 4.0字/秒 等, 已在 platform_spec 里
+    return (
+        ScriptStyle(script_style_str),
+        VoiceTone(tone_str),
+        platform_spec.target_duration_sec,
+        platform_spec.char_per_second,
+    )
+
+
+def _build_topic_data_parts(ctx: NarrationContext) -> list[str]:
+    """② 数据上下文: story_graph/scenes/bridges → topic 主体 (短剧生产字段 + 集数 + 剧情 + 角色 + 场景 + 桥段)"""
+    parts: list[str] = []
+
+    _append_drama_metadata(parts, ctx)
+    _append_episode_context(parts, ctx)
+    _append_story_graph(parts, ctx)
+    _append_scenes(parts, ctx)
+    _append_bridges(parts, ctx)
+
+    return parts
+
+
+def _append_drama_metadata(parts: list[str], ctx: NarrationContext) -> None:
+    """短剧生产字段: 题材 / 爽点 / 关系"""
+    if ctx.content_tags:
+        parts.append(f"【短剧标签】{', '.join(ctx.content_tags[:8])}")
+    if ctx.relationship_notes:
+        parts.append(f"【人物关系】{'; '.join(ctx.relationship_notes[:5])}")
+
+
+def _append_episode_context(parts: list[str], ctx: NarrationContext) -> None:
+    """集数上下文: 第 N 集 / 上一集摘要 / 下一集钩子"""
+    episode_parts: list[str] = []
+    if ctx.episode_index is not None:
+        episode_parts.append(f"第 {ctx.episode_index} 集")
+    if ctx.previous_episode_summary:
+        episode_parts.append(f"上一集: {ctx.previous_episode_summary[:80]}")
+    if ctx.next_hook_hint:
+        episode_parts.append(f"下一集钩子: {ctx.next_hook_hint[:80]}")
+    if episode_parts:
+        parts.append("【集数上下文】" + "；".join(episode_parts))
+
+
+def _append_story_graph(parts: list[str], ctx: NarrationContext) -> None:
+    """剧情梗概 + 角色 (最多 3 个)"""
+    graph = ctx.story_graph
+    if not graph:
+        return
+    if graph.synopsis:
+        parts.append(f"【剧情】{graph.synopsis}")
+    if graph.characters:
+        char_descs = [
+            f"{c.name}: {c.description[:30]}" for c in graph.characters[:3]
+        ]
+        parts.append("【角色】" + "; ".join(char_descs))
+
+
+def _append_scenes(parts: list[str], ctx: NarrationContext) -> None:
+    """场景摘要 (最多 5 个)"""
+    if not ctx.scenes:
+        return
+    scene_descs = [
+        f"场景{s.index + 1}: {s.description[:40] or s.type.value}"
+        for s in ctx.scenes[:5]
+    ]
+    parts.append("【场景】" + " | ".join(scene_descs))
+
+
+def _append_bridges(parts: list[str], ctx: NarrationContext) -> None:
+    """桥段 (短剧特化)"""
+    if not ctx.bridges:
+        return
+    bridge_strs = [b.bridge_type.value for b in ctx.bridges[:5]]
+    parts.append(f"【桥段】触发: {', '.join(bridge_strs)}")
+
+
+def _append_history_part(parts: list[str], ctx: NarrationContext) -> None:
+    """③ 历史上下文: 最近 3 段提到的角色 → '前情已提角色' 段"""
+    if not ctx.history:
+        return
+    prev_chars: set[str] = set()
+    for h in ctx.history[-3:]:
+        prev_chars.update(h.characters_mentioned)
+    if prev_chars:
+        parts.append(f"【前情已提角色】{', '.join(list(prev_chars)[:5])}")
+
+
+def _collect_keywords(ctx: NarrationContext, topic_parts: list[str]) -> list[str]:
+    """④ 工具上下文: few_shots / bridge_templates 高频词 → ScriptConfig.keywords
+
+    Returns:
+        去重后的关键词列表 (最多 5 个)
+    """
+    keywords: list[str] = []
+
+    # few_shots 视作 content_tags 的扩展
+    for tag in ctx.content_tags[:5]:
+        if tag and tag not in keywords:
+            keywords.append(tag)
+
+    # 桥段模板里高频词注入 (中文关键词白名单)
+    for word in ("冲突", "反转", "打脸", "心动", "背叛", "对峙"):
+        _inject_bridge_keyword(ctx, word, keywords)
+
+    return keywords[:5]
+
+
+def _inject_bridge_keyword(ctx: NarrationContext, word: str, keywords: list[str]) -> None:
+    """如果 word 出现在任意 bridge_template 中, 把它加入 keywords (去重)
+
+    字段类型契约 dict[BridgeType, str] (narration_context.py:221), 唯一赋值点是测试 fixture,
+    所以 bt 始终是 BridgeType 枚举, 不需要 isinstance 防御.
+    """
+    if word in keywords:
+        return
+    for template in ctx.bridge_templates.values():
+        if template and word in template:
+            keywords.append(word)
+            return
 
 
 # ============================================
@@ -445,7 +557,10 @@ def _detect_bridges(narrator, scenes: list) -> list[Bridge]:
                             description=scene.description[:50],
                         )
                     )
-        except Exception:  # noqa: BLE001
+        except (AttributeError, KeyError, TypeError):
+            # scene 属性缺失 / Bridge 字段类型错 (detect_trope 纯字符串操作不抛错)
+            # 单 scene 失败不影响其他 scene, continue
+            # 不吞 RuntimeError 等真实编程 bug
             continue
     return bridges
 

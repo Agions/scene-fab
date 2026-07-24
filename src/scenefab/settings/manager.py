@@ -85,7 +85,9 @@ class ProjectSettingsManager(QObject):
 
             self.logger.info("Project settings loaded successfully")
 
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, ValueError) as e:
+            # 文件不存在/权限不足 / JSON 解析失败 / 数据结构异常
+            # 不吞 RuntimeError/TypeError 等真实编程 bug
             self.logger.error(f"Failed to load settings: {e}")
 
     def _load_profiles(self) -> None:
@@ -102,7 +104,9 @@ class ProjectSettingsManager(QObject):
 
             self.logger.info("Project profiles loaded successfully")
 
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, ValueError, TypeError) as e:
+            # 文件不存在/权限不足 / JSON 解析失败 / 数据结构异常 / 字段类型错
+            # 不吞 RuntimeError/AttributeError 等真实编程 bug
             self.logger.error(f"Failed to load profiles: {e}")
 
     def _create_default_profiles(self) -> None:
@@ -280,9 +284,18 @@ class ProjectSettingsManager(QObject):
     def _save_json_file(self, file_path: str, data: Any) -> None:
         """安全保存 JSON 文件"""
         try:
+<<<<<<< HEAD:src/scenefab/settings/manager.py
             ensure_directories(os.path.dirname(file_path))
             write_json(file_path, data)
         except Exception as e:
+=======
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except (OSError, TypeError, ValueError) as e:
+            # 目录创建失败/磁盘满/权限不足 / data 不是 JSON 可序列化 / 嵌套结构错
+            # 不吞 RuntimeError/AttributeError 等真实编程 bug
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/settings_manager.py
             self.logger.error(f"Failed to save {os.path.basename(file_path)}: {e}")
 
     def create_profile(
@@ -395,8 +408,16 @@ class ProjectSettingsManager(QObject):
             profiles_data = {
                 name: asdict(profile) for name, profile in self.profiles.items()
             }
+<<<<<<< HEAD:src/scenefab/settings/manager.py
             self._save_json_file(self.profiles_file, profiles_data)
         except Exception as e:
+=======
+            with open(self.profiles_file, "w", encoding="utf-8") as f:
+                json.dump(profiles_data, f, indent=2, ensure_ascii=False)
+        except (OSError, TypeError, ValueError) as e:
+            # 目录创建失败/磁盘满/权限不足 / profile 字段类型错 / 嵌套结构错
+            # 不吞 RuntimeError/AttributeError 等真实编程 bug
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/settings_manager.py
             self.logger.error(f"Failed to save profiles: {e}")
 
     def export_settings(self, export_path: str, profile_name: str = None) -> bool:  # type: ignore[assignment]

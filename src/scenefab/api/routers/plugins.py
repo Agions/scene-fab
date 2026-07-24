@@ -90,21 +90,44 @@ async def list_plugins():
     列出所有已发现的插件
     """
     try:
+<<<<<<< HEAD
         registry = _get_loader().get_registry()
         manifests = registry.list_plugins()
         plugins = [_to_plugin_info(manifest, registry) for manifest in manifests]
+=======
+        from scenefab.plugins.loader import PluginLoader
+
+        loader = PluginLoader()
+        discovered = loader.discover_plugins()
+        registry = loader.get_registry()
+
+        plugins = []
+        for pid in discovered:
+            reg_entry = registry.get(pid, {})  # type: ignore[arg-type]
+            plugins.append(_plugin_info_from_registry(pid, reg_entry))
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         return PluginListResponse(total=len(plugins), plugins=plugins)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 @router.get("/plugins/types")
 async def list_plugin_types():
     """
     列出所有支持的插件类型
     """
     try:
+<<<<<<< HEAD
+=======
+        from scenefab.plugins.interfaces.base import PluginType
+
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         return {
             "types": [
                 {"value": t.value, "description": _type_description(t.value)}
@@ -113,8 +136,11 @@ async def list_plugin_types():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 @router.get("/plugins/{plugin_id}", response_model=PluginInfo)
 async def get_plugin(plugin_id: str):
     """
@@ -128,7 +154,12 @@ async def get_plugin(plugin_id: str):
                 status_code=404, detail=f"Plugin '{plugin_id}' not found"
             )
 
+<<<<<<< HEAD
         return _to_plugin_info(manifest, registry)
+=======
+        reg_entry = registry[plugin_id]  # type: ignore[index]
+        return _plugin_info_from_registry(plugin_id, reg_entry)
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     except HTTPException:
         raise
@@ -168,6 +199,7 @@ async def enable_plugin(plugin_id: str, request: PluginEnableRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
+<<<<<<< HEAD
 def _type_description(plugin_type: str) -> str:
     descriptions = {
         "ai_generator": "AI 内容生成器插件",
@@ -177,5 +209,30 @@ def _type_description(plugin_type: str) -> str:
         "subtitle_style": "字幕样式插件",
         "video_effect": "视频特效插件",
         "scene_detector": "场景检测插件",
+=======
+
+def _type_description(plugin_type: str) -> str:
+    descriptions = {
+        "AI_GENERATOR": "AI 内容生成器插件",
+        "EXPORT_FORMAT": "视频导出格式插件",
+        "UI_EXTENSION": "UI 扩展组件",
+        "EFFECT_FILTER": "特效滤镜插件",
+        "AUDIO_VOICE": "语音/配音插件",
+        "VIDEO_DECODER": "视频解码插件",
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     }
     return descriptions.get(plugin_type, "未知类型")
+
+
+def _plugin_info_from_registry(plugin_id: str, reg_entry: dict) -> PluginInfo:
+    """从 registry entry 构造 PluginInfo（list/single 共享）"""
+    manifest = reg_entry.get("manifest", {})
+    return PluginInfo(
+        id=plugin_id,
+        name=manifest.get("name", plugin_id),
+        version=manifest.get("version", "0.0.0"),
+        description=manifest.get("description", ""),
+        plugin_type=manifest.get("plugin_type", "UNKNOWN"),
+        enabled=reg_entry.get("enabled", False),
+        capabilities=manifest.get("capabilities", []),
+    )

@@ -5,7 +5,16 @@
 支持豆包模型系列
 """
 
+<<<<<<< HEAD
 from ..base_llm_provider import LLMRequest
+=======
+
+import json
+
+import httpx
+
+from ..base_llm_provider import LLMRequest, ProviderError
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 from ..model_catalog import DEFAULT_MODELS, provider_models
 from .openai_compat import OpenAICompatProvider
 
@@ -38,5 +47,16 @@ class DoubaoProvider(OpenAICompatProvider):
                 response.raise_for_status()
                 async for chunk in self._parse_sse_stream(response):
                     yield chunk
+<<<<<<< HEAD
         except Exception as e:
             raise self._stream_provider_error(e)
+=======
+        except httpx.HTTPStatusError as e:
+            raise self._handle_http_error(e)
+        except httpx.HTTPError as e:
+            # 网络/HTTP 错误 (连接超时/DNS失败/SSL错误等), 显式收口
+            raise ProviderError(f"流式生成失败 (网络错误): {e}") from e
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            # 响应解析错误 (上游返回非预期格式), 显式收口
+            raise ProviderError(f"流式生成失败 (响应解析): {e}") from e
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

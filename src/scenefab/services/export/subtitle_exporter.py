@@ -25,7 +25,15 @@ class SubtitleExporter:
         if SubtitleExporter._write_text(output_path, content, "SRT"):
             logger.info(f"Exported SRT to: {output_path}")
             return True
+<<<<<<< HEAD
         return False
+=======
+        except OSError as e:
+            # 磁盘满 / 权限不足 / 路径无效 等文件 IO 错误
+            # 不吞 TypeError/AttributeError (sub.to_srt 真实 bug)
+            logger.error(f"Failed to export SRT: {e}")
+            return False
+>>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     @staticmethod
     def export_vtt(subtitles: list[Any], output_path: str) -> bool:

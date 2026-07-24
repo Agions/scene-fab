@@ -7,9 +7,6 @@ Google Gemini 提供商
 使用公共混入类减少重复代码
 """
 
-import base64
-from pathlib import Path
-
 from ..base_llm_provider import (
     BaseLLMProvider,
     HTTPClientMixin,
@@ -19,6 +16,7 @@ from ..base_llm_provider import (
     ProviderError,
 )
 from ..model_catalog import DEFAULT_MODELS, provider_models
+from ..vision_base import VisionProvider
 
 
 class GeminiProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
@@ -47,25 +45,10 @@ class GeminiProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
         """生成文本"""
         model = self._get_model_name(request.model)
 
-        contents = []
-        if request.system_prompt:
-            contents.append(
-                {
-                    "role": "user",
-                    "parts": [{"text": f"System: {request.system_prompt}"}],
-                }
-            )
-            contents.append({"role": "model", "parts": [{"text": "Understood."}]})
+        contents = GeminiProvider._add_system_prompt_to_contents(contents=[], request=request)
         contents.append({"role": "user", "parts": [{"text": request.prompt}]})
 
-        payload = {
-            "contents": contents,
-            "generationConfig": {
-                "maxOutputTokens": request.max_tokens,
-                "temperature": request.temperature,
-                "topP": request.top_p,
-            },
-        }
+        payload = self._build_gemini_payload(request, contents)
 
         data = await self._call_api(
             "POST",
@@ -74,26 +57,7 @@ class GeminiProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
             json=payload,
         )
 
-        if "error" in data:
-            raise ProviderError(data["error"]["message"])
-
-        candidates = data.get("candidates", [])
-        if not candidates:
-            raise ProviderError("No response generated")
-
-        content_parts = candidates[0].get("content", {}).get("parts", [])
-        content = "".join(part.get("text", "") for part in content_parts)
-        usage = data.get("usageMetadata", {})
-        tokens_used = usage.get("promptTokenCount", 0) + usage.get(
-            "candidatesTokenCount", 0
-        )
-
-        return LLMResponse(
-            content=content,
-            model=model,
-            tokens_used=tokens_used,
-            finish_reason=candidates[0].get("finishReason", "STOP"),
-        )
+        return self._parse_gemini_response(data, model)
 
     async def generate_with_image(
         self,
@@ -102,12 +66,8 @@ class GeminiProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
     ) -> LLMResponse:
         """带图片的生成（Vision 能力）"""
         model = self._get_model_name(request.model)
-        image_path = Path(image_path)  # type: ignore[assignment]
-        if not image_path.exists():  # type: ignore[attr-defined]
-            raise ProviderError(f"图片不存在: {image_path}")
-
-        image_data = self._read_image_as_base64(image_path)
-        mime_type = self._detect_image_mime(image_path)
+        image_data = VisionProvider.read_image_as_base64(image_path)
+        mime_type = VisionProvider.detect_image_mime(image_path)
         contents = self._build_multimodal_contents(request, image_data, mime_type)
 
         data = await self._call_api(
@@ -120,30 +80,14 @@ class GeminiProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
         return self._parse_gemini_response(data, model)
 
     @staticmethod
-    def _read_image_as_base64(image_path) -> str:
-        """读取图片并 base64 编码"""
-        with open(image_path, "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
+    def _add_system_prompt_to_contents(
+        contents: list, request: LLMRequest
+    ) -> list:
+        """如果 request 有 system_prompt, 追加 system + model acknowledgment 到 contents.
 
-    @staticmethod
-    def _detect_image_mime(image_path) -> str:
-        """根据文件后缀检测 MIME 类型"""
-        suffix = image_path.suffix.lower()  # type: ignore[attr-defined]
-        mime_map = {
-            ".png": "image/png",
-            ".jpg": "image/jpeg",
-            ".jpeg": "image/jpeg",
-            ".webp": "image/webp",
-            ".gif": "image/gif",
-        }
-        return mime_map.get(suffix, "image/jpeg")
-
-    @staticmethod
-    def _build_multimodal_contents(
-        request: LLMRequest, image_data: str, mime_type: str
-    ) -> list[dict]:
-        """构建多模态 contents 列表 — 系统提示 + 图片 + 文本"""
-        contents = []
+        generate() 和 _build_multimodal_contents() 都用此模式.
+        返回 contents（mutated in place 但也返回, 方便链式用法）.
+        """
         if request.system_prompt:
             contents.append(
                 {
@@ -152,6 +96,16 @@ class GeminiProvider(BaseLLMProvider, HTTPClientMixin, ModelManagerMixin):
                 }
             )
             contents.append({"role": "model", "parts": [{"text": "Understood."}]})
+        return contents
+
+    @staticmethod
+    def _build_multimodal_contents(
+        request: LLMRequest, image_data: str, mime_type: str
+    ) -> list[dict]:
+        """构建多模态 contents 列表 — 系统提示 + 图片 + 文本"""
+        contents = GeminiProvider._add_system_prompt_to_contents(
+            contents=[], request=request
+        )
 
         contents.append(
             {
