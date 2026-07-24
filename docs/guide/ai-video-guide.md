@@ -114,6 +114,6 @@ Hook: 前 3 秒交代冲突、身份、危险或结果。
 
 ## 相关文档
 
-- [第一人称生产规范](/guide/first-person-narration-production) — 生产标准与质量门禁
+- [第一人称生产规范](/guide/narration-spec) — 生产标准与质量门禁
 - [AI 配置](/guide/ai-configuration) — 多服务商配置详解
 - [导出发布](/guide/exporting) — 导出格式与平台预设

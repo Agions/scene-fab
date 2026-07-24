@@ -89,5 +89,5 @@ output/
 
 ## 相关文档
 
-- [第一人称生产规范](/guide/first-person-narration-production) — 导出门禁标准
+- [第一人称生产规范](/guide/narration-spec) — 导出门禁标准
 - [CLI 参考](/guide/cli-reference) — 命令行导出参数

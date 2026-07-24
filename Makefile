@@ -3,18 +3,18 @@
 #
 # 使用方法:
 #   make help          显示帮助
-#   make build:win     Windows x64 (.zip)
-#   make build:mac     macOS x64 (.dmg)
-#   make build:mac-arm macOS ARM64 (.dmg)
-#   make build:linux   Linux x86_64 (.AppImage)
+#   make build_win      Windows x64 (.zip)
+#   make build_mac      macOS x64 (.dmg)
+#   make build_mac_arm  macOS ARM64 (.dmg)
+#   make build_linux    Linux x86_64 (.AppImage)
 #   make test          运行测试
 #   make clean         清理临时文件
 
 .SUFFIXES:
 .PHONY: help build build_win build_mac build_mac_arm build_linux clean test test-cov lint format docs
 
-# ── 版本号（单一真相来源：pyproject.toml / src/scenefab/utils/version.py）─
-VERSION := $(shell python3 -c "import sys; sys.path.insert(0, 'src'); from scenefab.utils.version import get_version_string; print(get_version_string())" 2>/dev/null)
+# ── 版本号（单一真相来源：src/scenefab/__init__.py）────────────────────
+VERSION := $(shell python3 -c "import sys; sys.path.insert(0, 'src'); from scenefab import __version__; print(__version__)" 2>/dev/null)
 ifeq ($(VERSION),)
   VERSION := 2.4.0
 endif
@@ -38,10 +38,10 @@ help:
 	@echo "使用方式: make <target>"
 	@echo ""
 	@echo "构建目标:"
-	@echo "  build:win     构建 Windows x64 版本（.zip）"
-	@echo "  build:mac     构建 macOS x64 版本（.dmg）"
-	@echo "  build:mac-arm 构建 macOS ARM64 版本（.dmg）"
-	@echo "  build:linux   构建 Linux x86_64 版本（.AppImage）"
+	@echo "  build_win     构建 Windows x64 版本（.zip）"
+	@echo "  build_mac     构建 macOS x64 版本（.dmg）"
+	@echo "  build_mac_arm 构建 macOS ARM64 版本（.dmg）"
+	@echo "  build_linux   构建 Linux x86_64 版本（.AppImage）"
 	@echo ""
 	@echo "开发目标:"
 	@echo "  test          运行测试"
