@@ -100,15 +100,8 @@ def check_nvidia_smi() -> bool:
         )
         if result.returncode == 0:
             return ffmpeg_supports_encoder("h264_nvenc")
-<<<<<<< HEAD:src/scenefab/services/video/hardware.py
-    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+    except Exception as exc:
         logger.debug("NVIDIA hardware detection skipped: %s", exc)
-=======
-    except (SecurityError, TimeoutError):
-        # SecurityError: 白名单拒绝 / 路径校验失败 / 命令不存在
-        # TimeoutError: SecureExecutor 内部包装 subprocess.TimeoutExpired
-        return False
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/services/video_tools/hardware.py
     return False
 
 
@@ -123,7 +116,8 @@ def check_vaapi() -> bool:
 def check_intel_cpu() -> bool:
     """检测 Intel CPU (用于 QSV)"""
     try:
-        if platform.system() == "Windows":
+        system = platform.system()
+        if system == "Windows":
             result = get_probe_executor().run(
                 ["wmic", "cpu", "get", "name"],
                 timeout=5,
@@ -133,13 +127,8 @@ def check_intel_cpu() -> bool:
             # Linux/macOS 下检测 /proc/cpuinfo
             with open("/proc/cpuinfo") as f:
                 return "genuineintel" in f.read().lower()
-<<<<<<< HEAD:src/scenefab/services/video/hardware.py
-    except Exception as exc:
+    except (OSError, SecurityError) as exc:
         logger.debug("Intel CPU detection skipped: %s", exc)
-=======
-    except (OSError, SecurityError) as e:
-        logger.debug(f"CPU vendor detection failed: {e}")
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/services/video_tools/hardware.py
     return False
 
 

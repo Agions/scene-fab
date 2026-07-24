@@ -5,13 +5,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-<<<<<<< HEAD
 from PySide6.QtCore import Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices
-=======
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QFont
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+from PySide6.QtGui import QDesktopServices, QFont
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -37,33 +32,19 @@ from .page_widgets import (
 )
 
 if TYPE_CHECKING:
-<<<<<<< HEAD
     from scenefab.project.manager import ProjectManager
-=======
     from ...viewmodels.assets_viewmodel import AssetsPageViewModel
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 class AssetsPage(QFrame):
-    """Project and media assets workspace.
-
-    Phase 2C: shows real recent projects list + current project asset
-    summary read from :class:`AssetsPageViewModel`. The empty state is
-    only shown when both the current project has 0 assets AND there are
-    0 recent projects.
-    """
+    """Project and media assets workspace."""
 
     import_requested = Signal()
 
-<<<<<<< HEAD
-    def __init__(self, parent=None, *, project_manager: ProjectManager | None = None):
-        super().__init__(parent)
-        self._project_manager = project_manager
-=======
-    def __init__(self, viewmodel: AssetsPageViewModel | None = None, parent=None):
+    def __init__(self, viewmodel: AssetsPageViewModel | None = None, parent=None, *, project_manager: ProjectManager | None = None):
         super().__init__(parent)
         self._vm = viewmodel
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+        self._project_manager = project_manager
         self.setObjectName("assets_page")
         self._setup_style()
         self._setup_ui()
@@ -92,7 +73,6 @@ class AssetsPage(QFrame):
 
     def _build_header(self) -> QFrame:
         import_btn = action_button("导入素材", primary=True)
-        # Phase 2D+: import button triggers file dialog directly (was: signal)
         import_btn.clicked.connect(self._on_import_requested)
         return header_panel(
             "assets_header",
@@ -110,21 +90,14 @@ class AssetsPage(QFrame):
         header = QHBoxLayout()
         header.addWidget(section_title("资产列表"))
         header.addStretch()
-<<<<<<< HEAD
-        refresh_btn = action_button("刷新")
-        refresh_btn.clicked.connect(self.refresh_projects)
-=======
-        # Phase 2C: 刷新按钮接 VM.refresh()
         refresh_btn = action_button("刷新")
         refresh_btn.clicked.connect(self._on_refresh_clicked)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         header.addWidget(refresh_btn)
         layout.addLayout(header)
 
         columns = self._row(*ASSET_TABLE_COLUMNS, header=True)
         layout.addWidget(columns)
 
-<<<<<<< HEAD
         # Container for dynamically added project rows
         self._rows_container = QWidget()
         self._rows_layout = QVBoxLayout(self._rows_container)
@@ -142,26 +115,6 @@ class AssetsPage(QFrame):
 
         # Initial load
         self.refresh_projects()
-=======
-        # Phase 2C: empty state 只在 VM 显示"无任何资产"时显示
-        # 默认无 VM 时仍显示原 empty state,保证向后兼容
-        if self._vm is None:
-            layout.addWidget(
-                empty_state(
-                    "暂无资产。导入视频素材后，系统会在这里显示拆分场景、脚本、配音和导出记录。",
-                    180,
-                    padding=24,
-                ),
-                1,
-            )
-        else:
-            # 容器:可显示最近项目列表或 empty state
-            self._asset_placeholder = QLabel("加载中…")
-            self._asset_placeholder.setObjectName("asset_placeholder")
-            self._asset_placeholder.setAlignment(self._asset_placeholder.alignment() | 0x0084)  # AlignCenter
-            self._asset_placeholder.setStyleSheet(f"color: {_C.TEXT_MUTED};")
-            layout.addWidget(self._asset_placeholder, 1)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         return frame
 
     def refresh_projects(self) -> None:
@@ -219,25 +172,8 @@ class AssetsPage(QFrame):
         layout.setContentsMargins(20, 16, 20, 16)
         layout.setSpacing(16)
 
-<<<<<<< HEAD
         for item in ASSET_SOURCE_ITEMS:
             layout.addWidget(self._source_item(item.label, item.value))
-=======
-        # Phase 2C: 最近项目列表(最多 3 个) 取代原本的素材目录/输出目录/资源规范
-        # 无 VM 时保留原结构
-        if self._vm is None:
-            for title, desc in [
-                ("素材目录", "未设置"),
-                ("输出目录", "~/SceneFab/exports"),
-                ("资源规范", "显式打包 resources/"),
-            ]:
-                layout.addWidget(self._source_item(title, desc))
-        else:
-            self._recent_summary_label = QLabel("暂无最近项目")
-            self._recent_summary_label.setObjectName("recent_summary_label")
-            self._recent_summary_label.setStyleSheet(f"color: {_C.TEXT_MUTED};")
-            layout.addWidget(self._recent_summary_label, 1)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         layout.addStretch()
         return frame
 
@@ -299,7 +235,6 @@ class AssetsPage(QFrame):
         layout.addWidget(desc_label)
         return item
 
-<<<<<<< HEAD
     def _show_row_context_menu(self, pos, row: QFrame):
         """Show right-click context menu for an asset row."""
         file_path = row.property("file_path")
@@ -337,10 +272,6 @@ class AssetsPage(QFrame):
                 if self._rows_layout.count() == 0:
                     self._empty_state.setVisible(True)
                     self._rows_container.setVisible(False)
-=======
-    # ──────────────────────────────────────────────────────────
-    # ViewModel 绑定 (Phase 2C)
-    # ──────────────────────────────────────────────────────────
 
     def _bind_viewmodel(self) -> None:
         vm = self._vm
@@ -443,4 +374,3 @@ class AssetsPage(QFrame):
             filter_str,
         )
         return list(result)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

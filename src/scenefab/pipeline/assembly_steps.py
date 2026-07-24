@@ -25,14 +25,9 @@ import wave
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-<<<<<<< HEAD
 from .narration.context import NarrationContext
-from .narration.state_machine import NarrationState, StepResult
+from .narration.state_machine import NarrationState, StepResult, success_step
 from .text_utils import split_sentences
-=======
-from .narration_context import NarrationContext
-from .narration_state_machine import NarrationState, StepResult, success_step
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 if TYPE_CHECKING:
     pass
@@ -337,7 +332,6 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     # 3. 视频合成 (真实 FFmpeg: trim → add_audio → burn_subtitles)
     video_success = False
     try:
-<<<<<<< HEAD
         video_success = _compose_video(
             video_path, ctx,
             subtitle_path=subtitle_path,
@@ -345,13 +339,6 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
         )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"视频合成失败: {e}")
-=======
-        _write_placeholder_video(video_path, ctx)
-    except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
-        # 文件 IO 失败 / JSON 序列化失败 / 字段类型错
-        # 不吞 RuntimeError/AttributeError 等真实编程 bug
-        logger.warning(f"占位视频写入失败: {e}")
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     # 4. 更新 ctx 终态
     ctx.final_narration = ctx.current_draft
@@ -359,7 +346,6 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
     ctx.final_subtitle_path = subtitle_path
     ctx.final_video_path = video_path
 
-<<<<<<< HEAD
     duration_ms = (time.time() - start) * 1000
     video_label = "视频合成" if video_success else "视频占位"
     return StepResult(
@@ -379,9 +365,6 @@ def assemble_step(ctx: NarrationContext) -> StepResult:
             "jianying_path": str(jianying_path) if jianying_success else None,
         },
     )
-=======
-    return success_step(start, state=NarrationState.ASSEMBLE, message=f'assemble: 字幕 + 草稿 + 视频占位完成 (ASS={ass_success}, 剪映={jianying_success}, {subtitle_path.name})', data={'subtitle_path': str(subtitle_path), 'ass_path': str(ass_path) if ass_success else None, 'video_path': str(video_path), 'jianying_path': str(jianying_path) if jianying_success else None})
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 # ============================================

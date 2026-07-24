@@ -462,14 +462,10 @@ class NarrationEvaluator:
         if not ctx.few_shots:
             # 无 few_shots → 默认 8 分
             score = self._apply_next_hook_gate(8.0, draft, ctx, issues, suggestions)
-<<<<<<< HEAD:src/scenefab/pipeline/narration/evaluator.py
             score = self._apply_first_person_viewpoint_gate(
                 score, draft, ctx, issues, suggestions
             )
-            return DimensionScore(
-=======
             return make_dimension_score(
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/pipeline/narration_evaluator.py
                 name="style",
                 score=score,
                 issues=issues,

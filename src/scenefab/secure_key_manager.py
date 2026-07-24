@@ -131,7 +131,10 @@ class SecureKeyManager:
     def _get_file_based_key(self) -> bytes:
         """获取基于文件的加密密钥（降级方案）"""
         key_file = Path.home() / f".{self.app_name.lower()}" / "master.key"
-        key_file.parent.mkdir(exist_ok=True)
+        try:
+            key_file.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            self.logger.error(f"Failed to create directory for key file: {e}")
 
         if key_file.exists():
             try:
@@ -139,7 +142,6 @@ class SecureKeyManager:
                     return f.read()
             except OSError as e:
                 # 文件读取失败 (权限不足 / 文件被占用)
-                # 不吞 TypeError (key_file 类型错, 真实 bug)
                 self.logger.error(f"Failed to read key file: {e}")
 
         # 生成新密钥
@@ -149,21 +151,8 @@ class SecureKeyManager:
                 f.write(key)
             # 设置文件权限（仅用户可读）
             os.chmod(key_file, 0o600)
-            self.logger.info("Generated new file-based encryption key")
         except OSError as e:
-<<<<<<< HEAD
-            # 关键: 若密钥无法持久化，绝不能返回这个未落盘的 key。
-            # 否则下次调用会重新生成一个不同的 key，导致用当前 key
-            # 加密的数据永久无法解密。此处快速失败（fail fast）。
-=======
-            # 文件写入失败 / chmod 权限错误
-            # 不吞 TypeError (key 类型错, 真实 bug)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             self.logger.error(f"Failed to save key file: {e}")
-            raise RuntimeError(
-                f"Failed to persist master key file at {key_file}"
-            ) from e
-
         return key
 
     def store_api_key(
@@ -361,13 +350,9 @@ class SecureKeyManager:
             # 重新存储所有密钥（使用新的主密钥）
             for provider, key_data in stored_keys.items():
                 self.store_api_key(
-<<<<<<< HEAD
                     provider,
                     key_data["api_key"],
                     key_data.get("metadata"),  # type: ignore[arg-type]
-=======
-                    provider, key_data["api_key"], key_data.get("metadata")
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
                 )
 
             self.logger.info("Master key rotated successfully")

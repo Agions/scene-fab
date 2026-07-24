@@ -38,22 +38,16 @@ class HomePage(QFrame):
     open_project = Signal(str)
     navigate = Signal(str)
 
-<<<<<<< HEAD
-    def __init__(self, parent=None, *, project_manager=None):
+    def __init__(self, viewmodel=None, parent=None, *, project_manager=None):
         super().__init__(parent)
         self.setObjectName("home_page")
+        self._vm = viewmodel
         self._project_manager = project_manager
         self._status_values: dict[str, QLabel] = {}
         self._status_states: dict[str, QLabel] = {}
         self._workflow_statuses: dict[str, QLabel] = {}
         self._recent_layout: QVBoxLayout | None = None
         self._recent_empty: QFrame | None = None
-=======
-    def __init__(self, viewmodel=None, parent=None):
-        super().__init__(parent)
-        self.setObjectName("home_page")
-        self._vm = viewmodel
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         self._setup_style()
         self._setup_ui()
         if self._vm is not None:
@@ -114,12 +108,6 @@ class HomePage(QFrame):
         layout.setHorizontalSpacing(14)
         layout.setVerticalSpacing(14)
 
-<<<<<<< HEAD
-        for index, item in enumerate(HOME_STATUS_CARDS):
-            layout.addWidget(
-                self._status_card(item.title, item.status, item.value), 0, index
-            )
-=======
         # 4 张状态卡 — 数据来源从 ViewModel 读
         self._status_cards: list[tuple[QFrame, QLabel, QLabel, str]] = []
         self._recent_panel_layout: QVBoxLayout | None = None
@@ -133,7 +121,6 @@ class HomePage(QFrame):
             card, val_lbl, state_lbl = self._build_status_card(title, status, value)
             layout.addWidget(card, 0, index)
             self._status_cards.append((card, val_lbl, state_lbl, title))
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         return frame
 
     # ──────────────────────────────────────────────────────────
@@ -229,17 +216,13 @@ class HomePage(QFrame):
         row.addWidget(open_btn)
         layout.addLayout(row)
 
-<<<<<<< HEAD
-        self._recent_empty = empty_state("暂无项目资产", 120)
-        layout.addWidget(self._recent_empty, 1)
-        self._recent_layout = layout
-=======
         # 暴露 layout 给 ViewModel 刷新使用
         self._recent_panel_layout = layout
+        self._recent_layout = layout
         placeholder = empty_state("暂无项目资产", 120)
         placeholder.setProperty("recent_placeholder", True)
+        self._recent_empty = placeholder
         layout.addWidget(placeholder, 1)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         return frame
 
     def _build_status_card(
@@ -263,24 +246,15 @@ class HomePage(QFrame):
         val = QLabel(value)
         val.setFont(ui_font(FontSizes.lg, FontWeights.Bold))
         val.setStyleSheet(f"color: {_C.TEXT_PRIMARY};")
-<<<<<<< HEAD
-        layout.addWidget(val)
-        self._status_values[title] = val
-=======
         card_layout.addWidget(val)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+        self._status_values[title] = val
 
         state = QLabel(status)
         state.setFont(ui_font(FontSizes.xs))
         state.setStyleSheet(f"color: {_C.TEXT_DISABLED};")
-<<<<<<< HEAD
-        layout.addWidget(state)
-        self._status_states[title] = state
-        return card
-=======
         card_layout.addWidget(state)
+        self._status_states[title] = state
         return card, val, state
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     def _workflow_row(self, step: str, name: str, status: str) -> QFrame:
         row = QFrame()

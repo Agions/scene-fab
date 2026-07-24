@@ -7,7 +7,7 @@ TTS 提供者实现
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Coroutine
 
 from ...utils.async_bridge import run_async_safely
 from ...utils.security import SecurityError, get_ffmpeg_executor
@@ -189,13 +189,9 @@ class EdgeTTSProvider(TTSProvider):
             for data in audio_chunks:
                 f.write(data)
 
-<<<<<<< HEAD
     def _run_async_safely(
         self, coro_factory: Callable[[], Coroutine[Any, Any, None]]
-    ) -> None:
-=======
-    def _run_async_safely(self, coro_factory: Any) -> Any:
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+    ) -> Any:
         """在已有/无 event loop 下安全运行异步协程.
 
         EdgeTTS 必须运行在自己的 loop 中; 若调用方已持有 loop,
@@ -223,8 +219,6 @@ class EdgeTTSProvider(TTSProvider):
             sentence_timestamps=sentence_timestamps,
         )
 
-<<<<<<< HEAD
-=======
     async def generate_streaming(
         self,
         text: str,
@@ -349,7 +343,6 @@ class EdgeTTSProvider(TTSProvider):
 
         return run_async_safely(_generate)  # type: ignore[no-any-return]
 
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     def _select_voice(self, config: VoiceConfig) -> str:
         """根据配置选择声音"""
         gender_key = config.gender.value

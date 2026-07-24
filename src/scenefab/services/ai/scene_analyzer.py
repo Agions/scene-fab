@@ -14,11 +14,8 @@
 
 import logging
 import re
-<<<<<<< HEAD
-=======
 import subprocess
 from collections.abc import Callable
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 from pathlib import Path
 
 from ...utils.security import get_ffmpeg_executor
@@ -423,8 +420,6 @@ class SceneAnalyzer:
                 # 不吞 RuntimeError/TypeError 等真实编程 bug
                 logger.error(f"提取关键帧失败 (场景 {scene.index}): {e}")
 
-<<<<<<< HEAD
-=======
     # ── 重要性评分与关键时刻提取（原 SceneAnalyzerV2） ─────────────
 
     def analyze_with_importance(
@@ -518,4 +513,3 @@ class SceneAnalyzer:
             type_name = _SCENE_TYPE_NAMES.get(scene.type, "未知")
             parts.append(f"- [{start_str}] {type_name} (评分:{scene.suitability_score:.0f})")
         return "\n".join(parts)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

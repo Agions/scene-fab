@@ -87,27 +87,9 @@ class ExportManager:
         if not config.output_path:
             config.output_path = self._generate_output_path(config)
 
-<<<<<<< HEAD
-        # 执行导出（根据格式分发到对应的导出器方法）
-        try:
-            if config.format == ExportFormat.JIANYING:
-                # JianyingExporter.export(draft, output_dir, progress_callback)
-                output_dir = str(Path(config.output_path).parent)
-                draft = self._ensure_jianying_draft(project_data, config)
-                exporter.export(  # type: ignore[union-attr]
-                    draft, output_dir, config.progress_callback
-                )
-            else:
-                # DirectVideoExporter.export_commentary(project, output_path, ...)
-                exporter.export_commentary(  # type: ignore[union-attr]
-                    project_data, config.output_path
-                )
-            return True
-=======
         # 执行导出 — 不同 exporter 的统一入口签名不同, 显式 dispatch
         try:
             return self._dispatch(exporter, project_data, config)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         except ExportError:
             raise  # 已是对应异常，直接重新抛出
         except Exception as e:

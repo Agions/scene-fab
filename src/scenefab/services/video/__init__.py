@@ -13,23 +13,17 @@ from __future__ import annotations
 
 from typing import Any
 
-<<<<<<< HEAD
 # 视频工具（原 video/__init__.py）
 from . import hardware, probe
+from .caption_gen import Caption, CaptionConfig, CaptionGenerator, CaptionStyle
+from .ffmpeg_tool import FFmpegTool, HWAccelType
 from .tool_base import (
     BaseVideoProcessor,
     IVideoProcessor,
     ProcessingResult,
     VideoMetadata,
 )
-from .caption_gen import Caption, CaptionConfig, CaptionGenerator, CaptionStyle
-from .ffmpeg_tool import FFmpegTool, HWAccelType
-
-# 视频制作服务（原 video/__init__.py，延迟加载）
-=======
 from scenefab.utils.lazy_imports import make_lazy_getattr
-
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 _EXPORTS = {
     "BaseVideoMaker": ".base_maker",
     "MonologueMaker": ".monologue_maker",

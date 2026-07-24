@@ -23,12 +23,8 @@ from typing import TYPE_CHECKING
 from .narration.context import (
     NarrationContext,
 )
-<<<<<<< HEAD
-from .narration.state_machine import NarrationState, StepResult
+from .narration.state_machine import NarrationState, StepResult, success_step
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE, split_sentences
-=======
-from .narration_state_machine import NarrationState, StepResult, success_step
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 if TYPE_CHECKING:
     pass

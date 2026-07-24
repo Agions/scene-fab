@@ -12,22 +12,16 @@ SceneFab 主窗口包
 
 from __future__ import annotations
 
-<<<<<<< HEAD
-from PySide6.QtCore import QSettings, Qt
-from PySide6.QtGui import QAction, QKeySequence
-=======
 from typing import TYPE_CHECKING
 
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+from PySide6.QtCore import QSettings, Qt
+from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
-<<<<<<< HEAD
     QShortcut,
-=======
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     QVBoxLayout,
     QWidget,
 )
@@ -84,44 +78,24 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
 
     Phase 1 之后不直接持有页面、不直接读 services、不直接管托盘。
     注入的 ``application`` 实例在 Phase 2 才会被 ViewModel 消费。
-
-<<<<<<< HEAD
-    def __init__(self, application=None):
-=======
-    现在通过 :class:`ThemeAwareMixin` 接入运行时主题切换:
-    :func:`build_global_stylesheet` 在每次主题变更后被
-    :meth:`apply_theme` 重新求值,新的 ``_C.X`` 字面值注入到
-    QApplication 级别的 ``*`` selector 块里。
     """
 
     def __init__(self, application: Application | None = None) -> None:
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         super().__init__()
         self._application = application
         self.setWindowTitle("SceneFab")
         self.setMinimumSize(1200, 720)
-<<<<<<< HEAD
-        self._tray = None
-        self._minimize_to_tray_enabled = False
-        self._quitting = False
-        self._last_project = None  # 最近一次生产完成的项目（MonologueProject）
-        self._theme_manager = None
         self.setAcceptDrops(True)
-=======
+        self._quitting = False
+        self._last_project = None
+        self._theme_manager = None
+
+        ThemeAwareMixin.__init__(self)
         self.setStyleSheet(self.build_global_stylesheet())
 
-        # 子组件
-        self.sidebar: Sidebar
-        self.content: ContentArea
-        self.topbar: TopBar
-        self.statusbar: StatusBar
-        self.router: PageRouter
-        self.tray: SystemTrayController
-
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         self._setup_ui()
 
-        # 恢复窗口几何（首次启动使用默认尺寸）
+        # 恢复窗口几何
         settings = QSettings("SceneFab", "Application")
         geometry = settings.value("window/geometry")
         if geometry:
@@ -130,33 +104,17 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
             self.resize(1200, 720)
 
         self._connect_signals()
-<<<<<<< HEAD
-        self._apply_global_style()
-        self._apply_saved_theme()
-        self._init_tray()
-
-    def _setup_ui(self):
-        # 原生菜单栏（位于窗口最顶部）
-        self._create_menu_bar()
-
-        central = QWidget()
-        self.setCentralWidget(central)
-        # 垂直布局：顶部栏 + 上半为 [侧边栏 | 主内容]，底部为状态栏
-=======
-
-    # ──────────────────────────────────────────────────────────
-    # 装配
-    # ──────────────────────────────────────────────────────────
 
     def _setup_ui(self) -> None:
+        self._create_menu_bar()
         central = QWidget()
         self.setCentralWidget(central)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
+
         outer = QVBoxLayout(central)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
 
-        # 顶部栏（保留为工具栏式组件，位于菜单栏下方）
+        # 顶部栏
         self.topbar = TopBar("工作台")
         outer.addWidget(self.topbar)
 
@@ -174,17 +132,14 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
 
         outer.addWidget(body, 1)
 
-<<<<<<< HEAD
-        # 状态栏（自绘 QFrame，置于底部，而非 QMainWindow.setStatusBar）
         self.statusbar = StatusBar()
         outer.addWidget(self.statusbar)
 
-        # Escape 快捷键：取消正在运行的生产流程
         cancel_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Escape), self)
         cancel_shortcut.activated.connect(self._on_cancel_production)
 
     def _create_menu_bar(self):
-        """创建原生菜单栏（TopBar 保留为菜单栏下方的工具栏式组件）"""
+        """创建原生菜单栏 (TopBar 保留为菜单栏下方的工具栏式组件)"""
         menubar = self.menuBar()
 
         def add_action(menu, text, shortcut, slot):
@@ -286,18 +241,7 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
             )
             home.update_recent_projects(project_manager.get_recent_projects())
 
-    def _connect_signals(self):
-=======
-        self.topbar = TopBar("工作台")
-        self.setMenuWidget(self.topbar)
-
-        self.statusbar = StatusBar()
-        outer.addWidget(self.statusbar)
-
-        self.tray = SystemTrayController(self)
-
     def _connect_signals(self) -> None:
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
         self.sidebar.navigated.connect(self._on_navigate)
         self.router.page_changed.connect(self._on_page_changed)
         self.topbar.action_triggered.connect(self._on_action)
@@ -305,130 +249,18 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
         self.tray.open_settings_requested.connect(self._open_settings_from_tray)
         self.tray.quit_requested.connect(self._quit_application)
 
-<<<<<<< HEAD
-    # ══════════════════════════════════════════════════════════════
-    # 系统托盘集成
-    # ══════════════════════════════════════════════════════════════
-
-    def _init_tray(self):
-        """初始化系统托盘（始终可用，是否激活由设置决定）"""
-        try:
-            from scenefab.ui.main.tray_manager import get_tray_manager
-
-            self._tray = get_tray_manager()
-            self._tray.show_window_requested.connect(self._restore_from_tray)
-            self._tray.open_settings_requested.connect(self._open_settings_from_tray)
-            self._tray.quit_requested.connect(self._quit_application)
-        except Exception as e:
-            import logging
-
-            logging.getLogger(__name__).warning(f"Tray init failed: {e}")
-            self._tray = None
-
-    def set_minimize_to_tray(self, enabled: bool):
-        """设置是否启用"关闭窗口时最小化到托盘" """
-        self._minimize_to_tray_enabled = bool(enabled)
-        if enabled and self._tray is not None and not self._tray.is_enabled:
-            self._tray.enable(self.windowTitle())
-        elif not enabled and self._tray is not None and self._tray.is_enabled:
-            self._tray.disable()
-
-    def _restore_from_tray(self):
-        """从托盘恢复窗口"""
-        self.showNormal()
-        self.raise_()
-        self.activateWindow()
-
-    def _open_settings_from_tray(self):
-        """从托盘菜单打开设置页"""
-        self._restore_from_tray()
-        self._on_navigate("settings")
-
-    def _quit_application(self):
-        """真正退出应用（绕过托盘拦截）"""
-        self._quitting = True
-        if self._tray is not None:
-            self._tray.disable()
-        self.close()
-        QApplication.instance().quit()  # type: ignore[union-attr]
-
-    def closeEvent(self, event):
-        """窗口关闭事件"""
-        if self._quitting:
-            self._save_geometry()
-            event.accept()
-=======
     def _on_page_changed(self, page_id: str) -> None:
         spec = PAGE_TITLES.get(page_id)
         if spec is None:
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             return
         self.topbar.set_title(spec.title, spec.breadcrumb)
         self.statusbar.set_status(f"当前: {spec.title}")
-        # Lazy-connect the settings page theme_changed signal: routes
-        # through here once the user has opened the page at least once.
         if page_id == "settings":
             self._wire_theme_switcher()
 
     def _wire_theme_switcher(self) -> None:
-        """Connect :attr:`SettingsPage.theme_changed` exactly once.
-
-        The router caches pages, so the same ``SettingsPage`` instance is
-        re-shown across visits — guarding the connect with a flag avoids
-        duplicate slots firing twice on repeat navigation.
-        """
         if getattr(self, "_theme_signal_wired", False):
             return
-<<<<<<< HEAD
-        # 生产流程运行中时请求确认
-        worker = getattr(self, "_production_worker", None)
-        if worker is not None and worker.isRunning():
-            reply = QMessageBox.question(
-                self,
-                "确认退出",
-                "生产流程正在运行，确定要退出吗？",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.No:
-                event.ignore()
-                return
-        if self._tray is not None:
-            self._tray.disable()
-        self._save_geometry()
-        event.accept()
-
-    def _save_geometry(self):
-        """持久化窗口几何信息"""
-        QSettings("SceneFab", "Application").setValue(
-            "window/geometry", self.saveGeometry()
-        )
-
-    def _on_cancel_production(self):
-        """取消正在运行的生产流程（Escape 快捷键 / 生产页取消按钮）"""
-        worker = getattr(self, "_production_worker", None)
-        if worker is not None and worker.isRunning():
-            worker.cancel()
-            self.statusbar.set_status("已请求取消生产流程")
-
-    def _show_about(self):
-        """显示关于对话框"""
-        from scenefab.utils.version import get_version_string
-
-        QMessageBox.about(
-            self,
-            "关于 SceneFab",
-            f"<h3>SceneFab v{get_version_string()}</h3>"
-            "<p>AI 影视解说视频创作工具</p>"
-            "<p>作者: Agions</p>"
-            "<p>许可: MIT</p>",
-        )
-
-    def _on_navigate(self, page_id: str):
-        self.content.set_page(page_id)
-        title, breadcrumb = self.PAGE_TITLES.get(page_id, (page_id, ""))
-        self.topbar.set_title(title, breadcrumb)
-        self.statusbar.set_status(f"当前: {title}")
-=======
         page = self.router._page_map.get("settings")
         connect = getattr(page, "theme_changed", None)
         if connect is None:
@@ -437,31 +269,17 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
         self._theme_signal_wired = True
 
     def _on_theme_switched(self, mode: str) -> None:
-        """Apply a new theme: rebind tokens → restyle the whole tree.
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
-
-        Iterates over every cached page that mixes in
-        :class:`ThemeAwareMixin` and calls :meth:`apply_theme` so
-        already-rendered widgets pick up the new ``_C`` literals.
-        """
+        """Apply a new theme: rebind tokens -> restyle the whole tree."""
         set_theme_mode(mode)
-        # Update self first so the global ``*`` block picks up new colours.
         self.apply_theme()
-        # Then walk every ThemeAwareMixin page in the cache.
-        for page in getattr(self.router, "_page_map", {}).values():  # pragma: no cover
+        for page in getattr(self.router, "_page_map", {}).values():
             apply = getattr(page, "apply_theme", None)
             if callable(apply):
                 try:
                     apply()
-                except Exception:  # noqa: BLE001 — be tolerant of buggy pages
+                except Exception:
                     pass
-        # Finally let Qt re-polish non-themed widgets (e.g. native dialogs).
         restyle_app()
-
-    def build_global_stylesheet(self) -> str:
-        """Return the QApplication-level stylesheet using the **current** ``_C`` values.
-
-<<<<<<< HEAD
     def show_message(self, message: str, level: str = "info"):
         """显示消息提示"""
         from PySide6.QtWidgets import QMessageBox
@@ -853,15 +671,9 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
                     current.add_media_file(media)
                 pm.save_project(current.id)
 
-    def _apply_global_style(self):
-        self.setStyleSheet(f"""  # type: ignore[attr-defined]
-=======
-        Re-evaluated every time :meth:`ThemeAwareMixin.apply_theme`
-        is called (via :func:`restyle_app` triggered by SettingsPage),
-        so colour literals stay in sync after :func:`set_theme_mode`.
-        """
+    def build_global_stylesheet(self) -> str:
+        """Return the QApplication-level stylesheet using current _C values."""
         prefix = f"""
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             QMainWindow {{
                 background: {_C.BG_BASE};
                 outline: none;
@@ -879,52 +691,16 @@ class SceneFabMainWindow(QMainWindow, ThemeAwareMixin):
                 color: {_C.PRIMARY_DARKER};
                 border-color: {_C.PRIMARY};
             }}
-<<<<<<< HEAD
-            QToolTip {{
-                background: {_C.TEXT_PRIMARY};
-                color: {_C.TEXT_INVERSE};
-                border: 1px solid {_C.TEXT_PRIMARY};
-=======
             QTooltip {{
                 background: {_C.BG_OVERLAY};
                 color: {_C.TEXT_PRIMARY};
                 border: 1px solid {_C.BORDER_DEFAULT};
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
                 border-radius: {Radii.sm};
                 padding: 6px 10px;
                 font-size: {FontSizes.xs}px;
             }}
-<<<<<<< HEAD
-            QScrollBar:vertical {{
-                background: transparent;
-                width: 6px;
-                margin: 0;
-            }}
-            QScrollBar::handle:vertical {{
-                background: {_C.BORDER_DEFAULT};
-                border-radius: 3px;
-                min-height: 40px;
-            }}
-            QScrollBar::handle:vertical:hover {{
-                background: {_C.PRIMARY};
-            }}
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-                height: 0;
-            }}
-            QScrollBar:horizontal {{
-                background: transparent;
-                height: 6px;
-                margin: 0;
-            }}
-            QScrollBar::handle:horizontal {{
-                background: {_C.BORDER_DEFAULT};
-                border-radius: 3px;
-                min-width: 40px;
-            }}
-=======
         """
         suffix = f"""
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
             * {{
                 selection-background-color: {_C.PRIMARY};
                 selection-color: {_C.TEXT_INVERSE};

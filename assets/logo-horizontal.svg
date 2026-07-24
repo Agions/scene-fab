@@ -6,21 +6,6 @@
   <title>SceneFab</title>
   <defs>
     <linearGradient id="bgH" x1="0%" y1="0%" x2="100%" y2="100%">
-<<<<<<< HEAD
-      <stop offset="0%" stop-color="#0a0e1a"/>
-      <stop offset="100%" stop-color="#0f1629"/>
-    </linearGradient>
-    <linearGradient id="accentH" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient>
-    <linearGradient id="playH" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <filter id="glowH" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-=======
       <stop offset="0%" stop-color="#050816"/>
       <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
@@ -29,51 +14,24 @@
       <stop offset="55%" stop-color="#06b6d4"/>
       <stop offset="100%" stop-color="#a855f7"/>
     </linearGradient>
-    <linearGradient id="hiH" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#67e8f9"/>
-      <stop offset="100%" stop-color="#22d3ee"/>
+    <linearGradient id="coreH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
     </linearGradient>
-    <radialGradient id="coreH" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
-    </radialGradient>
+    <linearGradient id="hiH" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#e879f9"/>
+    </linearGradient>
     <filter id="glowH" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2.5" result="blur"/>
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
     </filter>
   </defs>
+
+  <rect width="100%" height="100%" rx="20" fill="#020617" opacity="0.4"/>
 
   <!-- ===== Logo mark (left, 128x128 in 160 height) ===== -->
   <g transform="translate(16 16)">
     <rect width="128" height="128" rx="28" fill="url(#bgH)"/>
-<<<<<<< HEAD
-    <rect x="4" y="4" width="120" height="120" rx="24" stroke="url(#accentH)" stroke-width="1" opacity="0.2"/>
-
-    <!-- Viewfinder corners -->
-    <g transform="translate(64, 58)">
-      <path d="M-22 -22 L-22 -15 M-22 -22 L-15 -22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M22 -22 L22 -15 M22 -22 L15 -22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M-22 22 L-22 15 M-22 22 L-15 22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M22 22 L22 15 M22 22 L15 22" stroke="url(#accentH)" stroke-width="2.5" stroke-linecap="round"/>
-    </g>
-
-    <!-- Play button -->
-    <g filter="url(#glowH)">
-      <path d="M54 42 L54 74 L80 58 Z" fill="url(#playH)" opacity="0.9"/>
-    </g>
-
-    <!-- AI sparkle -->
-    <g transform="translate(100, 36)">
-      <path d="M0 -6 L2 -2 L6 0 L2 2 L0 6 L-2 2 L-6 0 L-2 -2 Z" fill="#22d3ee" opacity="0.85"/>
-    </g>
-    <g transform="translate(108, 48) scale(0.5)">
-      <path d="M0 -6 L2 -2 L6 0 L2 2 L0 6 L-2 2 L-6 0 L-2 -2 Z" fill="#a78bfa" opacity="0.6"/>
-    </g>
-=======
     <rect x="0.5" y="0.5" width="127" height="127" rx="27.5" fill="none"
           stroke="url(#brandH)" stroke-width="0.6" opacity="0.3"/>
 
@@ -111,26 +69,10 @@
           fill="url(#hiH)" opacity="0.9"/>
     <path d="M 105 44 L 105.7 45.5 L 107.2 46.2 L 105.7 46.9 L 105 48.4 L 104.3 46.9 L 102.8 46.2 L 104.3 45.5 Z"
           fill="#a855f7" opacity="0.7"/>
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
   </g>
 
   <!-- ===== Wordmark (right, 文字 + 中文) ===== -->
   <g transform="translate(168 0)">
-<<<<<<< HEAD
-    <text x="0" y="68"
-          font-family="Inter, 'Helvetica Neue', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif"
-          font-size="48"
-          font-weight="800"
-          fill="#FFFFFF"
-          letter-spacing="-1">Scene<tspan fill="url(#accentH)">Fab</tspan></text>
-    <text x="2" y="100"
-          font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace"
-          font-size="13"
-          font-weight="600"
-          fill="url(#accentH)"
-          letter-spacing="3"
-          opacity="0.85">AI 影视解说视频创作工具</text>
-=======
     <!-- SceneFab (大标题) -->
     <text x="0" y="78"
           font-family="Inter, 'SF Pro Display', 'Helvetica Neue', system-ui, -apple-system, 'PingFang SC', sans-serif"
@@ -146,6 +88,5 @@
           font-weight="500"
           fill="#94a3b8"
           letter-spacing="2.4">AI 影视解说视频创作工具</text>
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
   </g>
 </svg>

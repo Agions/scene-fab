@@ -331,10 +331,6 @@ class NarrationStateMachine:
             "状态机启动",
         )
 
-<<<<<<< HEAD:src/scenefab/pipeline/narration/state_machine.py
-        # —— 状态流转表 (硬编码, v2.2 范围内足够, Phase 3 可改为声明式 YAML) ——
-        # state -> [(next_state, reason, condition_fn)]
-        # condition_fn: (ctx, step_result) -> bool
         FLOW: dict[
             NarrationState, list[tuple[NarrationState, TransitionReason, Any]]
         ] = {
@@ -381,9 +377,6 @@ class NarrationStateMachine:
             NarrationState.ERROR: [],
         }
 
-=======
-        flow = _build_flow_table()
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/pipeline/narration_state_machine.py
         max_iterations = 50  # 防止死循环
 
         for _iteration in range(1, max_iterations + 1):
@@ -401,62 +394,12 @@ class NarrationStateMachine:
                 )
 
             # 2. 决定下一步
-            if current not in flow:
+            if current not in FLOW:
                 return self._terminate_on_error(
                     current, result, f"State {current.value} 无转移规则"
                 )
-<<<<<<< HEAD:src/scenefab/pipeline/narration/state_machine.py
-                result.state = NarrationState.ERROR
-                break
 
-            candidates = FLOW[current]
-            next_state: NarrationState | None = None
-            reason: TransitionReason = TransitionReason.SUCCESS
-
-            for candidate_state, candidate_reason, _cond_fn in candidates:
-                # EVALUATE 分支: 根据 eval_score 选 ACCEPT/REJECT
-                if current == NarrationState.EVALUATE:
-                    if (
-                        candidate_state == NarrationState.ACCEPT
-                        and ctx.eval_score >= self.config.eval_accept_threshold
-                    ):
-                        next_state = candidate_state
-                        reason = candidate_reason
-                        break
-                    if (
-                        candidate_state == NarrationState.REJECT
-                        and ctx.eval_score < self.config.eval_accept_threshold
-                    ):
-                        next_state = candidate_state
-                        reason = candidate_reason
-                        break
-                # REJECT 分支: max_attempts 决定回 DRAFT 还是 ERROR
-                elif current == NarrationState.REJECT:
-                    if (
-                        candidate_state == NarrationState.DRAFT
-                        and not ctx.is_max_attempts_reached(
-                            self.config.max_draft_attempts
-                        )
-                    ):
-                        next_state = candidate_state
-                        reason = candidate_reason
-                        break
-                    if (
-                        candidate_state == NarrationState.ERROR
-                        and ctx.is_max_attempts_reached(self.config.max_draft_attempts)
-                    ):
-                        next_state = candidate_state
-                        reason = candidate_reason
-                        break
-                # 其余状态: 取第一个候选
-                else:
-                    next_state = candidate_state
-                    reason = candidate_reason
-                    break
-=======
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/pipeline/narration_state_machine.py
-
-            next_state, reason = self._select_next_state(current, flow[current], ctx)
+            next_state, reason = self._select_next_state(current, FLOW[current], ctx)
             if next_state is None:
                 return self._terminate_on_error(
                     current, result, f"State {current.value} 未匹配转移条件"
@@ -500,8 +443,6 @@ class NarrationStateMachine:
             result.error = error_detail
         return result
 
-<<<<<<< HEAD:src/scenefab/pipeline/narration/state_machine.py
-=======
     # ============================================================
     # 复用支持: 转换为 DAG Step
     # ============================================================
@@ -641,4 +582,3 @@ def _build_flow_table() -> dict[NarrationState, list[tuple[NarrationState, Trans
         NarrationState.DONE: [],
         NarrationState.ERROR: [],
     }
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f:src/scenefab/pipeline/narration_state_machine.py

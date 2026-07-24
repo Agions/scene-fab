@@ -11,8 +11,6 @@ without libEGL. Consumers should use the explicit submodule path:
 
     from scenefab.ui.main.main_window import SceneFabMainWindow
 """
-<<<<<<< HEAD
-
 from typing import Any
 
 
@@ -26,5 +24,3 @@ def __getattr__(name: str) -> Any:
 
 
 __all__ = ["SceneFabMainWindow"]
-=======
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f

@@ -19,21 +19,18 @@ class SubtitleExporter:
 
     @staticmethod
     def export_srt(subtitles: list[Any], output_path: str) -> bool:
+        def _get_srt(sub: Any, index: int) -> str:
+            if isinstance(sub, dict) and "to_srt" in sub:
+                return sub["to_srt"](index)
+            return sub.to_srt(index)
+
         content = "".join(
-            f"{sub.to_srt(index)}\n" for index, sub in enumerate(subtitles, 1)
+            f"{_get_srt(sub, index)}\n" for index, sub in enumerate(subtitles, 1)
         )
         if SubtitleExporter._write_text(output_path, content, "SRT"):
             logger.info(f"Exported SRT to: {output_path}")
             return True
-<<<<<<< HEAD
         return False
-=======
-        except OSError as e:
-            # 磁盘满 / 权限不足 / 路径无效 等文件 IO 错误
-            # 不吞 TypeError/AttributeError (sub.to_srt 真实 bug)
-            logger.error(f"Failed to export SRT: {e}")
-            return False
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     @staticmethod
     def export_vtt(subtitles: list[Any], output_path: str) -> bool:

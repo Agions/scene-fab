@@ -321,11 +321,7 @@ class _C:
     WARNING = Colors.WARNING
     WARNING_LIGHT = Colors.WARNING_LIGHT
 
-<<<<<<< HEAD
-
 C = _C()
-=======
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 class QSSComponents:

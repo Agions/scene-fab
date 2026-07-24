@@ -87,19 +87,9 @@ class DeepSeekProvider(OpenAICompatProvider):
                     delta = data.get("choices", [{}])[0].get("delta", {})
                     content = delta.get("content", "")
                     if content:
-<<<<<<< HEAD
                         yield content
         except Exception as e:
             raise self._stream_provider_error(e)
-=======
-                        yield {"done": False, "content": content}
-        except httpx.HTTPStatusError as e:
-            raise self._handle_http_error(e)
-        except httpx.HTTPError as e:
-            raise ProviderError(f"流式生成失败 (网络错误): {e}") from e
-        except (json.JSONDecodeError, KeyError, IndexError) as e:
-            raise ProviderError(f"流式生成失败 (响应解析): {e}") from e
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     async def count_tokens(self, text: str) -> int:
         """计算 token 数量（估算）"""

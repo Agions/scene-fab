@@ -22,29 +22,16 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-<<<<<<< HEAD
 from .fp_workflow import FIRST_PERSON_SCRIPT_RULES
 from .narration.context import (
-=======
-from scenefab.services.ai.script_models import (
-    ScriptConfig,
-    ScriptStyle,
-    VoiceTone,
-)
-
-from .narration_context import (
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
     Bridge,
     BridgeType,
     NarrationContext,
     ProductionStyle,
 )
-<<<<<<< HEAD
-from .narration.state_machine import NarrationState, StepResult
+from .narration.state_machine import NarrationState, StepResult, success_step
+from ..services.ai.script_models import ScriptConfig, ScriptStyle, VoiceTone
 from .text_utils import PRODUCTION_TO_SCRIPT_STYLE
-=======
-from .narration_state_machine import NarrationState, StepResult, success_step
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 if TYPE_CHECKING:
     from scenefab.services.ai.script_generator.script_generator import ScriptGenerator
@@ -128,7 +115,6 @@ def understand_step(ctx: NarrationContext) -> StepResult:
             logger.warning(f"[{ctx.trace_id[:8]}] 桥段检测失败, 跳过: {e}")
             ctx.bridges = []
 
-<<<<<<< HEAD
     duration_ms = (time.time() - start) * 1000
     return StepResult(
         success=True,
@@ -140,9 +126,6 @@ def understand_step(ctx: NarrationContext) -> StepResult:
             "bridges": len(ctx.bridges),
         },
     )
-=======
-    return success_step(start, state=NarrationState.UNDERSTAND, message=f'understand: {len(ctx.scenes)} 场景, {len(ctx.bridges)} 桥段', data={'scenes': len(ctx.scenes), 'bridges': len(ctx.bridges)})
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 # ============================================
@@ -167,7 +150,13 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
     # 短视频 (< 10 分钟) 跳过 LongVideoUnderstanding, 用 scenes 拼一份简化 story_graph
     if video_duration < 600:
         ctx.story_graph = _build_minimal_story_graph(ctx)
-        return success_step(start, state=NarrationState.STORYGRAPH, message=f'storygraph: 短视频 ({video_duration:.0f}s), 跳过 LongVideoUnderstanding, 用 scenes 拼装', data={'duration_sec': video_duration, 'skipped_long': True})
+        return StepResult(
+            success=True,
+            state=NarrationState.STORYGRAPH,
+            duration_ms=(time.time() - start) * 1000,
+            message=f"storygraph: 短视频 ({video_duration:.0f}s), 跳过 LongVideoUnderstanding, 用 scenes 拼装",
+            data={"duration_sec": video_duration, "skipped_long": True},
+        )
 
     # 长视频: 尝试 LongVideoUnderstanding
     try:
@@ -180,11 +169,16 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
             level=UnderstandingLevel.FLASH,  # Phase 2 默认 FLASH (省 token)
         )
         ctx.story_graph = result.story_graph
-        return success_step(start, state=NarrationState.STORYGRAPH, message=f'storygraph: 长视频 ({video_duration:.0f}s), LongVideoUnderstanding 完成', data={'duration_sec': video_duration, 'characters': len(result.story_graph.characters), 'plot_events': len(result.story_graph.plot_events)})
+        return StepResult(
+            success=True,
+            state=NarrationState.STORYGRAPH,
+            duration_ms=(time.time() - start) * 1000,
+            message=f"storygraph: 长视频 ({video_duration:.0f}s), LongVideoUnderstanding 完成",
+            data={"duration_sec": video_duration, "characters": len(result.story_graph.characters), "plot_events": len(result.story_graph.plot_events)},
+        )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[{ctx.trace_id[:8]}] LongVideoUnderstanding 失败, 降级: {e}")
         ctx.story_graph = _build_minimal_story_graph(ctx)
-<<<<<<< HEAD
         duration_ms = (time.time() - start) * 1000
         return StepResult(
             success=True,
@@ -193,9 +187,6 @@ def storygraph_step(ctx: NarrationContext) -> StepResult:
             message=(f"storygraph: 长视频 ({video_duration:.0f}s) 但理解失败, 降级"),
             data={"duration_sec": video_duration, "fallback": True},
         )
-=======
-        return success_step(start, state=NarrationState.STORYGRAPH, message=f'storygraph: 长视频 ({video_duration:.0f}s) 但理解失败, 降级', data={'duration_sec': video_duration, 'fallback': True})
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
 
 # ============================================
@@ -271,7 +262,6 @@ def _build_narration_prompt(
     # —— ② 数据上下文 → topic 主体 ——
     topic_parts = _build_topic_data_parts(ctx)
 
-<<<<<<< HEAD
     workflow_rules = "；".join(
         f"{rule.label}: {rule.value}" for rule in FIRST_PERSON_SCRIPT_RULES
     )
@@ -280,15 +270,13 @@ def _build_narration_prompt(
     # 短剧生产字段: 题材、爽点、关系和集数上下文
     if ctx.content_tags:
         topic_parts.append(f"【短剧标签】{', '.join(ctx.content_tags[:8])}")
-=======
+
     # —— ③ 历史上下文 → "前情提要" 段 ——
     _append_history_part(topic_parts, ctx)
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     # —— ④ 工具上下文 → ScriptConfig.keywords ——
     keywords = _collect_keywords(ctx, topic_parts)
 
-<<<<<<< HEAD
     episode_parts: list[str] = []
     if ctx.episode_index is not None:
         episode_parts.append(f"第 {ctx.episode_index} 集")
@@ -350,11 +338,7 @@ def _build_narration_prompt(
     # 组装 topic
     if len(topic_parts) == 1:
         topic_parts.append("【主题】通用影视解说")
-    topic = "\n".join(topic_parts)
-=======
-    # —— 组装 topic ——
     topic = "\n".join(topic_parts) if topic_parts else "通用影视解说"
->>>>>>> ee9c209ea90d432a86973b7316565e83ab68e46f
 
     # —— 组装 ScriptConfig ——
     config = ScriptConfig(
